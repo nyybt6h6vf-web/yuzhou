@@ -159,6 +159,19 @@ body{
 .inputbar .send{padding:0 16px;height:38px;border-radius:14px;background:var(--bubble-me);color:#fff;font-weight:700;font-size:14px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(120,140,255,.35);font-family:inherit;}
 #plusSheet{position:absolute;left:0;right:0;bottom:0;background:var(--panel);backdrop-filter:blur(18px);border-radius:24px 24px 0 0;padding:20px 18px 30px;transform:translateY(110%);transition:transform .25s;z-index:20;box-shadow:0 -10px 30px rgba(0,0,0,.15);}
 #plusSheet.show{transform:translateY(0);}
+.fingersheet{position:absolute;inset:0;z-index:80;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(16,20,32,.96);color:#fff;}
+.fingersheet.show{display:flex;}
+.fingersheet .fclose{position:absolute;top:14px;right:18px;font-size:20px;color:#fff;opacity:.7;cursor:pointer;}
+.fingersheet .ftitle{font-size:17px;letter-spacing:2px;margin-bottom:40px;opacity:.9;}
+.fingersheet .frow{display:flex;align-items:center;gap:26px;}
+.fingersheet .ffp{width:110px;height:110px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;}
+.fingersheet .fring{width:82px;height:82px;border-radius:50%;border:2px solid #7d93c9;display:flex;align-items:center;justify-content:center;font-size:30px;transition:.2s;}
+.fingersheet .fring:after{content:"❀";opacity:.85;}
+.fingersheet .ffp.done .fring{border-color:#5fd08a;background:rgba(95,208,138,.2);}
+.fingersheet .flab{margin-top:10px;font-size:12px;opacity:.7;}
+.fingersheet .fline{width:60px;height:2px;background:linear-gradient(90deg,#7d93c9,#9a7dc9);border-radius:2px;}
+.fingersheet .fstat{margin-top:44px;font-size:14px;opacity:.85;letter-spacing:1px;text-align:center;min-height:20px;}
+
 .plusgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 10px;}
 .plusitem{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;}
 .plusitem .pi{width:54px;height:54px;border-radius:18px;display:flex;align-items:center;justify-content:center;background:var(--icon-bg);color:var(--icon-fg);}
@@ -799,6 +812,16 @@ body{
     <div id="plusSheet">
       <div class="plusgrid" id="plusGrid"></div>
     </div>
+    <div class="fingersheet" id="fingerSheet">
+      <div class="fclose" onclick="closeFingerTest()">✕</div>
+      <div class="ftitle">连接深度测试</div>
+      <div class="frow">
+        <div class="ffp" id="fpMe"><div class="fring"></div><div class="flab">我</div></div>
+        <div class="fline"></div>
+        <div class="ffp" id="fpYou"><div class="fring"></div><div class="flab">TA</div></div>
+      </div>
+      <div class="fstat" id="fStat">长按右边指纹 3 秒</div>
+    </div>
   </div>
 
   <div class="screen" id="cards">
@@ -978,13 +1001,13 @@ body{
 <div class="row"><div class="lab">锁屏背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('lockBg')">上传图</div><div class="chip" onclick="setColor('lockBg','')">清</div></div></div>
 <div class="row"><div class="lab">锁屏字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('lockFg','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('lockFg','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setLockFgColor" oninput="setColor('lockFg',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('lockFg','')">清</div></div></div>
 <div class="row"><div class="lab">主页签名</div><input type="text" id="setSlogan" oninput="saveBeauty()" placeholder="头像右侧那行字，留空则不显示"></div>
-<div class="row"><div class="lab">页面背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPageBg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('pageBg')">上传图</div><div class="chip" onclick="setColor('pageBg','')">清</div></div></div>
-<div class="row"><div class="lab">第二页背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPage2Bg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('page2Bg')">上传图</div><div class="chip" onclick="setColor('page2Bg','')">清</div></div></div>
-<div class="row"><div class="lab">聊天背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setChatBg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('chatBg')">上传图</div><div class="chip" onclick="setColor('chatBg','')">清</div></div></div>
+<div class="row"><div class="lab">页面背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPageBg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('pageBg')">上传图</div><div class="chip" onclick="setColor('pageBg','')">清</div></div></div>
+<div class="row"><div class="lab">第二页背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPage2Bg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('page2Bg')">上传图</div><div class="chip" onclick="setColor('page2Bg','')">清</div></div></div>
+<div class="row"><div class="lab">聊天背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setChatBg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('chatBg')">上传图</div><div class="chip" onclick="setColor('chatBg','')">清</div></div></div>
 <div class="row"><div class="lab">主界面字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('fontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('fontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setFontColorColor" oninput="setColor('fontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fontColor','')">清</div></div></div>
 <div class="row"><div class="lab">梦角气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleHim','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleHim','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleHimColor" oninput="setColor('bubbleHim',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleHim','')">清</div></div></div>
 <div class="row"><div class="lab">我方气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleMe','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleMe','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleMeColor" oninput="setColor('bubbleMe',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleMe','')">清</div></div></div>
-<div class="row"><div class="lab">动态背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setMomBg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('momBg')">上传图</div><div class="chip" onclick="setColor('momBg','')">清</div></div></div>
+<div class="row"><div class="lab">动态背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setMomBg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('momBg')">上传图</div><div class="chip" onclick="setColor('momBg','')">清</div></div></div>
         <div class="row" style="flex-direction:column;align-items:stretch">
           <div class="lab" style="margin-bottom:8px">气泡 CSS（.msg .bubble 通用，写一条两边都生效）</div>
           <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty()"></textarea>
@@ -1330,7 +1353,8 @@ const PLUS=[
  {act:'pat',ic:'pat',name:'拍一拍'},
  {act:'album',ic:'album',name:'相册'},
  {act:'pack',ic:'moment',name:'表情包'},
- {act:'ask',ic:'cards',name:'问卷'}
+ {act:'ask',ic:'cards',name:'问卷'},
+ {act:'finger',ic:'pat',name:'测一测'}
 ];
 const DEFAULT_TILES=[];
 const DEFAULT_CARDS=[];
@@ -1840,6 +1864,43 @@ function himPat(){
 }
 function pickCard(){const cs=(D.cards&&D.cards.length)?D.cards:DEFAULT_CARDS;return cs[Math.floor(Math.random()*cs.length)];}
 
+
+/* ============ 测一测（连接深度） ============ */
+var _fpTimer=null,_fpPress=null,_fpMine=false,_fpYours=false;
+function openFingerTest(){
+  _fpMine=false;_fpYours=false;
+  var s=$('#fingerSheet');if(!s)return;
+  $('#fpMe').classList.remove('done');$('#fpYou').classList.remove('done');
+  $('#fStat').textContent='长按右边指纹 3 秒';
+  s.classList.add('show');
+  var you=$('#fpYou');
+  function start(){ if(_fpMine)return; _fpPress=Date.now(); $('#fStat').textContent='按住中…不要松手'; }
+  function end(){ if(_fpMine)return; if(!_fpPress)return; var d=Date.now()-_fpPress; _fpPress=null;
+    if(d>=2800){ _fpMine=true; $('#fpMe').classList.add('done'); $('#fStat').textContent='TA 正在按指纹中……';
+      setTimeout(function(){ _fpYours=true; $('#fpYou').classList.add('done'); $('#fStat').textContent='TA已经按好指纹啦～';
+        setTimeout(function(){ $('#fStat').textContent='现在进行连接深度测试';
+          setTimeout(runFingerResult,1200); },900); },5000);
+    } else { $('#fStat').textContent='要按满 3 秒哦，再试一次'; }
+  }
+  you.onmousedown=start; you.ontouchstart=function(e){e.preventDefault();start();};
+  you.onmouseup=end; you.ontouchend=function(e){e.preventDefault();end();};
+  you.onmouseleave=function(){ if(!_fpMine)end(); };
+}
+function closeFingerTest(){ var s=$('#fingerSheet');if(s)s.classList.remove('show'); _fpPress=null; }
+function runFingerResult(){
+  var r=Math.random()*100, lvl,label;
+  if(r<2){lvl=1;label='连接不稳';}
+  else if(r<7){lvl=2;label='初度连接';}
+  else if(r<17){lvl=3;label='连接较稳';}
+  else if(r<37){lvl=4;label='连接较深';}
+  else {lvl=5;label='心有灵犀';}
+  $('#fStat').textContent='结果：'+label;
+  setTimeout(function(){
+    closeFingerTest();
+    push({from:'him',type:'text',text:'我们的连接深度：'+label+'。'+ (lvl>=4?'我就知道是你。':'再靠近一点。'),_t:clockStr()});
+  },1600);
+}
+
 function togglePlus(){const s=$('#plusSheet'),m=$('#mask');const on=s.classList.toggle('show');m.classList.toggle('show',on);}
 function closeSheet(){$('#plusSheet').classList.remove('show');$('#mask').classList.remove('show');}
 function doPlus(act){
@@ -1857,6 +1918,7 @@ function doPlus(act){
   else if(act==='album'){pickTarget='album';$('#filePick').click();}
   else if(act==='pack'){openPackPicker();}
   else if(act==='ask'){openAskMaker();}
+  else if(act==='finger'){openFingerTest();}
 }
 let packUse='chat';
 function openPackPicker(){openPackPickerFor('chat');}
@@ -2845,8 +2907,8 @@ function renderMoments(){
     let comments='';
     (m.comments||[]).forEach((c,ci)=>{
       const cn=c.from==='me'?(D.myNick||'我'):(D.nick||'他');
-      const rep=c.replyTo?('<span class="morep">回复 '+esc(c.replyTo)+'</span> '):'';
-      comments+=`<div class="mocm" onclick="commentMoment('${m.id}',${ci})"><b>${esc(cn)}：</b>${rep}${esc(c.text)}</div>`;
+      var rep=c.replyTo?(esc(cn)+'回复'+esc(c.replyTo)+'：'):(esc(cn)+'：');
+      comments+=`<div class="mocm" onclick="commentMoment('${m.id}',${ci})"><b>${rep}</b>${esc(c.text)}</div>`;
     });
     b.insertAdjacentHTML('beforeend',
       `<div class="mo">
@@ -3065,7 +3127,7 @@ function toEmbed(url){
   if(!url)return ['open',url];
   if(AUDIO_RE.test(url))return ['audio',url];
   m=url.match(/music\.163\.com\/(?:#\/)?song\?.*?id=(\d+)/)||url.match(/music\.163\.com\/.*[?&]id=(\d+)/);
-  if(m)return ['audio','https://music.163.com/song/media/outer/url?id='+m[1]+'.mp3|https://api.injahow.cn/meting/?type=song&id='+m[1]];
+  if(m)return ['frame','https://music.163.com/outchain/player?type=2&id='+m[1]+'&auto=0&height=66']
   m=url.match(/163cn\.tv\/(\w+)/);if(m)return ['audio','https://music.163.com/song/media/outer/url?id='+m[1]+'.mp3|https://api.injahow.cn/meting/?type=song&id='+m[1]];
   m=url.match(/y\.qq\.com\/.*songDetail\/(\w+)/)||url.match(/songmid=(\w+)/)||url.match(/songid=(\w+)/);
   if(m)return ['audio','https://ws.stream.qqmusic.qq.com/C100'+m[1]+'.m4a?fromtag=0|https://api.injahow.cn/meting/?type=song&id='+m[1]];
