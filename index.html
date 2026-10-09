@@ -2930,7 +2930,7 @@ function renderDiary(){
   renderDiaryProfile();
   const l=$('#diaryList');if(!l)return;l.innerHTML='';
   D.diaries=D.diaries||[];
-  let list=D.diaries.slice();
+  let list=D.diaries.filter(function(x){return (x.from||'me')==='me';});
   list.sort(function(a,b){return (a.time||'')<(b.time||'')?-1:1;});
   if(!list.length){l.innerHTML='<div class="empty">还没有日记。</div>';return;}
   list.forEach(function(d){ l.insertAdjacentHTML('beforeend', diaryItemHTML(d)); });
@@ -4392,6 +4392,8 @@ function applyBackup(txt){
     if(!o||typeof o!=='object')throw 0;
     D=Object.assign(D,o);
     if(!D.tiles)D.tiles=DEFAULT_TILES.slice();
+    try{if(D.convs&&D.convs.length){if(!D.curConv)D.curConv=D.convs[0].id;var _cv=D.convs.find(function(c){return c.id===D.curConv;})||D.convs[0];D.curConv=_cv.id;_yzBindMsgs(D);}}catch(e){}
+    try{yzApplyHomeChara();}catch(e){}
     save();
     document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light');
     renderHome();renderPlus();renderChat();fillSettings();applyCustom();
@@ -4516,7 +4518,7 @@ function applyCustom(){
       t=t.replace(/!important/ig,'').trim();
       decls.push(t);
     });
-    if(decls.length){css+=`.msg.him .bubble,.msg.me .bubble{${decls.join(';')}}`;}
+    if(decls.length){css+=`.msg.him .bubble,.msg.me .bubble{${decls.join('; !important;')} !important;}`;}
   }
   let st=document.getElementById('customStyle');
   if(!st){st=document.createElement('style');st.id='customStyle';document.head.appendChild(st);}
@@ -4525,11 +4527,8 @@ function applyCustom(){
 }
 
 window.__tranTap=function(i){try{tranAct(i);}catch(e){}};
-window.__applyBubbleInline=function(){
-  const d=window.__bubbleDecls;if(!d)return;
-  const map={};d.forEach(s=>{const i=s.indexOf(':');if(i<0)return;const k=s.slice(0,i).replace(/!important/ig,'').trim();const v=s.slice(i+1).replace(/!important/ig,'').trim();if(k&&v)map[k]=v;});
-  document.querySelectorAll('.bubble').forEach(b=>{for(const k in map){try{b.style.setProperty(k,map[k],'important');}catch(e){}}});
-};
+window.__bubbleDecls=null;
+window.__applyBubbleInline=function(){/* 已改为纯样式表注入，这里不再硬拆 inline，避免“只生效一半” */};
 
 function checkPass(){
   const v=($('#passInput').value||'').trim();
