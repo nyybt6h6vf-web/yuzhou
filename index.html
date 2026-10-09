@@ -159,6 +159,39 @@ body{
 .inputbar .send{padding:0 16px;height:38px;border-radius:14px;background:var(--bubble-me);color:#fff;font-weight:700;font-size:14px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(120,140,255,.35);font-family:inherit;}
 #plusSheet{position:absolute;left:0;right:0;bottom:0;background:var(--panel);backdrop-filter:blur(18px);border-radius:24px 24px 0 0;padding:20px 18px 30px;transform:translateY(110%);transition:transform .25s;z-index:20;box-shadow:0 -10px 30px rgba(0,0,0,.15);}
 #plusSheet.show{transform:translateY(0);}
+/* ===== 多梦角 ===== */
+.chatmore{color:#859ecb;font-size:20px;font-weight:600;margin-left:2px;cursor:pointer;line-height:1;}
+.convlist{flex:1;overflow-y:auto;padding:6px 0 30px;}
+.convitem{display:flex;align-items:center;gap:14px;padding:14px 20px;cursor:pointer;border-bottom:1px solid var(--line);}
+.convitem:active{background:rgba(127,127,127,.08);}
+.convitem .cav{width:48px;height:48px;flex:0 0 48px;border-radius:16px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;background:var(--icon-bg);color:var(--icon-fg);}
+.convitem .cav img{width:100%;height:100%;object-fit:cover;}
+.convitem .cinfo{flex:1;min-width:0;}
+.convitem .cnm{font-size:15px;font-weight:600;color:var(--text);}
+.convitem .clast{font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px;}
+#clPlus{position:absolute;top:96px;right:16px;z-index:25;background:var(--panel);border-radius:16px;box-shadow:0 8px 26px rgba(0,0,0,.22);padding:6px;display:none;min-width:150px;}
+#clPlus.show{display:block;}
+.clplus-item{padding:12px 18px;font-size:14px;color:var(--text);cursor:pointer;border-radius:12px;}
+.clplus-item:active{background:rgba(127,127,127,.12);}
+.groupsheet{position:absolute;inset:0;z-index:90;display:none;align-items:center;justify-content:center;background:rgba(10,12,25,.45);backdrop-filter:blur(4px);}
+.groupsheet.show{display:flex;}
+.groupsheet .gdial{width:82%;max-width:340px;background:var(--panel);border-radius:22px;padding:22px 20px;max-height:70%;overflow-y:auto;}
+.groupsheet .gtitle{font-size:15px;font-weight:600;color:var(--text);margin-bottom:14px;}
+.groupsheet .gsel{display:flex;flex-direction:column;gap:4px;margin-bottom:16px;}
+.groupsheet .gitem{display:flex;align-items:center;gap:10px;padding:11px 8px;font-size:14px;color:var(--text);border-radius:10px;cursor:pointer;}
+.groupsheet .gitem:active{background:rgba(127,127,127,.1);}
+.groupsheet .gitem input{width:18px;height:18px;}
+.groupsheet .gb{text-align:center;padding:13px 0;border-radius:14px;font-size:14.5px;font-weight:600;background:var(--bubble-me);color:var(--bubble-me-text);cursor:pointer;margin-top:8px;}
+.groupsheet .gb.cancel{background:transparent;color:var(--sub);}
+#charaSheet{align-items:center;}
+.cdial{width:86%;max-width:360px;background:var(--panel);border-radius:22px;padding:24px 20px;text-align:center;}
+.cdial .cbigav{width:76px;height:76px;border-radius:24px;margin:0 auto 14px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;background:var(--icon-bg);color:var(--icon-fg);cursor:pointer;}
+.cdial .cbigav img{width:100%;height:100%;object-fit:cover;}
+.cdial .cnm{font-size:17px;font-weight:700;color:var(--text);}
+.cdial .cidrow{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;font-size:13px;color:var(--sub);}
+.cdial .cidrow .cidset{font-size:12px;color:#fff;background:#859ecb;padding:2px 10px;border-radius:8px;cursor:pointer;}
+.cdial .ctimes{margin-top:14px;font-size:12px;color:var(--sub);line-height:1.9;text-align:left;background:var(--card);border-radius:14px;padding:12px 14px;}
+
 .fingersheet{position:absolute;inset:0;z-index:80;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(16,20,32,.96);color:#fff;}
 .fingersheet.show{display:flex;}
 .fingersheet .fclose{position:absolute;top:14px;right:18px;font-size:20px;color:#fff;opacity:.7;cursor:pointer;}
@@ -796,11 +829,25 @@ body{
     <div class="hdots" id="homeDots"><i class="on"></i><i></i></div>
   </div>
 
+  <div class="screen" id="chatlist">
+    <div class="statusbar"><span id="clTimeTop">9:41</span><span class="right">●●● 100%</span></div>
+    <div class="navbar">
+      <div class="back" onclick="go('home')">‹</div>
+      <div class="title">聊天</div>
+      <div class="act" onclick="yzChatPlus()">＋</div>
+    </div>
+    <div class="convlist" id="convList"></div>
+    <div class="mask" id="clMask" onclick="yzCloseChatPlus()"></div>
+    <div id="clPlus">
+      <div class="clplus-item" onclick="yzCloseChatPlus();yzAddChara();">添加梦角</div>
+      <div class="clplus-item" onclick="yzCloseChatPlus();yzCreateGroup();">创建群聊</div>
+    </div>
+  </div>
   <div class="screen" id="chat">
     <div class="statusbar"><span id="chatTimeTop">9:41</span><span class="right">●●● 100%</span></div>
     <div class="navbar">
       <div class="back" onclick="go('home')">‹</div>
-      <div class="title" id="chatTitle">他</div><div class="chatfeel" id="chatFeeling"></div>
+      <div class="title" id="chatTitle">他</div><span id="chatMore" class="chatmore" onclick="yzCharaInfo()">›</span><div class="chatfeel" id="chatFeeling"></div>
     </div>
     <div class="chat-body" id="chatBody"></div>
     <div class="inputbar">
@@ -811,6 +858,17 @@ body{
     <div class="mask" id="mask" onclick="togglePlus()"></div>
     <div id="plusSheet">
       <div class="plusgrid" id="plusGrid"></div>
+    </div>
+    <div class="groupsheet" id="groupSheet">
+      <div class="gdial">
+        <div class="gtitle">选择梦角（至少两个）</div>
+        <div class="gsel"></div>
+        <div class="gb" onclick="yzDoCreateGroup()">创建</div>
+        <div class="gb cancel" onclick="document.getElementById('groupSheet').classList.remove('show')">取消</div>
+      </div>
+    </div>
+    <div class="sheet" id="charaSheet">
+      <div class="cdial" id="charaDial"></div>
     </div>
     <div class="fingersheet" id="fingerSheet">
       <div class="fclose" onclick="closeFingerTest()">✕</div>
@@ -1334,7 +1392,7 @@ const ICONS={
  moment:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/></svg>'
 };
 const HOME_APPS=[
- {act:'chat',ic:'chat',name:'聊天'},
+ {act:'chatlist',ic:'chat',name:'聊天'},
  {act:'listen',ic:'listen',name:'一起听'},
  {act:'moments',ic:'moment',name:'动态'},
  {act:'cards',ic:'cards',name:'字卡库'},
@@ -1358,6 +1416,145 @@ const PLUS=[
 ];
 const DEFAULT_TILES=[];
 const DEFAULT_CARDS=[];
+
+/* ================ 多梦角 / 会话 ================ */
+function _yzBindMsgs(o){
+  try{
+    o=o||D;
+    if(!o.convs||!o.convs.length)return;
+    if(!o.curConv)o.curConv=o.convs[0].id;
+    var cv=o.convs.find(function(c){return c.id===o.curConv;})||o.convs[0];
+    o.curConv=cv.id;
+    o.msgs=cv.msgs=cv.msgs||[];
+    // 同步单聊的 nick/avatarHim，保证旧代码读到的是当前梦角
+    if(cv.type==='single'){
+      var ch=o.charas.find(function(c){return c.id===cv.charas[0];});
+      if(ch){o.nick=ch.nick;o.avatarHim=ch.avatar||'';}
+    }
+  }catch(e){}
+}
+function yzCurConv(){return (D.convs||[]).find(function(c){return c.id===D.curConv;})||(D.convs||[])[0];}
+function yzConvTitle(cv){
+  if(!cv)return '他';
+  if(cv.type==='group'){
+    var ns=(cv.charas||[]).map(function(id){var c=(D.charas||[]).find(function(x){return x.id===id;});return c?c.nick:'';}).filter(Boolean);
+    return ns.join('、')||'群聊';
+  }
+  var ch=(D.charas||[]).find(function(c){return c.id===cv.charas[0];});
+  return ch?ch.nick:'他';
+}
+function yzOpenConv(id){
+  D.curConv=id;
+  _yzBindMsgs(D);
+  var cv=yzCurConv();
+  if(cv&&cv.type!=='group'){
+    var ch=(D.charas||[]).find(function(c){return c.id===cv.charas[0];});
+    if(ch){ var now=Date.now(); if(!ch.firstChat)ch.firstChat=now; ch.lastChat=now; }
+  }
+  save();
+  renderChat();
+  go('chat');
+}
+function yzAddChara(){
+  askInput('梦角昵称','',function(nm){
+    nm=(nm||'').trim();if(!nm)return;
+    var id='ch'+Date.now();
+    D.charas=D.charas||[];
+    D.charas.push({id:id,nick:nm,avatar:'',accId:'',created:Date.now(),firstChat:0,lastChat:0});
+    var cid='c_'+id;
+    D.convs=D.convs||[];
+    D.convs.push({id:cid,type:'single',charas:[id],msgs:[]});
+    save();renderChatList();
+    toast('梦角已添加');
+  },'之后可以点头像换图');
+}
+function yzCreateGroup(){
+  if((D.charas||[]).length<2){toast('至少要有两个梦角才能建群');return;}
+  var g=document.getElementById('groupSheet');
+  if(!g)return;
+  var box=g.querySelector('.gsel');
+  box.innerHTML='';
+  D.charas.forEach(function(c){
+    box.insertAdjacentHTML('beforeend','<label class="gitem"><input type="checkbox" value="'+c.id+'"> '+esc(c.nick)+'</label>');
+  });
+  g.classList.add('show');
+}
+function yzDoCreateGroup(){
+  var g=document.getElementById('groupSheet');
+  var ids=[];
+  g.querySelectorAll('input:checked').forEach(function(x){ids.push(x.value);});
+  if(ids.length<2){toast('至少选两个梦角');return;}
+  var cid='cg'+Date.now();
+  D.convs=D.convs||[];
+  D.convs.push({id:cid,type:'group',charas:ids,msgs:[],rate:30,min:1,max:2});
+  g.classList.remove('show');
+  save();renderChatList();
+  yzOpenConv(cid);
+  toast('群聊已创建');
+}
+
+
+function renderChatList(){
+  var l=document.getElementById('convList');if(!l)return;l.innerHTML='';
+  (D.convs||[]).forEach(function(cv){
+    var title=yzConvTitle(cv);
+    var av='';
+    if(cv.type==='group'){av='群';}
+    else{
+      var ch=(D.charas||[]).find(function(c){return c.id===cv.charas[0];});
+      if(ch&&ch.avatar){av='<img src="'+ch.avatar+'">';}
+      else{av=(title||'他')[0];}
+    }
+    var last=(cv.msgs&&cv.msgs.length)?(function(m){var t=m.text||'';if(m.type==='img')t='[表情]';if(m.type==='transfer')t='[转账]';if(m.type==='pat')t='[拍一拍]';return (m.from==='me'?'我：':'')+t;})(cv.msgs[cv.msgs.length-1]):'还没有聊天';
+    l.insertAdjacentHTML('beforeend','<div class="convitem" onclick="yzOpenConv(\''+cv.id+'\')">'+
+      '<div class="cav">'+av+'</div>'+
+      '<div class="cinfo"><div class="cnm">'+esc(title)+'</div><div class="clast">'+esc(last.slice(0,20))+'</div></div>'+
+      '</div>');
+  });
+  if(!(D.convs||[]).length){l.innerHTML='<div class="empty">点右上角 ＋ 添加梦角</div>';}
+}
+function yzChatPlus(){var p=document.getElementById('clPlus'),m=document.getElementById('clMask');var on=p.classList.toggle('show');m.classList.toggle('show',on);}
+function yzCloseChatPlus(){document.getElementById('clPlus').classList.remove('show');document.getElementById('clMask').classList.remove('show');}
+function yzCharaInfo(){
+  var cv=yzCurConv();if(!cv)return;
+  if(cv.type==='group'){yzGroupSetting(cv);return;}
+  var ch=(D.charas||[]).find(function(c){return c.id===cv.charas[0];});if(!ch)return;
+  renderCharaDial(ch);
+  document.getElementById('charaSheet').classList.add('show');
+}
+function renderCharaDial(ch){
+  var d=document.getElementById('charaDial');if(!d)return;
+  var av=ch.avatar?'<img src="'+ch.avatar+'">':(ch.nick||'他')[0];
+  var ctime=ch.created?new Date(ch.created).toLocaleDateString():'未记录';
+  var fc=ch.firstChat?new Date(ch.firstChat).toLocaleString():'还没有开始聊';
+  var lc=ch.lastChat?new Date(ch.lastChat).toLocaleString():'还没有开始聊';
+  var idrow=ch.accId?(('<div class="cidrow">梦角ID：'+esc(ch.accId)+'<span class="cidset" onclick="yzSetAccId(\''+ch.id+'\')">改</span></div>'))
+                    :('<div class="cidrow"><span class="cidset" onclick="yzSetAccId(\''+ch.id+'\')">设置梦角ID</span></div>');
+  d.innerHTML='<div class="cbigav" onclick="yzPickCharaAvatar(\''+ch.id+'\')">'+av+'</div>'+
+    '<div class="cnm">'+esc(ch.nick)+'</div>'+ idrow +
+    '<div class="ctimes">创建时间：'+esc(ctime)+'<br>初次聊天：'+esc(fc)+'<br>最新聊天：'+esc(lc)+'</div>'+
+    '<div style="margin-top:16px"><span class="cidset" onclick="yzRenameChara(\''+ch.id+'\')">改名字</span> <span class="cidset" style="background:#c96" onclick="document.getElementById(\'charaSheet\').classList.remove(\'show\')">关闭</span></div>';
+}
+function yzPickCharaAvatar(id){_yzAvatarFor=id;pickTarget='charaav';var f=document.getElementById('filePick');if(f)f.click();}
+function yzSetAccId(id){askInput('梦角账号ID','',function(t){var ch=(D.charas||[]).find(function(c){return c.id===id;});if(!ch)return;ch.accId=(t||'').trim();syncedDiaryId(ch);save();renderCharaDial(ch);toast('ID已设置');},'同步到该梦角的日记账号');}
+function yzRenameChara(id){askInput('新昵称','',function(t){var ch=(D.charas||[]).find(function(c){return c.id===id;});if(!ch)return;var v=(t||'').trim();if(!v)return;ch.nick=v;syncCharaToConv(ch);save();renderCharaDial(ch);updateHomeAvatar&&updateHomeAvatar();},'');}
+function syncCharaToConv(ch){try{if(D.curConv){var cv=yzCurConv();if(cv&&cv.type!=='group'&&cv.charas[0]===ch.id){D.nick=ch.nick;D.avatarHim=ch.avatar||'';}}}catch(e){}}
+function syncedDiaryId(ch){try{if(D.diaryHim&&ch&&ch.accId!==undefined){D.diaryHim.id=ch.accId;save();}}catch(e){}}
+/* 群聊设置 */
+function yzGroupSetting(cv){
+  var d=document.getElementById('groupSheet');
+  var names=(cv.charas||[]).map(function(id){var c=(D.charas||[]).find(function(x){return x.id===id;});return c?c.nick:'';}).join('、');
+  d.querySelector('.gtitle').textContent='群聊设置 · '+names;
+  var box=d.querySelector('.gsel');
+  box.innerHTML='<div class="gitem">发言概率(%)：<input type="number" id="grRate" value="'+(cv.rate===undefined?30:cv.rate)+'" style="width:70px;margin-left:auto"></div>'+
+    '<div class="gitem">最少连发：<input type="number" id="grMin" value="'+(cv.min===undefined?1:cv.min)+'" style="width:70px;margin-left:auto"></div>'+
+    '<div class="gitem">最多连发：<input type="number" id="grMax" value="'+(cv.max===undefined?2:cv.max)+'" style="width:70px;margin-left:auto"></div>';
+  var b=d.querySelector('.gb');
+  b.textContent='保存';
+  b.onclick=function(){cv.rate=parseInt(document.getElementById('grRate').value)||0;cv.min=Math.max(1,parseInt(document.getElementById('grMin').value)||1);cv.max=Math.max(cv.min,parseInt(document.getElementById('grMax').value)||1);save();d.classList.remove('show');toast('群聊设置已保存');};
+  d.classList.add('show');
+}
+
 let D=load();
 function load(){
   try{console.log('[LOAD] raw=',(localStorage.getItem(DKEY)||'NULL').slice(0,120));const r=localStorage.getItem(DKEY)||localStorage.getItem('yuzhou_data_v3')||localStorage.getItem('yuzhou_data_v2');console.log('[LOAD] r取到=',r?('有'+r.length):'无');if(r){
@@ -1416,6 +1613,20 @@ if(o.daifuGap===undefined)o.daifuGap=20;
     if(o.bubble===undefined)o.bubble='';
     if(o.readOn===undefined)o.readOn=true;
     if(o.typingOn===undefined)o.typingOn=true;
+    // ==== 多梦角迁移 ====
+    if(!o.charas)o.charas=[];
+    if(!o.convs)o.convs=[];
+    if(o.curConv===undefined)o.curConv='';
+    if(!o.charas.length){
+      var _cid='ch1';
+      o.charas.push({id:_cid,nick:(o.nick||'他'),avatar:(o.avatarHim||''),accId:'',created:Date.now(),firstChat:0,lastChat:0});
+    }
+    if(!o.convs.length){
+      o.convs.push({id:'c_'+o.charas[0].id,type:'single',charas:[o.charas[0].id],msgs:(o.msgs||[])});
+    }
+    // 确保每个单聊心里有 msgs
+    o.convs.forEach(function(cv){if(!cv.msgs)cv.msgs=[];});
+    _yzBindMsgs(o);
     return o;
   }}catch(e){try{console.error('LOAD_PARSE_FAIL',e);}catch(_){}}
   return {theme:'light',nick:'他',myNick:'我',avatarHim:'',avatarMe:'',
@@ -1431,6 +1642,7 @@ if(o.daifuGap===undefined)o.daifuGap=20;
     letters:[],replyGap:5,letterSent:"1-2",
     letterGap:10,
     packs:[],feelings:[],feelGap:30,feelIdx:-1,
+    charas:[],convs:[],curConv:'',
     pats:[],
     cards:DEFAULT_CARDS.slice(),msgs:[],startDate:'2026-07-19',
     moments:[],
@@ -1499,6 +1711,7 @@ function tick(){
 function go(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const el=$('#'+id);if(el)el.classList.add('active');
+  if(id==='chatlist')renderChatList();
   if(id==='chat'){renderChat();$('#chat').style.background=getChatBg();setTimeout(scrollBottom,30);}
   if(id==='cards')renderCards();
   if(id==='together')renderTiles();
@@ -1514,7 +1727,7 @@ function go(id){
   if(id==='letterWrite'){const to=$('#lwTo');if(to)to.textContent=letterTo(D.nick);}
   if(id==='diaryWrite'){const dt=$('#dwDate');if(dt)dt.textContent=dToday();}
 }
-const DOCK_ACTS=['chat','moments','letters','diary'];
+const DOCK_ACTS=['chatlist','moments','letters','diary'];
 function renderHome(){
   const dock=$('#homeDock'),g=$('#homeGrid');
   const dk=HOME_APPS.filter(a=>DOCK_ACTS.indexOf(a.act)>=0);
@@ -1697,7 +1910,7 @@ function bubbleHTML(m,i){
 }
 function renderChat(){
   const b=$('#chatBody');b.innerHTML='';
-  $('#chatTitle').textContent=D.nick||'他';
+  var _cvT=yzCurConv();$('#chatTitle').textContent=_cvT?yzConvTitle(_cvT):(D.nick||'他');
   const cf=$('#chatFeeling');
   if(cf){const t=curFeeling();cf.textContent=t||'';cf.style.display=t?'':'none';}
   if(!D.msgs.length){b.innerHTML='';}
@@ -1920,6 +2133,7 @@ function doPlus(act){
   else if(act==='ask'){openAskMaker();}
   else if(act==='finger'){openFingerTest();}
 }
+let _yzAvatarFor='';
 let packUse='chat';
 function openPackPicker(){openPackPickerFor('chat');}
 function openPackPickerFor(use){
@@ -2762,6 +2976,7 @@ $('#filePick').addEventListener('change',function(){
       else if(target==='photocard'){D['photo'+(_photoN||1)]=res;save();renderPhotoWall();done();toast('照片已放上');}
       else if(target==='diarybg'){D.diaryBg=res;save();renderDiaryProfile();done();toast('背景已更新');}
       else if(target==='diaryav'){D.diaryAv=res;save();renderDiaryProfile();done();toast('头像已更新');}
+      else if(target==='charaav'){var _ch=(D.charas||[]).find(function(c){return c.id===_yzAvatarFor;});if(_ch){_ch.avatar=res;if(yzCurConv()&&yzCurConv().type!=='group'){D.avatarHim=res;}save();renderCharaDial(_ch);renderChatList();}done();toast('头像已更新');}
       else if(target==='himbg'){D.himBg=res;save();renderHimProfile();done();toast('背景已更新');}
       else if(target==='himav'){D.himAv=res;save();renderHimProfile();done();toast('头像已更新');}
       else if(target&&target.indexOf('bg:')===0){
@@ -3949,6 +4164,7 @@ window.__yzInfo=function(){
   return {build:'1300',msgs:(D.msgs||[]).length,tranActs:typeof tranAct,hasSheet:!!document.getElementById('tranSheet')};
 };
 function init(){
+  try{_yzBindMsgs(D);}catch(e){}
   document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light');
   tick();setInterval(tick,1000);
   const rm=$('#recMic');if(rm)rm.innerHTML=ICONS.mic;
