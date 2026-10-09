@@ -1323,7 +1323,7 @@ const DEFAULT_TILES=[];
 const DEFAULT_CARDS=[];
 let D=load();
 function load(){
-  try{const r=localStorage.getItem(DKEY)||localStorage.getItem('yuzhou_data_v3')||localStorage.getItem('yuzhou_data_v2');if(r){
+  try{console.log('[LOAD] raw=',(localStorage.getItem(DKEY)||'NULL').slice(0,120));const r=localStorage.getItem(DKEY)||localStorage.getItem('yuzhou_data_v3')||localStorage.getItem('yuzhou_data_v2');console.log('[LOAD] r取到=',r?('有'+r.length):'无');if(r){
     const o=JSON.parse(r);
     if(!o.tiles)o.tiles=DEFAULT_TILES.slice();
     if(!o.moments)o.moments=[];
@@ -1380,7 +1380,7 @@ if(o.daifuGap===undefined)o.daifuGap=20;
     if(o.readOn===undefined)o.readOn=true;
     if(o.typingOn===undefined)o.typingOn=true;
     return o;
-  }}catch(e){}
+  }}catch(e){try{console.error('LOAD_PARSE_FAIL',e);}catch(_){}}
   return {theme:'light',nick:'他',myNick:'我',avatarHim:'',avatarMe:'',
     pageBg:'',chatBg:'',momBg:'',lockBg:'',lockFg:'',fontColor:'',bubble:'',bubbleHim:'',bubbleMe:'',heroImg:'',
     readOn:true,typingOn:true,
@@ -1399,7 +1399,7 @@ if(o.daifuGap===undefined)o.daifuGap=20;
     moments:[],
     tiles:DEFAULT_TILES.slice()};
 }
-function save(){try{localStorage.setItem(DKEY,JSON.stringify(D));}catch(e){var __b=document.getElementById('__saveerr');if(!__b){__b=document.createElement('div');__b.id='__saveerr';__b.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;z-index:999999;background:#c00;color:#fff;font-size:12px;padding:8px;border-radius:8px;white-space:pre-wrap';document.body.appendChild(__b);}var __sz=0;try{__sz=JSON.stringify(D).length;}catch(_e){}__b.textContent='【存档失败】'+e.name+': '+e.message+'  数据大小约 '+Math.round(__sz/1024)+' KB';}}
+function save(){try{window.__saves=(window.__saves||0)+1;console.log('[SAVE#'+window.__saves+']','D.myNick=',D.myNick,'len=',JSON.stringify(D).length);localStorage.setItem(DKEY,JSON.stringify(D));}catch(e){var __b=document.getElementById('__saveerr');if(!__b){__b=document.createElement('div');__b.id='__saveerr';__b.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;z-index:999999;background:#c00;color:#fff;font-size:12px;padding:8px;border-radius:8px;white-space:pre-wrap';document.body.appendChild(__b);}var __sz=0;try{__sz=JSON.stringify(D).length;}catch(_e){}__b.textContent='【存档失败】'+e.name+': '+e.message+'  数据大小约 '+Math.round(__sz/1024)+' KB';}}
 function $(s){return document.querySelector(s);}
 function pad(n){return n<10?'0'+n:''+n;}
 
@@ -3790,7 +3790,7 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
   if(D.pass&&D.pass.trim())openSheet2('passSheet');
 }
 
-try{var __d=localStorage.getItem(DKEY);var __info='【存储体检】可写='+(function(){try{localStorage.setItem('__t','1');localStorage.removeItem('__t');return '是';}catch(e){return '否('+e.name+')';}})()+' | 当前存档='+(__d?('有, '+Math.round(__d.length/1024)+' KB'):'空')+' | D大小='+Math.round(JSON.stringify(D).length/1024)+' KB | 域名='+location.hostname;var __p=document.createElement('div');__p.style.cssText='position:fixed;top:2px;left:2px;z-index:999998;background:rgba(0,120,0,.85);color:#fff;font-size:10px;padding:3px 6px;border-radius:6px';__p.textContent=__info;document.body.appendChild(__p);}catch(__e){}
+try{window.__dbg=[];var __d=localStorage.getItem(DKEY);var __info='【体检】LOAD:'+((localStorage.getItem(DKEY)||'NULL').slice(0,60))+' || 可写='+(function(){try{localStorage.setItem('__t','1');localStorage.removeItem('__t');return '是';}catch(e){return '否('+e.name+')';}})()+' | 当前存档='+(__d?('有, '+Math.round(__d.length/1024)+' KB'):'空')+' | D大小='+Math.round(JSON.stringify(D).length/1024)+' KB | 域名='+location.hostname;var __p=document.createElement('div');__p.style.cssText='position:fixed;top:2px;left:2px;z-index:999998;background:rgba(0,120,0,.85);color:#fff;font-size:10px;padding:3px 6px;border-radius:6px';__p.textContent=__info;document.body.appendChild(__p);}catch(__e){}
 
 try{
 var __chk=document.createElement('button');
@@ -3815,6 +3815,8 @@ document.body.appendChild(__chk);
 try{var __btn=document.createElement('button');__btn.textContent='测试存档';__btn.style.cssText='position:fixed;top:22px;left:2px;z-index:9999999;background:#06c;color:#fff;font-size:11px;padding:4px 8px;border:0;border-radius:6px';__btn.onclick=function(){var __raw=localStorage.getItem(DKEY);var __txt='DKEY='+DKEY+'\n\\n';__txt+='localStorage原始='+(__raw?__raw.slice(0,300):'空')+'\n\\n';__txt+='内存中 D.noteMe='+JSON.stringify(D.noteMe)+'\n\\n';__txt+='内存中 D.noteHim='+JSON.stringify(D.noteHim)+'\n\\n';var __p;try{__p=JSON.parse(__raw||'{}');__txt+='解析后 noteMe='+JSON.stringify(__p.noteMe);}catch(e){__txt+='解析失败:'+e.message;}alert(__txt);};document.body.appendChild(__btn);}catch(__e){}
 
 try{setInterval(function(){try{var im=document.getElementById('noteMe'),ih=document.getElementById('noteHim');if(im&&im.value!==(D.noteMe||''))im.value=D.noteMe||'';if(ih&&ih.value!==(D.noteHim||''))ih.value=D.noteHim||'';}catch(e){}},1000);}catch(e){}
+
+try{setTimeout(function(){try{var t='=== 刷新后自动体检 ===\nDKEY='+DKEY+'\n\n';t+='localStorage中该key='+((localStorage.getItem(DKEY)||'【无】').slice(0,120))+'\n\n';var ks=[];for(var i=0;i<localStorage.length;i++){ks.push(localStorage.key(i));}t+='本域名所有key='+JSON.stringify(ks)+'\n\n';t+='内存D.myNick='+JSON.stringify(D.myNick)+'\n内存D.noteMe='+JSON.stringify(D.noteMe);alert(t);}catch(e){alert('err:'+e.message);}},1500);}catch(e){}
 console.log("YZ build 1300-all7-done");
 init();
 </script>
