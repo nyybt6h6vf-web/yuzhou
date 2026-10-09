@@ -189,6 +189,9 @@ body{
 .groupsheet .gitem input{width:18px;height:18px;}
 .groupsheet .gb{text-align:center;padding:13px 0;border-radius:14px;font-size:14.5px;font-weight:600;background:var(--bubble-me);color:var(--bubble-me-text);cursor:pointer;margin-top:8px;}
 .groupsheet .gb.cancel{background:transparent;color:var(--sub);}
+.cdial{position:relative;}
+.cdial-close{position:absolute;top:-12px;right:-8px;width:30px;height:30px;border-radius:50%;background:var(--card);color:var(--text);display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.18);cursor:pointer;}
+.chatid{font-size:10px;color:var(--sub);margin:1px 0 0 2px;}
 #charaSheet{align-items:center;}
 .cdial{width:86%;max-width:360px;background:var(--panel);border-radius:22px;padding:24px 20px;text-align:center;}
 .cdial .cbigav{width:76px;height:76px;border-radius:24px;margin:0 auto 14px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;background:var(--icon-bg);color:var(--icon-fg);cursor:pointer;}
@@ -853,7 +856,7 @@ body{
     <div class="statusbar"><span id="chatTimeTop">9:41</span><span class="right">●●● 100%</span></div>
     <div class="navbar">
       <div class="back" onclick="go('home')">‹</div>
-      <div class="title" id="chatTitle">他</div><span id="chatMore" class="chatmore" onclick="yzCharaInfo()">›</span><div class="chatfeel" id="chatFeeling"></div>
+      <div class="title" id="chatTitle">他</div><span id="chatMore" class="chatmore" onclick="yzCharaInfo()">›</span><div class="chatfeel" id="chatFeeling"></div><div class="chatid" id="chatIdLine"></div>
     </div>
     <div class="chat-body" id="chatBody"></div>
     <div class="inputbar">
@@ -1583,7 +1586,7 @@ function renderCharaDial(ch){
   d.innerHTML='<div class="cbigav" onclick="yzPickCharaAvatar(\''+ch.id+'\')">'+av+'</div>'+
     '<div class="cnm">'+esc(ch.nick)+'</div>'+ idrow +
     '<div class="ctimes">创建时间：'+esc(ctime)+'<br>初次聊天：'+esc(fc)+'<br>最新聊天：'+esc(lc)+'</div>'+
-    '<div style="margin-top:16px"><span class="cidset" onclick="yzRenameChara(\''+ch.id+'\')">改名字</span> <span class="cidset" style="background:#c96" onclick="document.getElementById(\'charaSheet\').classList.remove(\'show\')">关闭</span></div>';
+    '<div style="margin-top:16px"><span class="cidset" onclick="yzRenameChara(\''+ch.id+'\')">改名字</span></div>'; d.insertAdjacentHTML('afterbegin','<div class="cdial-close" onclick="document.getElementById(\'charaSheet\').classList.remove(\'show\')">✕</div>');
 }
 function yzPickCharaAvatar(id){_yzAvatarFor=id;pickTarget='charaav';var f=document.getElementById('filePick');if(f)f.click();}
 function yzSetAccId(id){askInput('梦角账号ID','',function(t){var ch=(D.charas||[]).find(function(c){return c.id===id;});if(!ch)return;ch.accId=(t||'').trim();syncedDiaryId(ch);save();renderCharaDial(ch);toast('ID已设置');},'同步到该梦角的日记账号');}
@@ -1977,6 +1980,7 @@ function bubbleHTML(m,i){
 function renderChat(){
   const b=$('#chatBody');b.innerHTML='';
   var _cvT=yzCurConv();$('#chatTitle').textContent=_cvT?yzConvTitle(_cvT):(D.nick||'他');
+  try{var _idline=document.getElementById('chatIdLine');if(_idline){if(_cvT&&_cvT.type!=='group'){var _cch=(D.charas||[]).find(function(c){return c.id===_cvT.charas[0];});_idline.textContent=(_cch&&_cch.accId)?('@'+_cch.accId):'';}else{_idline.textContent='';}}}catch(e){}
   const cf=$('#chatFeeling');
   if(cf){const t=curFeeling();cf.textContent=t||'';cf.style.display=t?'':'none';}
   if(!D.msgs.length){b.innerHTML='';}
@@ -2228,17 +2232,17 @@ function startProactiveLoop(){
 /* ============ 20. 版本检测 ============ */
 function yzCheckVersion(){
   try{
-    if(!D.verDismiss){} // 本次弹过就静默
-    fetch('https://api.github.com/repos/nyybt6h6vf-web/yuzhou/commits?path=index.html&per_page=1',{cache:'no-store'})
-      .then(function(r){return r.json();})
-      .then(function(arr){
-        if(!arr||!arr.length)return;
-        var sha=arr[0].sha;
+    var url='https://nyybt6h6vf-web.github.io/yuzhou/version.txt';
+    fetch(url+'?t='+Date.now(),{cache:'no-store'})
+      .then(function(r){return r.text();})
+      .then(function(txt){
+        var v=(txt||'').trim();
+        if(!v)return;
         var local=D.appVer||'';
-        if(!local){D.appVer=sha;save();return;}
-        if(sha!==local){
-          D.appVer=sha;save();
-          if(!D._verDismissedThisSession)yzShowUpdate();
+        if(!local){D.appVer=v;save();return;}
+        if(v!==local){
+          D.appVer=v;save();
+          yzShowUpdate();
         }
       }).catch(function(){});
   }catch(e){}
