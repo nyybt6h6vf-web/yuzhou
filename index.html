@@ -629,8 +629,8 @@ body{
 #periodAddBody{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:2px;max-height:calc(78vh - 150px);}
 #periodAdd .dbtns{flex:0 0 auto;position:sticky;bottom:0;background:var(--panel);padding-top:10px;margin-top:8px;z-index:2;}
 /* 通用：任何弹窗超高时，遮罩层自身可滚动，顶部对齐，避免上下被裁 */
-.sheet{align-items:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:5vh 0;}
-.sheet.show{align-items:flex-start;}
+.sheet{align-items:center;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4vh 0;}
+.sheet.show{align-items:center;}
 .sheet .dlg{margin:0 auto;}
 
 /* 写信页 */
@@ -1049,6 +1049,12 @@ body{
     <div class="navbar"><div class="back" onclick="go('home')">‹</div><div class="title">设置</div></div>
     <div class="list">
       <div class="group">
+        <h4>存储</h4>
+        <div class="row"><div class="lab">本网站已占</div><div class="val" id="memUsed">--</div></div>
+        <div class="row"><div class="lab">浏览器可用余额</div><div class="val" id="memQuota">--</div></div>
+        <div class="row"><div class="lab">存储方式</div><div class="val" id="memEngine">--</div></div>
+      </div>
+      <div class="group">
         <h4>身份</h4>
         <div class="row"><div class="lab">他的昵称</div><input type="text" id="setNick" oninput="saveProfile()"></div>
         <div class="row"><div class="lab">我的昵称</div><input type="text" id="setMyNick" oninput="saveProfile()"></div>
@@ -1057,6 +1063,7 @@ body{
       </div>
       <div class="group">
         <h4>美化</h4>
+        <div class="row"><div class="lab">网站图标</div><div class="chip" onclick="pickFavicon()">选择图片</div></div>
         <div class="row"><div class="lab">主题模式</div>
           <div class="seg">
             <div class="chip" id="thLight" onclick="setTheme('light')">浅色</div>
@@ -1113,7 +1120,10 @@ body{
          </div>
          <div class="row"><div class="lab">发表情包概率（%）（通用）</div><input type="number" id="setPackRate" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">主动来电概率（%）</div><input type="number" id="setCall" oninput="saveProfile()" style="max-width:80px"></div>
-         <div class="row"><div class="lab">他发动态间隔（分钟）</div><input type="number" id="setMomGap" oninput="saveProfile()" style="max-width:80px"></div>
+         <div class="row"><div class="lab">开启消息通知</div><div class="chip" onclick="yzAskNotify()">开启 / 检查</div></div>
+        <div class="row"><div class="lab">主动发消息间隔（分钟）</div><input type="number" id="setProactiveGap" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">主动找我（开关）</div><div class="chip" onclick="toggleProactive()" id="proactiveBtn">关闭</div></div>
+        <div class="row"><div class="lab">他发动态间隔（分钟）</div><input type="number" id="setMomGap" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">动态最少句数</div><input type="number" id="setMomMin" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">动态最多句数</div><input type="number" id="setMomMax" oninput="saveProfile()" style="max-width:80px"></div>
        </div>
@@ -2010,7 +2020,7 @@ function renderChat(){
   bindTranTaps();
   window.__applyBubbleInline&&window.__applyBubbleInline();
 }
-function push(m){D.msgs.push(m);save();if($('#chat').classList.contains('active')){renderChat();scrollBottom();}}
+function push(m){D.msgs.push(m);save();if($('#chat').classList.contains('active')){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40));}}catch(e){}}
 function jumpMsg(i){
   const list=document.querySelectorAll('#chatBody .msg');
   const el=list[i];if(!el)return;
@@ -2168,6 +2178,84 @@ function runFingerResult(){
     closeFingerTest();
     push({from:'him',type:'text',text:'我们的连接深度：'+label+'。'+ (lvl>=4?'我就知道是你。':'再靠近一点。'),_t:clockStr()});
   },1600);
+}
+
+
+/* ============ 19. 后台通知 ============ */
+function yzAskNotify(){
+  try{
+    if(!('Notification' in window)){toast('这个浏览器不支持通知');return;}
+    if(Notification.permission==='granted'){toast('通知已开启');return;}
+    Notification.requestPermission().then(function(p){toast(p==='granted'?'通知已开启':'你拒绝了通知');});
+  }catch(e){toast('通知不可用');}
+}
+function yzNotify(title,body){
+  try{
+    if(!('Notification' in window))return;
+    if(Notification.permission!=='granted')return;
+    if(!document.hidden)return; // 页面在前台不用弹
+    var n=new Notification(title||((D.nick||'他')),{body:body||'给你发消息了',icon:D.avatarHim||undefined,tag:'yz-msg'});
+    setTimeout(function(){try{n.close();}catch(e){}},6000);
+  }catch(e){}
+}
+
+
+/* ============ 19. 主动发消息 ============ */
+var _proactiveTimer=null;
+function toggleProactive(){D.proactive=!D.proactive;save();var b=document.getElementById('proactiveBtn');if(b)b.textContent=D.proactive?'开启':'关闭';startProactiveLoop();}
+function startProactiveLoop(){
+  if(_proactiveTimer){clearInterval(_proactiveTimer);_proactiveTimer=null;}
+  if(!D.proactive)return;
+  var gapMin=Math.max(1,parseFloat(D.proactiveGap)||10);
+  _proactiveTimer=setInterval(function(){
+    try{
+      if(!D.proactive)return;
+      // 随机决定是否发（50%），避免太机械
+      if(Math.random()>0.5)return;
+      var cv=yzCurConv();
+      if(!cv)return;
+      if(D.curConv!==cv.id){/* 非当前会话也发，进他自己的会话 */}
+      var target=cv;
+      var oldCur=D.curConv,_oldMsgs=D.msgs;
+      D.msgs=target.msgs=target.msgs||[];
+      himSay();
+      D.msgs=_oldMsgs; D.curConv=oldCur;
+      save();
+      if(document.hidden){yzNotify(yzConvTitle(target),'给你发消息了');}
+    }catch(e){}
+  },gapMin*60*1000);
+}
+/* ============ 20. 版本检测 ============ */
+function yzCheckVersion(){
+  try{
+    if(!D.verDismiss){} // 本次弹过就静默
+    fetch('https://api.github.com/repos/nyybt6h6vf-web/yuzhou/commits?path=index.html&per_page=1',{cache:'no-store'})
+      .then(function(r){return r.json();})
+      .then(function(arr){
+        if(!arr||!arr.length)return;
+        var sha=arr[0].sha;
+        var local=D.appVer||'';
+        if(!local){D.appVer=sha;save();return;}
+        if(sha!==local){
+          D.appVer=sha;save();
+          if(!D._verDismissedThisSession)yzShowUpdate();
+        }
+      }).catch(function(){});
+  }catch(e){}
+}
+function yzShowUpdate(){
+  try{
+    var el=document.getElementById('verSheet');
+    if(!el){
+      el=document.createElement('div');
+      el.id='verSheet';
+      el.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:999999;background:var(--panel);color:var(--text);border-radius:20px;padding:24px 22px;box-shadow:0 12px 40px rgba(0,0,0,.35);text-align:center;width:78%;max-width:320px;';
+      el.innerHTML='<div style="font-size:15px;font-weight:600;margin-bottom:6px">检测到新版本</div><div style="font-size:13px;color:var(--sub);margin-bottom:18px">是否更新到最新版？</div><span id="verYes" style="display:inline-block;padding:9px 22px;border-radius:14px;background:#859ecb;color:#fff;margin:0 6px;cursor:pointer">是</span><span id="verNo" style="display:inline-block;padding:9px 22px;border-radius:14px;background:var(--card);color:var(--text);margin:0 6px;cursor:pointer">不是</span>';
+      document.body.appendChild(el);
+      document.getElementById('verYes').onclick=function(){location.reload(true);};
+      document.getElementById('verNo').onclick=function(){D._verDismissedThisSession=true;try{el.remove();}catch(e){}};
+    }
+  }catch(e){}
 }
 
 function togglePlus(){const s=$('#plusSheet'),m=$('#mask');const on=s.classList.toggle('show');m.classList.toggle('show',on);}
@@ -3032,6 +3120,7 @@ $('#filePick').addEventListener('change',function(){
       else if(target==='photocard'){D['photo'+(_photoN||1)]=res;save();renderPhotoWall();done();toast('照片已放上');}
       else if(target==='diarybg'){D.diaryBg=res;save();renderDiaryProfile();done();toast('背景已更新');}
       else if(target==='diaryav'){D.diaryAv=res;save();renderDiaryProfile();done();toast('头像已更新');}
+      else if(target==='favicon'){D.favicon=res;save();applyFavicon(res);done();toast('图标已更新，重新添加到桌面会生效');}
       else if(target==='charaav'){var _ch=(D.charas||[]).find(function(c){return c.id===_yzAvatarFor;});if(_ch){_ch.avatar=res;if(yzCurConv()&&yzCurConv().type!=='group'){D.avatarHim=res;}save();renderCharaDial(_ch);renderChatList();}done();toast('头像已更新');}
       else if(target==='himbg'){D.himBg=res;save();renderHimProfile();done();toast('背景已更新');}
       else if(target==='himav'){D.himAv=res;save();renderHimProfile();done();toast('头像已更新');}
@@ -3950,7 +4039,40 @@ function delTile(id){
   D.tiles=(D.tiles||[]).filter(x=>x.id!==id);save();renderTiles();
 }
 
+
+function renderMemInfo(){
+  try{
+    var j=JSON.stringify(D);
+    var used=j.length;
+    var el=document.getElementById('memUsed');
+    if(el)el.textContent=(used<1024?(used+' B'):(used<1048576?(used/1024).toFixed(1)+' KB':(used/1048576).toFixed(2)+' MB'));
+    var eng=document.getElementById('memEngine');
+    if(eng)eng.textContent=window.YZDB&&YZDB.ready?'IndexedDB + localStorage（双保险）':'localStorage';
+    if(navigator.storage&&navigator.storage.estimate){
+      navigator.storage.estimate().then(function(est){
+        var q=document.getElementById('memQuota');
+        if(q&&est&&est.quota){q.textContent=(est.quota/1048576).toFixed(0)+' MB（浏览器给的空间）';}
+      }).catch(function(){});
+    }else{
+      var q2=document.getElementById('memQuota');
+      if(q2)q2.textContent='约 5 MB（localStorage 上限）';
+    }
+  }catch(e){}
+}
+function pickFavicon(){pickTarget='favicon';var f=document.getElementById('filePick');if(f)f.click();}
+function applyFavicon(url){
+  if(!url)return;
+  var l=document.querySelector('link[rel="apple-touch-icon"]');
+  if(!l){l=document.createElement('link');l.rel='apple-touch-icon';document.head.appendChild(l);}
+  l.href=url;
+  var l2=document.querySelector('link[rel="icon"]');
+  if(!l2){l2=document.createElement('link');l2.rel='icon';document.head.appendChild(l2);}
+  l2.href=url;
+}
+
 function fillSettings(){
+  try{renderMemInfo();}catch(e){}
+  try{if($('#setProactiveGap'))$('#setProactiveGap').value=(D.proactiveGap===undefined?10:D.proactiveGap);var _pb=document.getElementById('proactiveBtn');if(_pb)_pb.textContent=D.proactive?'开启':'关闭';}catch(e){}
   $('#setNick').value=D.nick||'';$('#setMyNick').value=D.myNick||'';
   $('#setLockName').value=D.lockName||'';
   if($('#setSlogan'))$('#setSlogan').value=D.slogan||'';
@@ -4084,6 +4206,7 @@ function saveProfile(){
   if($('#setMomMax'))D.momMax=Math.max(D.momMin||1,parseInt($('#setMomMax').value)||(D.momMin||1));
   if($('#setLetterSent')){var _m=String($('#setLetterSent').value||'').match(/\d+/g)||[];var _a=Math.max(1,parseInt(_m[0])||1);var _b=Math.max(_a,parseInt(_m[1])||_a);D.letterSent=_a+'-'+_b;}
   if($('#setMomGap'))D.momGap=parseFloat($('#setMomGap').value)||1;
+  if($('#setProactiveGap')){D.proactiveGap=Math.max(1,parseFloat($('#setProactiveGap').value)||10);startProactiveLoop();}
   if($('#setFeelGap'))D.feelGap=parseFloat($('#setFeelGap').value)||30;
   if($('#setReplyGap'))D.replyGap=parseFloat($('#setReplyGap').value)||5;
   if($('#setLetterGap'))D.letterGap=parseFloat($('#setLetterGap').value)||10;
@@ -4221,6 +4344,7 @@ window.__yzInfo=function(){
 };
 function init(){
   try{_yzBindMsgs(D);}catch(e){}
+  try{if(D.favicon)applyFavicon(D.favicon);}catch(e){}
   document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light');
   tick();setInterval(tick,1000);
   const rm=$('#recMic');if(rm)rm.innerHTML=ICONS.mic;
@@ -4233,6 +4357,8 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
   if(!D.letters)D.letters=[];
   if(!D.listenMsgs)D.listenMsgs=[];
   if(!D.packs)D.packs=[];
+  try{startProactiveLoop();}catch(e){}
+  try{setTimeout(yzCheckVersion,2500);}catch(e){}
   startMomLoop();startFeelLoop();startGiftLoop();startLetterLoop();startDiaryLoop();startShopLoop();
   startListenLoop();
   renderListen();
