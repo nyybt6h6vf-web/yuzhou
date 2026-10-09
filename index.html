@@ -84,6 +84,8 @@ body{
 .j5{background:var(--icon-bg);color:var(--icon-fg);}
 .j6{background:var(--icon-bg);color:var(--icon-fg);}
 
+#momTopBg{flex:0 0 120px;height:120px;width:100%;background-size:cover;background-position:center;background-repeat:no-repeat;}
+#moments{background:var(--page-bg);}
 .navbar{height:52px;flex:0 0 52px;display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid var(--line);background:var(--panel);backdrop-filter:blur(14px);z-index:6;}
 .navbar .back{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px;background:var(--card);box-shadow:0 2px 8px rgba(120,130,200,.15);cursor:pointer;}
 .navbar .title{font-size:16px;font-weight:700;flex:0 0 auto;}
@@ -207,11 +209,12 @@ body{
 
 /* 在一起 方块 */
 .tilelist{flex:1;overflow-y:auto;padding:18px 16px 30px;display:grid;grid-template-columns:repeat(2,1fr);gap:14px;align-content:start;}
-.tile{background:var(--card);border-radius:18px;padding:18px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;position:relative;box-shadow:0 3px 12px rgba(120,130,200,.10);}
-.tile .ti{font-size:26px;font-weight:600;letter-spacing:1px;display:flex;align-items:center;gap:6px;color:var(--text);}
+.tile{background:var(--card);border-radius:20px;padding:30px 16px 26px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;position:relative;box-shadow:0 3px 12px rgba(120,130,200,.10);min-height:120px;justify-content:center;}
+.tile .ti{font-size:32px;font-weight:600;letter-spacing:1px;display:flex;align-items:center;gap:6px;color:var(--text);}
 .tile .ti.addtile{font-size:26px;font-weight:300;color:var(--sub);}
 .tile span{font-size:12px;color:var(--sub);}
 .tile .rx{position:absolute;top:8px;right:10px;font-size:13px;color:var(--sub);opacity:.7;}
+.tile .tpencil{position:absolute;top:7px;right:30px;font-size:13px;color:var(--sub);opacity:.75;cursor:pointer;}
 
 /* 主页顶部：图片 + 双头像 */
 .hero{padding:6px 18px 0;}
@@ -969,16 +972,16 @@ body{
           </div>
         </div>
         <div class="row"><div class="lab">锁屏名称</div><input type="text" id="setLockName" oninput="saveBeauty()" placeholder="留空则不显示"></div>
-<div class="row"><div class="lab">锁屏背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('lockBg')">上传图</div><div class="chip" onclick="setColor('lockBg','')">清</div></div></div>
+<div class="row"><div class="lab">锁屏背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('lockBg')">上传图</div><label class="chip" style="margin:0">选色<input type="color" style="width:0;height:0;opacity:0;position:absolute" oninput="setColor('lockBg',this.value)"></label><div class="chip" onclick="setColor('lockBg','')">清</div></div></div>
 <div class="row"><div class="lab">锁屏字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('lockFg','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('lockFg','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setLockFgColor" oninput="setColor('lockFg',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('lockFg','')">清</div></div></div>
 <div class="row"><div class="lab">主页签名</div><input type="text" id="setSlogan" oninput="saveBeauty()" placeholder="头像右侧那行字，留空则不显示"></div>
-<div class="row"><div class="lab">页面背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPageBg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('pageBg')">上传图</div><div class="chip" onclick="setColor('pageBg','')">清</div></div></div>
-<div class="row"><div class="lab">第二页背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPage2Bg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('page2Bg')">上传图</div><div class="chip" onclick="setColor('page2Bg','')">清</div></div></div>
-<div class="row"><div class="lab">聊天背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setChatBg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('chatBg')">上传图</div><div class="chip" onclick="setColor('chatBg','')">清</div></div></div>
+<div class="row"><div class="lab">页面背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPageBg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('pageBg')">上传图</div><label class="chip" style="margin:0">选色<input type="color" style="width:0;height:0;opacity:0;position:absolute" oninput="setColor('pageBg',this.value)"></label><div class="chip" onclick="setColor('pageBg','')">清</div></div></div>
+<div class="row"><div class="lab">第二页背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPage2Bg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('page2Bg')">上传图</div><label class="chip" style="margin:0">选色<input type="color" style="width:0;height:0;opacity:0;position:absolute" oninput="setColor('page2Bg',this.value)"></label><div class="chip" onclick="setColor('page2Bg','')">清</div></div></div>
+<div class="row"><div class="lab">聊天背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setChatBg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('chatBg')">上传图</div><label class="chip" style="margin:0">选色<input type="color" style="width:0;height:0;opacity:0;position:absolute" oninput="setColor('chatBg',this.value)"></label><div class="chip" onclick="setColor('chatBg','')">清</div></div></div>
 <div class="row"><div class="lab">主界面字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('fontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('fontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setFontColorColor" oninput="setColor('fontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fontColor','')">清</div></div></div>
 <div class="row"><div class="lab">梦角气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleHim','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleHim','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleHimColor" oninput="setColor('bubbleHim',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleHim','')">清</div></div></div>
 <div class="row"><div class="lab">我方气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleMe','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleMe','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleMeColor" oninput="setColor('bubbleMe',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleMe','')">清</div></div></div>
-<div class="row"><div class="lab">动态背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setMomBg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('momBg')">上传图</div><div class="chip" onclick="setColor('momBg','')">清</div></div></div>
+<div class="row"><div class="lab">动态背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setMomBg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('momBg')">上传图</div><label class="chip" style="margin:0">选色<input type="color" style="width:0;height:0;opacity:0;position:absolute" oninput="setColor('momBg',this.value)"></label><div class="chip" onclick="setColor('momBg','')">清</div></div></div>
         <div class="row" style="flex-direction:column;align-items:stretch">
           <div class="lab" style="margin-bottom:8px">气泡 CSS（.msg .bubble 通用，写一条两边都生效）</div>
           <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty()"></textarea>
@@ -1069,6 +1072,7 @@ body{
       <div class="title">动态</div>
       <div class="actbtn" onclick="openMomentSend()">＋ 发动态</div>
     </div>
+    <div class="momtop" id="momTopBg"></div>
     <div class="moments-body" id="momentsBody"></div>
   </div>
 
@@ -3492,7 +3496,7 @@ function renderTiles(){
     l.insertAdjacentHTML('beforeend',
       '<div class="tilewrap">'+
       '<div class="tile"'+bg+' onclick="openTile(\''+t.id+'\')">'+
-        '<div class="ti">'+esc(''+val)+'<span class="rx" onclick="event.stopPropagation();delTile(\''+t.id+'\')">✕</span></div>'+
+        '<div class="ti">'+esc(''+val)+'<span class="tpencil" onclick="event.stopPropagation();editTile(\''+t.id+'\')">✎</span><span class="rx" onclick="event.stopPropagation();delTile(\''+t.id+'\')">✕</span></div>'+
         '<span>'+esc(t.name)+'</span>'+
       '</div>'+
       '<div class="tilebtns">'+
@@ -3537,6 +3541,7 @@ function openTile(id){
 }
 let _tileMode='days';
 function addTilePrompt(){
+  _tileEditId='';
   _tileMode='days';
   $('#tileName').value='';
   $('#tileDate').value=new Date().toISOString().slice(0,10);
@@ -3553,12 +3558,29 @@ function setTileMode(m){
 function confirmTile(){
   const nm=$('#tileName').value.trim();
   if(!nm)return;
+  if(_tileEditId){
+    var te=(D.tiles||[]).find(function(x){return x.id===_tileEditId;});
+    if(te){te.name=nm;te.mode=_tileMode;if(_tileMode==='text'){te.text=$('#tileText').value.trim();}else{te.date=$('#tileDate').value||new Date().toISOString().slice(0,10);}}
+    _tileEditId='';
+    closeSheet2('tileSheet');save();renderTiles();return;
+  }
   const id='t'+Date.now();
   const t={id:id,name:nm,mode:_tileMode};
   if(_tileMode==='text'){t.text=$('#tileText').value.trim();}
   else{t.date=$('#tileDate').value||new Date().toISOString().slice(0,10);}
   closeSheet2('tileSheet');
   D.tiles.push(t);save();renderTiles();
+}
+let _tileEditId='';
+function editTile(id){
+  var t=(D.tiles||[]).find(function(x){return x.id===id;});if(!t)return;
+  _tileEditId=id;
+  _tileMode=t.mode||'days';
+  if($('#tileName'))$('#tileName').value=t.name||'';
+  if($('#tileDate'))$('#tileDate').value=t.date||new Date().toISOString().slice(0,10);
+  if($('#tileText'))$('#tileText').value=t.text||'';
+  setTileMode(_tileMode);
+  openSheet2('tileSheet');
 }
 function delTile(id){
   D.tiles=(D.tiles||[]).filter(x=>x.id!==id);save();renderTiles();
@@ -3751,9 +3773,10 @@ function applyCustom(){
   }
   renderHomeBg2();
   $('#chat').style.background=getChatBg();
-  const mb=(D.momBg||'').trim(),mq=$('#moments');
+  const mb=(D.momBg||'').trim(),mq=$('#momTopBg'),mqFull=$('#moments');
+  if(mqFull){mqFull.style.background='';}
   if(mq){
-    if(mb.startsWith('http')||mb.startsWith('data:'))mq.style.background=`linear-gradient(rgba(0,0,0,.03),rgba(0,0,0,.03)),url('${mb}') center/cover no-repeat`;
+    if(mb.startsWith('http')||mb.startsWith('data:'))mq.style.background=`url('${mb}') center/cover no-repeat`;
     else mq.style.background=mb||'';
   }
   const fc=(D.fontColor||'').trim();
