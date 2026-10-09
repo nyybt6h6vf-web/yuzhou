@@ -208,12 +208,15 @@ body{
 .mini{font-size:12px;color:var(--sub);text-align:center;padding:10px;}
 
 /* 在一起 方块 */
-.tilelist{flex:1;overflow-y:auto;padding:18px 16px 30px;display:grid;grid-template-columns:repeat(2,1fr);gap:14px;align-content:start;}
-.tile{background:var(--card);border-radius:20px;padding:30px 16px 26px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;position:relative;box-shadow:0 3px 12px rgba(120,130,200,.10);min-height:120px;justify-content:center;}
+.tilelist{flex:1;overflow-y:auto;padding:18px 16px 30px;display:grid;grid-template-columns:1fr;gap:16px;align-content:start;}
+.tile{background:var(--card);border-radius:24px;padding:56px 20px 48px;display:flex;flex-direction:column;align-items:center;gap:14px;cursor:pointer;position:relative;box-shadow:0 4px 16px rgba(120,130,200,.12);min-height:200px;justify-content:center;}
 .tile .ti{font-size:32px;font-weight:600;letter-spacing:1px;display:flex;align-items:center;gap:6px;color:var(--text);}
 .tile .ti.addtile{font-size:26px;font-weight:300;color:var(--sub);}
 .tile span{font-size:12px;color:var(--sub);}
 .tile .rx{position:absolute;top:8px;right:10px;font-size:13px;color:var(--sub);opacity:.7;}
+.tcolrow{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.tcolrow .tcolor{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);cursor:pointer;padding:0;background:none;}
+.tcolrow .tblack,.tcolrow .twhite{font-size:11px;color:var(--sub);cursor:pointer;padding:2px 6px;border-radius:6px;background:rgba(127,127,127,.1);}
 .tile .tpencil{position:absolute;top:7px;right:30px;font-size:13px;color:var(--sub);opacity:.75;cursor:pointer;}
 
 /* 主页顶部：图片 + 双头像 */
@@ -972,16 +975,16 @@ body{
           </div>
         </div>
         <div class="row"><div class="lab">锁屏名称</div><input type="text" id="setLockName" oninput="saveBeauty()" placeholder="留空则不显示"></div>
-<div class="row"><div class="lab">锁屏背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('lockBg')">上传图</div><label class="chip" style="margin:0">选色<input type="color" style="width:0;height:0;opacity:0;position:absolute" oninput="setColor('lockBg',this.value)"></label><div class="chip" onclick="setColor('lockBg','')">清</div></div></div>
+<div class="row"><div class="lab">锁屏背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('lockBg')">上传图</div><div class="chip" onclick="setColor('lockBg','')">清</div></div></div>
 <div class="row"><div class="lab">锁屏字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('lockFg','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('lockFg','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setLockFgColor" oninput="setColor('lockFg',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('lockFg','')">清</div></div></div>
 <div class="row"><div class="lab">主页签名</div><input type="text" id="setSlogan" oninput="saveBeauty()" placeholder="头像右侧那行字，留空则不显示"></div>
-<div class="row"><div class="lab">页面背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPageBg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('pageBg')">上传图</div><label class="chip" style="margin:0">选色<input type="color" style="width:0;height:0;opacity:0;position:absolute" oninput="setColor('pageBg',this.value)"></label><div class="chip" onclick="setColor('pageBg','')">清</div></div></div>
-<div class="row"><div class="lab">第二页背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPage2Bg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('page2Bg')">上传图</div><label class="chip" style="margin:0">选色<input type="color" style="width:0;height:0;opacity:0;position:absolute" oninput="setColor('page2Bg',this.value)"></label><div class="chip" onclick="setColor('page2Bg','')">清</div></div></div>
-<div class="row"><div class="lab">聊天背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setChatBg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('chatBg')">上传图</div><label class="chip" style="margin:0">选色<input type="color" style="width:0;height:0;opacity:0;position:absolute" oninput="setColor('chatBg',this.value)"></label><div class="chip" onclick="setColor('chatBg','')">清</div></div></div>
+<div class="row"><div class="lab">页面背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPageBg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('pageBg')">上传图</div><div class="chip" onclick="setColor('pageBg','')">清</div></div></div>
+<div class="row"><div class="lab">第二页背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPage2Bg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('page2Bg')">上传图</div><div class="chip" onclick="setColor('page2Bg','')">清</div></div></div>
+<div class="row"><div class="lab">聊天背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setChatBg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('chatBg')">上传图</div><div class="chip" onclick="setColor('chatBg','')">清</div></div></div>
 <div class="row"><div class="lab">主界面字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('fontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('fontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setFontColorColor" oninput="setColor('fontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fontColor','')">清</div></div></div>
 <div class="row"><div class="lab">梦角气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleHim','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleHim','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleHimColor" oninput="setColor('bubbleHim',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleHim','')">清</div></div></div>
 <div class="row"><div class="lab">我方气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleMe','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleMe','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleMeColor" oninput="setColor('bubbleMe',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleMe','')">清</div></div></div>
-<div class="row"><div class="lab">动态背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setMomBg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('momBg')">上传图</div><label class="chip" style="margin:0">选色<input type="color" style="width:0;height:0;opacity:0;position:absolute" oninput="setColor('momBg',this.value)"></label><div class="chip" onclick="setColor('momBg','')">清</div></div></div>
+<div class="row"><div class="lab">动态背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setMomBg" placeholder="颜色或图" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('momBg')">上传图</div><div class="chip" onclick="setColor('momBg','')">清</div></div></div>
         <div class="row" style="flex-direction:column;align-items:stretch">
           <div class="lab" style="margin-bottom:8px">气泡 CSS（.msg .bubble 通用，写一条两边都生效）</div>
           <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty()"></textarea>
@@ -3493,15 +3496,23 @@ function renderTiles(){
   (D.tiles||[]).forEach(t=>{
     const val=tileValue(t);
     const bg=t.bg?(' style="background-image:url('+t.bg+');background-size:cover;background-position:center"'):'';
+    const tc=t.color||'';
+    const cstyle=tc?(' style="color:'+tc+'"'):'';
     l.insertAdjacentHTML('beforeend',
       '<div class="tilewrap">'+
       '<div class="tile"'+bg+' onclick="openTile(\''+t.id+'\')">'+
-        '<div class="ti">'+esc(''+val)+'<span class="tpencil" onclick="event.stopPropagation();editTile(\''+t.id+'\')">✎</span><span class="rx" onclick="event.stopPropagation();delTile(\''+t.id+'\')">✕</span></div>'+
-        '<span>'+esc(t.name)+'</span>'+
+        '<div class="ti"'+cstyle+'>'+esc(''+val)+'<span class="tpencil" onclick="event.stopPropagation();editTile(\''+t.id+'\')">✎</span><span class="rx" onclick="event.stopPropagation();delTile(\''+t.id+'\')">✕</span></div>'+
+        '<span'+cstyle+'>'+esc(t.name)+'</span>'+
       '</div>'+
       '<div class="tilebtns">'+
         '<div class="tbtn" onclick="event.stopPropagation();pickTileBg(\''+t.id+'\')">换背景</div>'+
         (t.bg?('<div class="tbtn" onclick="event.stopPropagation();clearTileBg(\''+t.id+'\')">去背景</div>'):'')+
+        '<div class="tcolrow" onclick="event.stopPropagation()">'+
+          '<label class="tcolor" style="background:linear-gradient(135deg,#f88,#8af,#8f8)"><input type="color" style="width:0;height:0;opacity:0;position:absolute" oninput="setTileColor(\''+t.id+'\',this.value)"></label>'+
+          '<span class="tblack" onclick="setTileColor(\''+t.id+'\',\'#000000\')">黑</span>'+
+          '<span class="twhite" onclick="setTileColor(\''+t.id+'\',\'#ffffff\')">白</span>'+
+          (tc?'<span class="tblack" onclick="setTileColor(\''+t.id+'\',\'\')">默认</span>':'')+
+        '</div>'+
       '</div>'+
       '</div>');
   });
@@ -3581,6 +3592,10 @@ function editTile(id){
   if($('#tileText'))$('#tileText').value=t.text||'';
   setTileMode(_tileMode);
   openSheet2('tileSheet');
+}
+function setTileColor(id,c){
+  var t=(D.tiles||[]).find(function(x){return x.id===id;});if(!t)return;
+  t.color=c||'';save();renderTiles();
 }
 function delTile(id){
   D.tiles=(D.tiles||[]).filter(x=>x.id!==id);save();renderTiles();
