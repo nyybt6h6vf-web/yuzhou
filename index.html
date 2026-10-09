@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -43,14 +43,14 @@
   --accent:#859ecb;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
-html,body{height:100%;}
+html,body{height:100%;background:var(--page-bg);}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
-  background:#111318;color:var(--text);
+  background:var(--page-bg);color:var(--text);
   display:flex;align-items:center;justify-content:center;overflow:hidden;
   width:100%;height:100dvh;
 }
-#phone{position:relative;width:100%;height:100%;max-width:430px;overflow:hidden;background:var(--page-bg);}
+#phone{position:relative;width:100%;height:100%;max-width:430px;overflow:hidden;background:var(--page-bg);padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);box-sizing:content-box;}
 @media(min-width:520px){
   #phone{height:900px;max-height:96vh;border-radius:46px;box-shadow:0 30px 80px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.08);}
 }
@@ -636,7 +636,11 @@ body{
   display:flex;align-items:center;justify-content:center;font-size:11px;color:#b3b8c4;
 }
 [data-theme="dark"] .pcard .pimg{background:#26262a;}
-.pcard .pimg.hasimg{color:transparent;}
+.pcard .pimg.hasimg{color:transparent;background-color:transparent;background-size:cover;background-position:center;background-repeat:no-repeat;}
+.pfbg.hasimg,.gimgpick.hasimg,.tile.hasimg{background-color:transparent;}
+[data-theme="dark"] .pcard .pimg.hasimg{background-color:transparent;}
+[data-theme="dark"] .pimg[style*="background-image"]{background-color:transparent;}
+[data-theme="dark"] .pfbg[style*="background-image"],[data-theme="dark"] .gimgpick[style*="background-image"]{background-color:transparent;}
 .pcard .pcap{font-size:10.5px;color:#9aa0ad;text-align:center;padding:7px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:italic;}
 
 /* 底部四个图标，圈起来 */
@@ -1399,7 +1403,55 @@ if(o.daifuGap===undefined)o.daifuGap=20;
     moments:[],
     tiles:DEFAULT_TILES.slice()};
 }
-function save(){try{localStorage.setItem(DKEY,JSON.stringify(D));}catch(e){}}
+
+/* ================== 大容量存储层：IndexedDB ================== */
+var YZDB={db:null,ready:false,
+  open:function(cb){
+    var self=this;
+    try{
+      var req=indexedDB.open('yuzhou_db',1);
+      req.onupgradeneeded=function(e){var db=e.target.result;if(!db.objectStoreNames.contains('kv'))db.createObjectStore('kv');};
+      req.onsuccess=function(e){self.db=e.target.result;self.ready=true;if(cb)cb(true);};
+      req.onerror=function(){if(cb)cb(false);};
+    }catch(e){if(cb)cb(false);}
+  },
+  get:function(key,cb){
+    if(!this.ready||!this.db){if(cb)cb(null);return;}
+    try{
+      var tx=this.db.transaction('kv','readonly');var st=tx.objectStore('kv');var rq=st.get(key);
+      rq.onsuccess=function(){if(cb)cb(rq.result||null);};rq.onerror=function(){if(cb)cb(null);};
+    }catch(e){if(cb)cb(null);}
+  },
+  set:function(key,val,cb){
+    if(!this.ready||!this.db){if(cb)cb(false);return;}
+    try{
+      var tx=this.db.transaction('kv','readwrite');var st=tx.objectStore('kv');var rq=st.put(val,key);
+      rq.onsuccess=function(){if(cb)cb(true);};rq.onerror=function(){if(cb)cb(false);};
+    }catch(e){if(cb)cb(false);}
+  }
+};
+/* 启动时打开 IDB，并把 localStorage 老数据迁移进去（仅首次） */
+YZDB.open(function(ok){
+  if(!ok)return;
+  YZDB.get(DKEY,function(existing){
+    if(existing){
+      /* IDB 已有数据：以 IDB 为准，异步刷新内存与页面 */
+      try{
+        var o=JSON.parse(existing);
+        if(o&&typeof o==='object'){
+          D=Object.assign(D,o);
+          try{document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light');}catch(_){}
+          try{renderHome();applyCustom();}catch(_){}
+          try{if(window.__YZ_AFTER_IDB)window.__YZ_AFTER_IDB();}catch(_){}
+        }
+      }catch(e){}
+    }else{
+      /* IDB 没数据：把 localStorage 现有数据迁移进去 */
+      try{var raw=localStorage.getItem(DKEY);if(raw){YZDB.set(DKEY,raw);}}catch(e){}
+    }
+  });
+});
+function save(){try{var __j=JSON.stringify(D);localStorage.setItem(DKEY,__j);}catch(e){}try{YZDB.set(DKEY,JSON.stringify(D));}catch(e){}}
 function $(s){return document.querySelector(s);}
 function pad(n){return n<10?'0'+n:''+n;}
 
