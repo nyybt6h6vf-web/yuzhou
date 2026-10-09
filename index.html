@@ -3632,17 +3632,7 @@ function saveProfile(){
   if($('#setFeelGap'))D.feelGap=parseFloat($('#setFeelGap').value)||30;
   if($('#setReplyGap'))D.replyGap=parseFloat($('#setReplyGap').value)||5;
   if($('#setLetterGap'))D.letterGap=parseFloat($('#setLetterGap').value)||10;
-  // 通用兜底：扫描页面上所有 id 以 set 开头的输入框，逐个存进 D
-  document.querySelectorAll('input[id^="set"],textarea[id^="set"],select[id^="set"]').forEach(function(el){
-    const id=el.id;
-    if(id==='setFeelList'||id==='setPats'||id==='setTranAmts'||id==='setTranNotes')return; // 这些是多行列表，另有专用保存
-    const key=id.slice(3);
-    const k=key.charAt(0).toLowerCase()+key.slice(1);
-    let v=el.value;
-    if(el.type==='number'){v=parseFloat(v);if(isNaN(v))v=0;}
-    if(el.type==='checkbox'){v=el.checked;}
-    D[k]=v;
-  });
+  // 兜底已移除：它会把其它屏幕里未初始化的空输入框写进 D，导致昵称等被覆盖
   save();updateHomeAvatar();$('#chatTitle').textContent=D.nick||'他';
   startMomLoop();startFeelLoop();startLetterLoop();
 }
@@ -3816,7 +3806,7 @@ try{var __btn=document.createElement('button');__btn.textContent='测试存档';
 
 try{setInterval(function(){try{var im=document.getElementById('noteMe'),ih=document.getElementById('noteHim');if(im&&im.value!==(D.noteMe||''))im.value=D.noteMe||'';if(ih&&ih.value!==(D.noteHim||''))ih.value=D.noteHim||'';}catch(e){}},1000);}catch(e){}
 
-try{setTimeout(function(){try{var t='=== 刷新后自动体检 ===\nDKEY='+DKEY+'\n\n';t+='localStorage中该key='+((localStorage.getItem(DKEY)||'【无】').slice(0,120))+'\n\n';var ks=[];for(var i=0;i<localStorage.length;i++){ks.push(localStorage.key(i));}t+='本域名所有key='+JSON.stringify(ks)+'\n\n';t+='内存D.myNick='+JSON.stringify(D.myNick)+'\n内存D.noteMe='+JSON.stringify(D.noteMe);alert(t);}catch(e){alert('err:'+e.message);}},1500);}catch(e){}
+try{setTimeout(function(){try{var t='=== 刷新后自动体检 ===\nDKEY='+DKEY+'\n\n';t+='localStorage中该key='+((localStorage.getItem(DKEY)||'【无】').slice(0,120))+'\n\n';var ks=[];for(var i=0;i<localStorage.length;i++){ks.push(localStorage.key(i));}t+='本域名所有key='+JSON.stringify(ks)+'\n\n';var __raw0=localStorage.getItem(DKEY)||'';t+='原始长度='+__raw0.length+'\n原始前90字='+__raw0.slice(0,90)+'\n\n';t+='内存D.myNick='+JSON.stringify(D.myNick)+'\n内存D.noteMe='+JSON.stringify(D.noteMe);alert(t);}catch(e){alert('err:'+e.message);}},1500);}catch(e){}
 console.log("YZ build 1300-all7-done");
 init();
 </script>
