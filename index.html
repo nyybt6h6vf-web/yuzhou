@@ -1399,7 +1399,7 @@ if(o.daifuGap===undefined)o.daifuGap=20;
     moments:[],
     tiles:DEFAULT_TILES.slice()};
 }
-function save(){try{localStorage.setItem(DKEY,JSON.stringify(D));}catch(e){}}
+function save(){try{localStorage.setItem(DKEY,JSON.stringify(D));}catch(e){var __b=document.getElementById('__saveerr');if(!__b){__b=document.createElement('div');__b.id='__saveerr';__b.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;z-index:999999;background:#c00;color:#fff;font-size:12px;padding:8px;border-radius:8px;white-space:pre-wrap';document.body.appendChild(__b);}var __sz=0;try{__sz=JSON.stringify(D).length;}catch(_e){}__b.textContent='【存档失败】'+e.name+': '+e.message+'  数据大小约 '+Math.round(__sz/1024)+' KB';}}
 function $(s){return document.querySelector(s);}
 function pad(n){return n<10?'0'+n:''+n;}
 
@@ -3788,6 +3788,8 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
   renderListen();
   if(D.pass&&D.pass.trim())openSheet2('passSheet');
 }
+
+try{var __d=localStorage.getItem(DKEY);var __info='【存储体检】可写='+(function(){try{localStorage.setItem('__t','1');localStorage.removeItem('__t');return '是';}catch(e){return '否('+e.name+')';}})()+' | 当前存档='+(__d?('有, '+Math.round(__d.length/1024)+' KB'):'空')+' | D大小='+Math.round(JSON.stringify(D).length/1024)+' KB | 域名='+location.hostname;var __p=document.createElement('div');__p.style.cssText='position:fixed;top:2px;left:2px;z-index:999998;background:rgba(0,120,0,.85);color:#fff;font-size:10px;padding:3px 6px;border-radius:6px';__p.textContent=__info;document.body.appendChild(__p);}catch(__e){}
 console.log("YZ build 1300-all7-done");
 init();
 </script>
