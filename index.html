@@ -2416,7 +2416,17 @@ function yzShowUpdate(){
       el.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:999999;background:var(--panel);color:var(--text);border-radius:20px;padding:24px 22px;box-shadow:0 12px 40px rgba(0,0,0,.35);text-align:center;width:78%;max-width:320px;';
       el.innerHTML='<div style="font-size:15px;font-weight:600;margin-bottom:6px">检测到新版本</div><div style="font-size:13px;color:var(--sub);margin-bottom:18px">是否更新到最新版？</div><span id="verYes" style="display:inline-block;padding:9px 22px;border-radius:14px;background:#859ecb;color:#fff;margin:0 6px;cursor:pointer">是</span><span id="verNo" style="display:inline-block;padding:9px 22px;border-radius:14px;background:var(--card);color:var(--text);margin:0 6px;cursor:pointer">不是</span>';
       document.body.appendChild(el);
-      document.getElementById('verYes').onclick=function(){try{var u=location.href.split('#')[0].split('?')[0];location.replace(u+'?v='+Date.now());}catch(e){location.reload();}};
+      document.getElementById('verYes').onclick=function(){
+        var u=location.href.split('#')[0].split('?')[0];
+        var done=function(){try{location.replace(u+'?v='+Date.now());}catch(e){location.reload();}};
+        try{
+          var jobs=[];
+          if(window.caches&&caches.keys){jobs.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k);}));}));}
+          if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));}));}
+          if(jobs.length){Promise.all(jobs).then(done).catch(done);return;}
+        }catch(e){}
+        done();
+      };
       document.getElementById('verNo').onclick=function(){D._verDismissedThisSession=true;try{el.remove();}catch(e){}};
     }
   }catch(e){}
