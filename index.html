@@ -1380,7 +1380,7 @@ if(o.daifuGap===undefined)o.daifuGap=20;
     if(o.readOn===undefined)o.readOn=true;
     if(o.typingOn===undefined)o.typingOn=true;
     return o;
-  }}catch(e){try{console.error('LOAD_PARSE_FAIL',e);}catch(_){}}
+  }}catch(e){try{console.error('LOAD_PARSE_FAIL',e);}catch(_){} try{var __raw=localStorage.getItem(DKEY)||'';alert('【LOAD崩了】'+e.name+': '+e.message+'\n长度='+__raw.length+'\n末尾80字='+__raw.slice(-80));}catch(__q){}}
   return {theme:'light',nick:'他',myNick:'我',avatarHim:'',avatarMe:'',
     pageBg:'',chatBg:'',momBg:'',lockBg:'',lockFg:'',fontColor:'',bubble:'',bubbleHim:'',bubbleMe:'',heroImg:'',
     readOn:true,typingOn:true,
