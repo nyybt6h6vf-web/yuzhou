@@ -1476,6 +1476,7 @@ function saveNote(who,v){
   v=(v||'').slice(0,15);
   if(who==='me')D.noteMe=v;else D.noteHim=v;
   save();
+  try{var __b=document.getElementById('__saveerr');if(!__b){__b=document.createElement('div');__b.id='__saveerr';__b.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;z-index:999999;background:#06c;color:#fff;font-size:12px;padding:8px;border-radius:8px;white-space:pre-wrap';document.body.appendChild(__b);}var __ls=localStorage.getItem(DKEY)||'';__b.textContent='【刚存入】noteMe='+JSON.stringify(D.noteMe)+' / localStorage里 noteMe='+JSON.stringify((function(){try{return JSON.parse(__ls).noteMe;}catch(e){return 'parse失败';}})());}catch(__e){}
 }
 /* 照片墙 */
 function renderPhotoWall(){
