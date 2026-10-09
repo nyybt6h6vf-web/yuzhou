@@ -1525,7 +1525,14 @@ function renderHomeBg2(){
   else{pg.style.background='';}
 }
 /* 留言条 */
+function syncNoteAvatars(){
+  var ah=document.getElementById('noteAvMe');
+  if(ah){ if(D.avatarMe){ah.innerHTML='<img src="'+D.avatarMe+'">';ah.style.background='transparent';} else{ah.innerHTML=(D.myNick||'我')[0];ah.style.background='';} }
+  var bh=document.getElementById('noteAvHim');
+  if(bh){ if(D.avatarHim){bh.innerHTML='<img src="'+D.avatarHim+'">';bh.style.background='transparent';} else{bh.innerHTML=(D.nick||'他')[0];bh.style.background='';} }
+}
 function renderNote(){
+  try{syncNoteAvatars();}catch(e){}
   const am=document.getElementById('noteAvMe'),ah=document.getElementById('noteAvHim');
   if(am){ if(D.avatarMe){am.innerHTML='<img src="'+D.avatarMe+'">';am.style.background='transparent';}else{am.innerHTML=(D.myNick||'我')[0];am.style.background='#c8ccd6';} }
   if(ah){ if(D.avatarHim){ah.innerHTML='<img src="'+D.avatarHim+'">';ah.style.background='transparent';}else{ah.innerHTML=(D.nick||'他')[0];ah.style.background='#c8ccd6';} }
@@ -2836,9 +2843,10 @@ function renderMoments(){
       likeHtml=`<div class="molike">♡ <b>${esc(names.join('、'))}</b> 觉得很赞</div>`;
     }
     let comments='';
-    (m.comments||[]).forEach(c=>{
+    (m.comments||[]).forEach((c,ci)=>{
       const cn=c.from==='me'?(D.myNick||'我'):(D.nick||'他');
-      comments+=`<div class="mocm"><b>${esc(cn)}：</b>${esc(c.text)}</div>`;
+      const rep=c.replyTo?('<span class="morep">回复 '+esc(c.replyTo)+'</span> '):'';
+      comments+=`<div class="mocm" onclick="commentMoment('${m.id}',${ci})"><b>${esc(cn)}：</b>${rep}${esc(c.text)}</div>`;
     });
     b.insertAdjacentHTML('beforeend',
       `<div class="mo">
@@ -2870,14 +2878,20 @@ function toggleLike(id){
   if(i>=0)m.likedBy.splice(i,1);else m.likedBy.push('me');
   save();renderMoments();
 }
-function commentMoment(id){
-  askInput('评论','',function(t){
+function commentMoment(id,ci){
+  var replyTo='';
+  var m=(D.moments||[]).find(x=>x.id===id);if(!m)return;
+  if(ci!==undefined&&m.comments&&m.comments[ci]){
+    var c0=m.comments[ci];
+    replyTo=c0.from==='me'?(D.myNick||'我'):(D.nick||'他');
+  }
+  askInput(replyTo?('回复 '+replyTo):'评论','',function(t){
     const v=t.trim();if(!v)return;
-    const m=(D.moments||[]).find(x=>x.id===id);if(!m)return;
-    m.comments=m.comments||[];
-    m.comments.push({from:'me',text:v});
+    const mm=(D.moments||[]).find(x=>x.id===id);if(!mm)return;
+    mm.comments=mm.comments||[];
+    mm.comments.push({from:'me',text:v,replyTo:replyTo});
     save();renderMoments();
-    setTimeout(()=>momReply(m),Math.max(400,(D.delay||1.2)*1000));
+    setTimeout(()=>momReply(mm),Math.max(400,(D.delay||1.2)*1000));
   });
 }
 function delMoment(id){
@@ -2895,7 +2909,9 @@ function pushMomentByHim(){
 /* 他回复评论 / 点赞你的动态 */
 function momReply(m){
   m.comments=m.comments||[];
-  m.comments.push({from:'him',text:pickCard()});
+  var last=m.comments[m.comments.length-1];
+  var rp=last?(last.from==='me'?(D.myNick||'我'):(D.nick||'他')):'';
+  m.comments.push({from:'him',text:pickCard(),replyTo:rp});
   save();if($('#moments').classList.contains('active'))renderMoments();
 }
 function maybeMomInteract(){
@@ -3748,16 +3764,18 @@ function setTheme(t){
   fillSettings();applyCustom();
 }
 function updateHomeAvatar(){
+  var DEFAV='data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23e6e8ef%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2224%22%20r%3D%2211%22%20fill%3D%22%23b8bdcc%22%2F%3E%3Cpath%20d%3D%22M10%2058c0-13%2010-20%2022-20s22%207%2022%2020z%22%20fill%3D%22%23b8bdcc%22%2F%3E%3C%2Fsvg%3E';
   const a=$('#homeAvatar');
   if(a){
     if(D.avatarHim){a.innerHTML=`<img src="${D.avatarHim}">`;a.style.background='transparent';}
-    else{a.textContent=(D.nick||'他')[0];a.style.background='';}
+    else{a.innerHTML=`<img src="${DEFAV}">`;a.style.background='transparent';}
   }
   const b=$('#homeAvatar2');
   if(b){
     if(D.avatarMe){b.innerHTML=`<img src="${D.avatarMe}">`;b.style.background='transparent';}
-    else{b.textContent=(D.myNick||'我')[0];b.style.background='';}
+    else{b.innerHTML=`<img src="${DEFAV}">`;b.style.background='transparent';}
   }
+  try{syncNoteAvatars();}catch(e){}
   const cf=$('#chatFeeling');
   if(cf){const t=curFeeling();cf.textContent=t||'';cf.style.display=t?'':'none';}
 }
