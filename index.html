@@ -362,7 +362,7 @@ body{
 .cropbox img{position:absolute;left:0;top:0;user-select:none;-webkit-user-drag:none;}
 
 /* 灵动岛状态栏 */
-.island{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:84px;height:22px;border-radius:14px;background:#000;z-index:9;pointer-events:none;}
+.island{position:absolute;top:calc(env(safe-area-inset-top) + 14px);left:50%;transform:translateX(-50%);width:84px;height:22px;border-radius:14px;background:#000;z-index:9;pointer-events:none;}
 .statusbar.apple{height:50px;flex:0 0 50px;padding:0 22px;font-size:13.5px;font-weight:600;}
 .statusbar.apple .right{font-size:12px;}
 
@@ -1064,6 +1064,7 @@ body{
       </div>
       <div class="group">
         <h4>身份</h4>
+        <div class="row"><div class="lab">主页展示梦角</div><div class="chip" id="homeCharaChip" onclick="yzPickHomeChara()">选择</div></div>
         <div class="row"><div class="lab">他的昵称</div><input type="text" id="setNick" oninput="saveProfile()"></div>
         <div class="row"><div class="lab">我的昵称</div><input type="text" id="setMyNick" oninput="saveProfile()"></div>
         <div class="row"><div class="lab">他的头像</div><div class="chip" onclick="pickAvatar('him')">选择图片</div></div>
@@ -1460,6 +1461,49 @@ function _yzBindMsgs(o){
     }
   }catch(e){}
 }
+function yzApplyHomeChara(){
+  try{
+    if(!D.homeCharaId)return;
+    var c=(D.charas||[]).find(function(x){return x.id===D.homeCharaId;});
+    if(!c)return;
+    D.nick=c.nick||D.nick;
+    D.avatarHim=c.avatar||'';
+    // 同步主页渲染
+    if(typeof renderHero==='function')renderHero();
+    if(typeof renderPhotoWall==='function')renderPhotoWall();
+    if(typeof renderNote==='function')renderNote();
+    if(typeof syncNoteAvatars==='function')syncNoteAvatars();
+  }catch(e){}
+}
+function yzPickHomeChara(){
+  var list=(D.charas||[]);
+  if(!list.length){toast('还没有梦角，先去聊天列表添加');return;}
+  var html='';
+  list.forEach(function(c){
+    var on=(D.homeCharaId===c.id)?' on':'';
+    html+='<div class="gitem" onclick="yzSetHomeChara(\''+c.id+'\')">'
+      +'<span style="flex:1">'+esc(c.nick||'梦角')+'</span>'
+      +(on?'<span style="color:#859ecb">✓ 当前</span>':'')+'</div>';
+  });
+  var g=document.getElementById('groupSheet');
+  if(!g)return;
+  g.querySelector('.gtitle').textContent='选择主页展示的梦角';
+  var box=g.querySelector('.gsel');
+  box.innerHTML=html;
+  var b=g.querySelector('.gb');
+  b.textContent='取消';
+  b.onclick=function(){g.classList.remove('show');};
+  g.classList.add('show');
+}
+function yzSetHomeChara(id){
+  D.homeCharaId=id;
+  yzApplyHomeChara();
+  save();
+  var g=document.getElementById('groupSheet');if(g)g.classList.remove('show');
+  var chip=document.getElementById('homeCharaChip');
+  if(chip){var c=(D.charas||[]).find(function(x){return x.id===id;});chip.textContent=c?(c.nick||'选择'):'选择';}
+  toast('主页已切换为这个梦角');
+}
 function yzCardLib(){
   if(!D.cardLib)D.cardLib={};
   if(!D.cardLibCurChar)D.cardLibCurChar=(D.charas&&D.charas[0])?D.charas[0].id:'';
@@ -1828,6 +1872,7 @@ function tick(){
 function go(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const el=$('#'+id);if(el)el.classList.add('active');
+  if(id==='home'){try{yzApplyHomeChara();}catch(e){}}
   if(id==='chatlist')renderChatList();
   if(id==='chat'){renderChat();$('#chat').style.background=getChatBg();setTimeout(scrollBottom,30);}
   if(id==='cards'){try{yzBindCards();renderCardTabs();}catch(e){}renderCards();}
@@ -4247,6 +4292,7 @@ function applyFavicon(url){
 function fillSettings(){
   try{renderMemInfo();}catch(e){}
   try{if($('#setProactiveGap'))$('#setProactiveGap').value=(D.proactiveGap===undefined?10:D.proactiveGap);var _pb=document.getElementById('proactiveBtn');if(_pb)_pb.textContent=D.proactive?'开启':'关闭';}catch(e){}
+  try{var _hc=document.getElementById('homeCharaChip');if(_hc){var _hcc=(D.charas||[]).find(function(x){return x.id===D.homeCharaId;});_hc.textContent=_hcc?((_hcc.nick)||'选择'):'选择';}}catch(e){}
   $('#setNick').value=D.nick||'';$('#setMyNick').value=D.myNick||'';
   $('#setLockName').value=D.lockName||'';
   if($('#setSlogan'))$('#setSlogan').value=D.slogan||'';
@@ -4534,6 +4580,7 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
   if(!D.packs)D.packs=[];
   try{startProactiveLoop();}catch(e){}
   try{setTimeout(yzCheckVersion,2500);}catch(e){}
+  try{yzApplyHomeChara();}catch(e){}
   try{ if(location.search.indexOf('v=')>=0){ history.replaceState(null,'',location.pathname); } }catch(e){}
   startMomLoop();startFeelLoop();startGiftLoop();startLetterLoop();startDiaryLoop();startShopLoop();
   startListenLoop();
