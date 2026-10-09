@@ -896,6 +896,11 @@ body{
     <div class="navbar"><div class="back" onclick="go('home')">‹</div><div class="title">字卡库</div><div class="act" onclick="addCardPrompt()">＋ 添加</div></div>
     <div class="cattabs" id="catCharas"></div>
     <div class="cattabs sub" id="catTypes"></div>
+    <div id="kaoRateRow" style="display:none;align-items:center;gap:8px;padding:8px 16px 4px;">
+      <span style="font-size:13px;color:var(--sub)">颜文字回复概率</span>
+      <input id="kaoRateInput" type="number" min="0" max="100" value="0" style="width:64px;padding:5px 8px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:13px;text-align:center" oninput="yzSetKaoRate(this.value)">
+      <span style="font-size:13px;color:var(--sub)">%（每次最多一条）</span>
+    </div>
     <div class="cardtools">
       <input id="cardSearch" type="text" placeholder="搜索字卡…" oninput="renderCards()">
       <div class="ctbtn" id="cardMultiBtn" onclick="toggleCardMulti()">多选</div>
@@ -1460,7 +1465,8 @@ function yzCardLib(){
   if(!D.cardLibCurChar)D.cardLibCurChar=(D.charas&&D.charas[0])?D.charas[0].id:'';
   if(!D.cardLibCurType)D.cardLibCurType='main';
   var cid=D.cardLibCurChar;
-  if(!D.cardLib[cid])D.cardLib[cid]={main:[],kao:[],emoji:[]};
+  if(!D.cardLib[cid])D.cardLib[cid]={main:[],kao:[],emoji:[],kaoRate:0};
+  if(D.cardLib[cid].kaoRate===undefined)D.cardLib[cid].kaoRate=0;
   return D.cardLib[cid];
 }
 function yzBindCards(){
@@ -1485,6 +1491,25 @@ function renderCardTabs(){
   types.forEach(function(t){
     tbox.insertAdjacentHTML('beforeend','<div class="cattab'+((D.cardLibCurType===t[0])?' on':'')+'" onclick="yzPickTypeTab(\''+t[0]+'\')">'+t[1]+'</div>');
   });
+  // 颜文字概率行：仅当当前类型为 kao 时显示，并回填当前梦角的值
+  try{
+    var row=document.getElementById('kaoRateRow'),inp=document.getElementById('kaoRateInput');
+    if(row&&inp){
+      if(D.cardLibCurType==='kao'){
+        row.style.display='flex';
+        var lib=yzCardLib();
+        inp.value=(lib.kaoRate===undefined?0:lib.kaoRate);
+      }else{ row.style.display='none'; }
+    }
+  }catch(e){}
+}
+function yzSetKaoRate(v){
+  try{
+    var lib=yzCardLib();
+    v=Math.max(0,Math.min(100,parseFloat(v)||0));
+    lib.kaoRate=v;
+    save();
+  }catch(e){}
 }
 
 function yzCurConv(){return (D.convs||[]).find(function(c){return c.id===D.curConv;})||(D.convs||[])[0];}
@@ -1599,13 +1624,35 @@ function yzGroupSetting(cv){
   var d=document.getElementById('groupSheet');
   var names=(cv.charas||[]).map(function(id){var c=(D.charas||[]).find(function(x){return x.id===id;});return c?c.nick:'';}).join('、');
   d.querySelector('.gtitle').textContent='群聊设置 · '+names;
+  if(!cv.members)cv.members={};
   var box=d.querySelector('.gsel');
-  box.innerHTML='<div class="gitem">发言概率(%)：<input type="number" id="grRate" value="'+(cv.rate===undefined?30:cv.rate)+'" style="width:70px;margin-left:auto"></div>'+
-    '<div class="gitem">最少连发：<input type="number" id="grMin" value="'+(cv.min===undefined?1:cv.min)+'" style="width:70px;margin-left:auto"></div>'+
-    '<div class="gitem">最多连发：<input type="number" id="grMax" value="'+(cv.max===undefined?2:cv.max)+'" style="width:70px;margin-left:auto"></div>';
+  var html='';
+  (cv.charas||[]).forEach(function(id){
+    var c=(D.charas||[]).find(function(x){return x.id===id;});
+    var nm=c?c.nick:'梦角';
+    if(!cv.members[id])cv.members[id]={rate:(cv.rate===undefined?30:cv.rate),min:(cv.min===undefined?1:cv.min),max:(cv.max===undefined?2:cv.max)};
+    var m=cv.members[id];
+    html+='<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line)">'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">'+esc(nm)+'</div>'
+      +'<div class="gitem">发言概率(%)：<input type="number" data-mid="'+id+'" data-k="rate" value="'+(m.rate===undefined?30:m.rate)+'" style="width:70px;margin-left:auto"></div>'
+      +'<div class="gitem">最少连发：<input type="number" data-mid="'+id+'" data-k="min" value="'+(m.min===undefined?1:m.min)+'" style="width:70px;margin-left:auto"></div>'
+      +'<div class="gitem">最多连发：<input type="number" data-mid="'+id+'" data-k="max" value="'+(m.max===undefined?2:m.max)+'" style="width:70px;margin-left:auto"></div>'
+      +'</div>';
+  });
+  box.innerHTML=html;
   var b=d.querySelector('.gb');
   b.textContent='保存';
-  b.onclick=function(){cv.rate=parseInt(document.getElementById('grRate').value)||0;cv.min=Math.max(1,parseInt(document.getElementById('grMin').value)||1);cv.max=Math.max(cv.min,parseInt(document.getElementById('grMax').value)||1);save();d.classList.remove('show');toast('群聊设置已保存');};
+  b.onclick=function(){
+    box.querySelectorAll('input[data-mid]').forEach(function(inp){
+      var mid=inp.getAttribute('data-mid'),k=inp.getAttribute('data-k');
+      var v=parseInt(inp.value)||0;
+      if(!cv.members[mid])cv.members[mid]={};
+      cv.members[mid][k]=v;
+    });
+    // 规范化 min<=max
+    for(var mid in cv.members){var m=cv.members[mid];m.min=Math.max(1,m.min||1);m.max=Math.max(m.min,m.max||m.min);}
+    save();d.classList.remove('show');toast('群聊设置已保存');
+  };
   d.classList.add('show');
 }
 
@@ -1920,9 +1967,14 @@ function renderPlus(){
 function scrollBottom(){const b=$('#chatBody');b.scrollTop=b.scrollHeight;}
 
 function esc(s){return (s+'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'"'}[c]));}
-function avHTML(who){
-  const url=who==='me'?D.avatarMe:D.avatarHim;
-  const name=who==='me'?(D.myNick||'我'):(D.nick||'他');
+function avHTML(who,chId){
+  var url,name;
+  if(who==='me'){url=D.avatarMe;name=D.myNick||'我';}
+  else if(chId){
+    var _c=(D.charas||[]).find(function(c){return c.id===chId;});
+    url=_c?(_c.avatar||''):D.avatarHim;
+    name=_c?(_c.nick||'他'):(D.nick||'他');
+  }else{url=D.avatarHim;name=D.nick||'他';}
   const bg='var(--icon-bg)';
   let inner;
   if(url)inner=`<img src="${url}">`;
@@ -1994,7 +2046,9 @@ function renderChat(){
       const prev=D.msgs[i-1];
       const showName=!prev||prev.type==='sys'||prev.from!=='him';
       if(showName){
-        nameHtml=`<div class="himname"><span class="ttl">${esc(D.nick||'他')}</span></div>`;
+        var _wn=D.nick||'他';
+        if(m.who){var _wc=(D.charas||[]).find(function(c){return c.id===m.who;});if(_wc)_wn=_wc.nick||_wn;}
+        nameHtml=`<div class="himname"><span class="ttl">${esc(_wn)}</span></div>`;
       }
     }
     let readHtml='';
@@ -2017,7 +2071,7 @@ function renderChat(){
       const qsrc=(m.quote.type==='img'&&m.quote.src)?('<img class="qimg" src="'+m.quote.src+'">'):'';
       quoteHtml='<div class="qbox" onclick="jumpMsg('+(m.quote.i)+')">'+qsrc+'<div class="qtxt">'+(m.quote.type==='img'?'[图片]':esc(m.quote.brief))+'</div></div>';
     }
-    b.insertAdjacentHTML('beforeend',`<div class="msg ${me?'me':'him'}">${avHTML(me?'me':'him')}<div class="bubwrap">${nameHtml}${quoteHtml}${bubbleHTML(m,i)}${readHtml}${himStamp}${meStamp}</div></div>`);
+    b.insertAdjacentHTML('beforeend',`<div class="msg ${me?'me':'him'}">${avHTML(me?'me':'him',m.who)}<div class="bubwrap">${nameHtml}${quoteHtml}${bubbleHTML(m,i)}${readHtml}${himStamp}${meStamp}</div></div>`);
   });
   if(D.typingOn&&D._typing&&$('#chat').classList.contains('active')){
     b.insertAdjacentHTML('beforeend',`<div class="typing-ind"><span>对方正在输入中</span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`);
@@ -2063,23 +2117,68 @@ function pickByRange(minK,maxK){
   for(let i=0;i<k;i++)out.push(pickCard());
   return out.join('');
 }
-function yzKaoPool(){
+function yzKaoPoolFor(cid){
   try{
     var lib=D.cardLib||{};
-    var cid=D.cardLibCurChar||((D.charas&&D.charas[0])?D.charas[0].id:'');
+    if(!cid)cid=D.cardLibCurChar||((D.charas&&D.charas[0])?D.charas[0].id:'');
     if(lib[cid]&&lib[cid].kao&&lib[cid].kao.length)return lib[cid].kao;
-    // 兼底：找任意一个有颜文字的梦角
-    for(var k in lib){if(lib[k]&&lib[k].kao&&lib[k].kao.length)return lib[k].kao;}
   }catch(e){}
   return [];
 }
+function yzKaoPool(){
+  return yzKaoPoolFor(D.cardLibCurChar||((D.charas&&D.charas[0])?D.charas[0].id:''));
+}
+function yzCurKaoCharId(){
+  // 取当前聊天会话对应的梦角id；群聊时取会话第一个梦角
+  try{
+    var cv=(typeof yzCurConv==='function')?yzCurConv():null;
+    if(cv&&cv.charas&&cv.charas.length)return cv.charas[0];
+  }catch(e){}
+  return (D.charas&&D.charas[0])?D.charas[0].id:'';
+}
+function yzCurKaoRate(){
+  var cid=yzCurKaoCharId();
+  var lib=(D.cardLib||{})[cid];
+  if(lib&&lib.kaoRate!==undefined)return parseFloat(lib.kaoRate)||0;
+  return parseFloat(D.kaoRate)||0;
+}
 function yzMaybeKaomoji(){
-  var pr=parseFloat(D.kaoRate)||0;
+  var pr=yzCurKaoRate();
   if(pr<=0)return null;
   if(Math.random()*100>=pr)return null;
-  var pool=yzKaoPool();
+  var pool=yzKaoPoolFor(yzCurKaoCharId());
   if(!pool.length)return null;
   return pool[Math.floor(Math.random()*pool.length)];  // 每次最多一条
+}
+function yzMaybeKaomojiFor(cid){
+  var lib=(D.cardLib||{})[cid];
+  if(!lib)return null;
+  var pr=parseFloat(lib.kaoRate)||0;
+  if(pr<=0)return null;
+  if(Math.random()*100>=pr)return null;
+  var pool=(lib.kao&&lib.kao.length)?lib.kao:[];
+  if(!pool.length)return null;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function pickCardFor(cid){
+  var _km=yzMaybeKaomojiFor(cid); if(_km)return _km;
+  var lib=(D.cardLib||{})[cid];
+  var cs=(lib&&lib.main&&lib.main.length)?lib.main:DEFAULT_CARDS;
+  return cs[Math.floor(Math.random()*cs.length)];
+}
+function pickMultiCardsFor(cid){
+  var _km=yzMaybeKaomojiFor(cid); if(_km)return _km;
+  var lib=(D.cardLib||{})[cid];
+  var cs=(lib&&lib.main&&lib.main.length)?lib.main:DEFAULT_CARDS;
+  var pr=parseFloat(D.comboRate)||0;
+  if(pr<=0||!cs.length||Math.random()*100>=pr)return pickCardFor(cid);
+  var minC=Math.max(2,parseInt(D.comboMin)||2);
+  var maxC=Math.max(minC,parseInt(D.comboMax)||minC);
+  var k=minC+Math.floor(Math.random()*(maxC-minC+1));
+  var pool=cs.slice();var out=[];
+  for(var i=0;i<k&&pool.length;i++){out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);}
+  if(out.length<=1)return out[0]||pickCardFor(cid);
+  return out.join('');
 }
 function pickMultiCards(){
   var _km=yzMaybeKaomoji(); if(_km)return _km;
@@ -2100,6 +2199,9 @@ function respond(){
   if(el&&String(el.value).trim()!==''){D.delay=parseFloat(el.value);}
   var gas=$('#setSendGap');
   if(gas&&String(gas.value).trim()!==''){D.sendGap=parseFloat(gas.value);}
+  // 群聊：每个梦角各自判断是否发言、各自连发条数
+  var _cv=yzCurConv();
+  if(_cv&&_cv.type==='group'){ respondGroup(_cv); return; }
   const delay=replyDelayMs();
   const n=nextCount();
   const gap=sendGapMs();
@@ -2113,6 +2215,39 @@ function respond(){
       setTimeout(()=>{setTyping(false);himSay();},gap*i);
     }
    },delay);
+}
+function respondGroup(cv){
+  var delay=replyDelayMs();
+  var gap=sendGapMs();
+  if(!cv.members)cv.members={};
+  // 先决定每个梦角本轮发几条
+  var plan=[];
+  (cv.charas||[]).forEach(function(id){
+    var m=cv.members[id]||{rate:30,min:1,max:2};
+    var rate=parseFloat(m.rate)||0;
+    if(Math.random()*100>=rate)return; // 本轮不发言
+    var mn=Math.max(1,parseInt(m.min)||1);
+    var mx=Math.max(mn,parseInt(m.max)||mn);
+    var cnt=mn+Math.floor(Math.random()*(mx-mn+1));
+    plan.push({id:id,count:cnt});
+  });
+  // 一个都没中，就随机抽一个至少发一条（避免死寂）
+  if(!plan.length&&(cv.charas||[]).length){
+    var pick=cv.charas[Math.floor(Math.random()*cv.charas.length)];
+    plan.push({id:pick,count:1});
+  }
+  setTyping(true);
+  var t=delay;
+  plan.forEach(function(p){
+    for(var k=0;k<p.count;k++){
+      (function(pid,idx){
+        if(idx>0)setTimeout(function(){setTyping(true);},Math.max(0,t-400));
+        setTimeout(function(){setTyping(false);markRead();himSayFor(pid);},t);
+      })(p.id,k);
+      t+=gap;
+    }
+  });
+  setTimeout(function(){setTyping(false);},delay);
 }
 function pickQuoteRef(){
   // 从最近十条消息里随机挑一条「我（用户）发的」来引用
@@ -2141,7 +2276,8 @@ function quoteBrief(m){
   if(m.type==='ask')return '问卷：'+String(m.text||'').slice(0,40);
   return String(m.text||'').slice(0,60);
 }
-function himSay(){
+function himSay(){ himSayFor(null); }
+function himSayFor(who){
   const pr=parseFloat(D.packRate)||0;
   const qr=parseFloat(D.quoteRate);
   let msg;
@@ -2149,7 +2285,10 @@ function himSay(){
     const p=D.packs[Math.floor(Math.random()*D.packs.length)];
     msg={from:'him',type:'img',src:p,_t:clockStr()};
   }else{
-    msg={from:'him',text:pickMultiCards(),type:'text',_t:clockStr()};
+    var _txt;
+    if(who){ _txt=pickMultiCardsFor(who); }
+    else { _txt=pickMultiCards(); }
+    msg={from:'him',text:_txt,type:'text',_t:clockStr()};
   }
   if(!isNaN(qr)&&qr>0&&Math.random()*100<qr){
     const qi=pickQuoteRef();
@@ -2157,6 +2296,7 @@ function himSay(){
       msg.quote={i:qi,brief:quoteBrief(D.msgs[qi]),type:D.msgs[qi].type||'text',src:D.msgs[qi].type==='img'?(D.msgs[qi].src||''):''};
     }
   }
+  if(who)msg.who=who;
   push(msg);
 }
 function himPat(){
@@ -2276,7 +2416,7 @@ function yzShowUpdate(){
       el.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:999999;background:var(--panel);color:var(--text);border-radius:20px;padding:24px 22px;box-shadow:0 12px 40px rgba(0,0,0,.35);text-align:center;width:78%;max-width:320px;';
       el.innerHTML='<div style="font-size:15px;font-weight:600;margin-bottom:6px">检测到新版本</div><div style="font-size:13px;color:var(--sub);margin-bottom:18px">是否更新到最新版？</div><span id="verYes" style="display:inline-block;padding:9px 22px;border-radius:14px;background:#859ecb;color:#fff;margin:0 6px;cursor:pointer">是</span><span id="verNo" style="display:inline-block;padding:9px 22px;border-radius:14px;background:var(--card);color:var(--text);margin:0 6px;cursor:pointer">不是</span>';
       document.body.appendChild(el);
-      document.getElementById('verYes').onclick=function(){location.reload(true);};
+      document.getElementById('verYes').onclick=function(){try{var u=location.href.split('#')[0].split('?')[0];location.replace(u+'?v='+Date.now());}catch(e){location.reload();}};
       document.getElementById('verNo').onclick=function(){D._verDismissedThisSession=true;try{el.remove();}catch(e){}};
     }
   }catch(e){}
@@ -4384,6 +4524,7 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
   if(!D.packs)D.packs=[];
   try{startProactiveLoop();}catch(e){}
   try{setTimeout(yzCheckVersion,2500);}catch(e){}
+  try{ if(location.search.indexOf('v=')>=0){ history.replaceState(null,'',location.pathname); } }catch(e){}
   startMomLoop();startFeelLoop();startGiftLoop();startLetterLoop();startDiaryLoop();startShopLoop();
   startListenLoop();
   renderListen();
