@@ -145,8 +145,8 @@ body{
 .bubble.transfer .tact span:active{background:rgba(128,128,128,.15);}
 .bubble.transfer .tact.done{padding:9px 0;font-size:12px;opacity:.6;justify-content:center;}
 .bubble img{max-width:96px;border-radius:14px;display:block;}
-.bubble.packimg{padding:2px;max-width:58px;background:transparent;box-shadow:none;}
-.bubble.packimg img{width:58px;height:58px;object-fit:cover;border-radius:12px;}
+.bubble.packimg{padding:2px;max-width:64px;background:transparent;box-shadow:none;margin:4px 0;}
+.bubble.packimg img{width:64px;height:64px;object-fit:cover;border-radius:12px;display:block;}
 .card-msg{background:var(--card)!important;color:var(--text)!important;border:1px solid var(--line);}
 .bubble.patb{background:var(--card);color:var(--text);font-size:13px;border-radius:16px;box-shadow:0 2px 8px rgba(120,130,200,.12);}
 .patline{align-self:center;text-align:center;font-size:12px;color:#fff;background:rgba(140,145,175,.9);border-radius:14px;padding:6px 16px;max-width:82%;margin:0 auto;}
@@ -301,8 +301,8 @@ body{
 .cropbox img{position:absolute;left:0;top:0;user-select:none;-webkit-user-drag:none;}
 
 /* 灵动岛状态栏 */
-.island{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:92px;height:26px;border-radius:16px;background:#000;z-index:9;pointer-events:none;}
-.statusbar.apple{height:44px;flex:0 0 44px;padding:0 22px;font-size:13.5px;font-weight:600;}
+.island{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:84px;height:22px;border-radius:14px;background:#000;z-index:9;pointer-events:none;}
+.statusbar.apple{height:50px;flex:0 0 50px;padding:0 22px;font-size:13.5px;font-weight:600;}
 .statusbar.apple .right{font-size:12px;}
 
 /* 一起听 */
@@ -344,7 +344,8 @@ body{
 
 /* 表情包 */
 #packs{background:var(--chat-bg);}
-.pack-grid{flex:1;overflow-y:auto;padding:14px;display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:12px;align-content:start;grid-auto-rows:1fr;}
+.pack-grid{flex:1;overflow-y:auto;padding:14px;display:flex!important;flex-wrap:wrap;gap:12px;align-content:flex-start;}
+.pack-grid>*{width:calc((100% - 24px)/3);max-height:130px;aspect-ratio:1/1;flex:0 0 auto;}
 .pack-cell{aspect-ratio:1/1;width:100%;border-radius:14px;overflow:hidden;background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;}
 .pack-cell img{width:100%;height:100%;object-fit:cover;}
 .pack-cell .pdel{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;}
@@ -464,7 +465,7 @@ body{
 /* ==== 商城 ==== */
 .shopbal{display:flex;align-items:center;gap:8px;padding:10px 16px;font-size:13px;color:var(--sub);}
 .shopbal b{color:var(--fg);font-size:16px;}
-.shopbal .edbal{margin-left:auto;font-size:12px;color:var(--accent,#859ecb);cursor:pointer;}
+.shopbal .edbal{margin-left:auto;font-size:13px;font-weight:700;color:#fff;background:var(--accent,#859ecb);padding:3px 12px;border-radius:10px;cursor:pointer;box-shadow:0 2px 6px rgba(133,158,203,.4);}
 .shopbody{padding:4px 14px 40px;overflow:auto;height:calc(100% - 132px);box-sizing:border-box;display:flex;flex-direction:column;gap:10px;}
 .goodsitem{position:relative;display:flex;gap:12px;padding:12px;border-radius:14px;background:var(--card,#f5f5f7);}
 .gimg{width:64px;height:64px;flex:0 0 64px;border-radius:12px;object-fit:cover;background:var(--icon-bg,#eee);}
@@ -478,7 +479,8 @@ body{
 .gbtn.buy{background:var(--accent,#859ecb);color:#fff;}
 .gbtn.give{background:rgba(230,145,43,.16);color:#c97b1c;}
 .gbtn.pay{background:rgba(133,158,203,.16);color:var(--accent,#859ecb);}
-.gdel{position:absolute;right:8px;top:8px;font-size:12px;color:var(--sub);opacity:.5;}
+.gdel{position:absolute;right:8px;top:8px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--sub);}
+.gedit{position:absolute;right:34px;top:8px;font-size:12px;color:#fff;background:var(--accent,#859ecb);padding:2px 10px;border-radius:8px;font-weight:600;}
 .shopadd{text-align:center;font-size:13px;color:var(--accent,#859ecb);padding:14px 0;cursor:pointer;}
 .gimgpick{width:100%;height:80px;border-radius:12px;background:var(--icon-bg,#eee);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--sub);cursor:pointer;margin-bottom:10px;background-size:cover;background-position:center;}
 #goodsSheet textarea{width:100%;box-sizing:border-box;min-height:56px;background:var(--icon-bg,#eee);border:none;border-radius:10px;padding:10px 12px;font-size:14px;color:var(--fg);outline:none;resize:vertical;}
@@ -746,12 +748,12 @@ body{
           <div class="pcard pc1" id="pCard1" onclick="pickPhotoCard(1)">
             <div class="ptape"></div>
             <div class="pimg" id="pImg1"></div>
-            <div class="pcap" id="pCap1">我们的照片</div>
+            <div class="pcap" id="pCap1" onclick="editPhotoCap(1)">我们的照片</div>
           </div>
           <div class="pcard pc2" id="pCard2" onclick="pickPhotoCard(2)">
             <div class="ptape"></div>
             <div class="pimg" id="pImg2"></div>
-            <div class="pcap" id="pCap2">想留住的瞬间</div>
+            <div class="pcap" id="pCap2" onclick="editPhotoCap(2)">想留住的瞬间</div>
           </div>
         </div>
         <div class="notewrap">
@@ -1535,6 +1537,13 @@ function renderPhotoWall(){
     if(cp){ const t=D['photoCap'+n];cp.textContent=t||(n===1?'我们的照片':'想留住的瞬间'); }
   });
 }
+function editPhotoCap(n){
+  var cur=D['photoCap'+n]||(n===1?'我们的照片':'想留住的瞬间');
+  askInput('照片留言',cur,function(t){
+    D['photoCap'+n]=(t||'').slice(0,12);
+    save();renderPhotoWall();
+  },'最多12个字');
+}
 function pickPhotoCard(n){ _photoN=n; pickTarget='photocard'; $('#filePick').removeAttribute('multiple'); $('#filePick').click(); }
 /* 翻页手势 */
 (function(){
@@ -2056,7 +2065,7 @@ function renderShop(){
         '<div class="gbtn give" onclick="giveGoods(\''+g.id+'\')">送给他</div>'+
         '<div class="gbtn pay" onclick="askHimPay(\''+g.id+'\')">找他代付</div>'+
       '</div>'+
-      '<div class="gdel" onclick="delGoods(\''+g.id+'\')">✕</div>'+
+      '<div class="gedit" onclick="event.stopPropagation();editGoods(\''+g.id+'\')">改</div>'+'<div class="gdel" onclick="delGoods(\''+g.id+'\')">✕</div>'+
       '</div>');
   });
   b.insertAdjacentHTML('beforeend','<div class="shopadd" onclick="addGoodsPrompt()">＋ 添加商品</div>');
@@ -2088,6 +2097,19 @@ function saveGoods(){
   if(price<=0){toast('价格填大一点');return;}
   goodsList().push({id:'gd'+Date.now(),name:name,price:price,desc:desc,img:goodsImgTmp});
   save();closeSheet2('goodsSheet');renderShop();toast('商品已添加');
+}
+function editGoods(id){
+  var g=findGoods(id);if(!g)return;
+  askInput('商品名',g.name,function(nm){
+    g.name=(nm||'').trim()||g.name;
+    askInput('价格',String(g.price),function(pr){
+      g.price=parseFloat(pr)||g.price;
+      askInput('描述',g.desc||'',function(ds){
+        g.desc=(ds||'').trim();
+        save();renderShop();toast('商品已更新');
+      },'可以留空');
+    });
+  });
 }
 function delGoods(id){
   askConfirm('删除这个商品？',function(){
