@@ -3791,6 +3791,28 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
 }
 
 try{var __d=localStorage.getItem(DKEY);var __info='【存储体检】可写='+(function(){try{localStorage.setItem('__t','1');localStorage.removeItem('__t');return '是';}catch(e){return '否('+e.name+')';}})()+' | 当前存档='+(__d?('有, '+Math.round(__d.length/1024)+' KB'):'空')+' | D大小='+Math.round(JSON.stringify(D).length/1024)+' KB | 域名='+location.hostname;var __p=document.createElement('div');__p.style.cssText='position:fixed;top:2px;left:2px;z-index:999998;background:rgba(0,120,0,.85);color:#fff;font-size:10px;padding:3px 6px;border-radius:6px';__p.textContent=__info;document.body.appendChild(__p);}catch(__e){}
+
+try{
+var __chk=document.createElement('button');
+__chk.id='__chk';
+__chk.textContent='体检';
+__chk.style.cssText='position:fixed;right:6px;bottom:70px;z-index:999999;background:#c00;color:#fff;font-size:12px;padding:8px 10px;border:none;border-radius:20px;opacity:.9';
+__chk.onclick=function(){
+ var raw=localStorage.getItem(DKEY);
+ var msg='';
+ msg+='DKEY='+DKEY+'\n';
+ msg+='localStorage有值? '+(raw?('是，'+raw.length+'字节'):'空')+'\n';
+ if(raw){try{var o=JSON.parse(raw);msg+='解析OK。noteMe='+JSON.stringify(o.noteMe)+'\n所有键: '+Object.keys(o).join(',').slice(0,400);}catch(e){msg+='解析失败: '+e.message;}}
+ msg+='\n---当前内存D---\n';
+ msg+='D.noteMe='+JSON.stringify(D.noteMe)+'\n';
+ msg+='当前网址='+location.href+'\n';
+ msg+='存储里(全部key)='+Object.keys(localStorage).join(',');
+ alert(msg);
+};
+document.body.appendChild(__chk);
+}catch(__e){alert('按钮没加上:'+__e.message);}
+
+try{var __btn=document.createElement('button');__btn.textContent='测试存档';__btn.style.cssText='position:fixed;top:22px;left:2px;z-index:9999999;background:#06c;color:#fff;font-size:11px;padding:4px 8px;border:0;border-radius:6px';__btn.onclick=function(){var __raw=localStorage.getItem(DKEY);var __txt='DKEY='+DKEY+'\n\\n';__txt+='localStorage原始='+(__raw?__raw.slice(0,300):'空')+'\n\\n';__txt+='内存中 D.noteMe='+JSON.stringify(D.noteMe)+'\n\\n';__txt+='内存中 D.noteHim='+JSON.stringify(D.noteHim)+'\n\\n';var __p;try{__p=JSON.parse(__raw||'{}');__txt+='解析后 noteMe='+JSON.stringify(__p.noteMe);}catch(e){__txt+='解析失败:'+e.message;}alert(__txt);};document.body.appendChild(__btn);}catch(__e){}
 console.log("YZ build 1300-all7-done");
 init();
 </script>
