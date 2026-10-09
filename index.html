@@ -3813,6 +3813,8 @@ document.body.appendChild(__chk);
 }catch(__e){alert('按钮没加上:'+__e.message);}
 
 try{var __btn=document.createElement('button');__btn.textContent='测试存档';__btn.style.cssText='position:fixed;top:22px;left:2px;z-index:9999999;background:#06c;color:#fff;font-size:11px;padding:4px 8px;border:0;border-radius:6px';__btn.onclick=function(){var __raw=localStorage.getItem(DKEY);var __txt='DKEY='+DKEY+'\n\\n';__txt+='localStorage原始='+(__raw?__raw.slice(0,300):'空')+'\n\\n';__txt+='内存中 D.noteMe='+JSON.stringify(D.noteMe)+'\n\\n';__txt+='内存中 D.noteHim='+JSON.stringify(D.noteHim)+'\n\\n';var __p;try{__p=JSON.parse(__raw||'{}');__txt+='解析后 noteMe='+JSON.stringify(__p.noteMe);}catch(e){__txt+='解析失败:'+e.message;}alert(__txt);};document.body.appendChild(__btn);}catch(__e){}
+
+try{setTimeout(function(){try{var im=document.getElementById('noteMe'),ih=document.getElementById('noteHim');if(im)im.value=D.noteMe||'';if(ih)ih.value=D.noteHim||'';}catch(e){}},400);}catch(e){}
 console.log("YZ build 1300-all7-done");
 init();
 </script>
