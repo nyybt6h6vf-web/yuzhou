@@ -1681,13 +1681,17 @@ function yzPickHomeChara(){
   if(g)g.classList.add('show');
 }
 function yzSetHomeChara(id){
+  var c=(D.charas||[]).find(function(x){return x.id===id;});
+  var nm=c?(c.nick||'梦角'):'梦角';
+  if(!confirm('是否把「'+nm+'」展示在主页？'))return;
   D.homeCharaId=id;
   yzApplyHomeChara();
   save();
   var g=document.getElementById('homeCharaSheet');if(g)g.classList.remove('show');
   var chip=document.getElementById('homeCharaChip');
-  if(chip){var c=(D.charas||[]).find(function(x){return x.id===id;});chip.textContent=c?(c.nick||'选择'):'选择';}
-  toast('主页已切换为这个梦角');
+  if(chip){chip.textContent=c?(c.nick||'选择'):'选择';}
+  try{renderHome();applyCustom();}catch(e){}
+  toast('已展示在主页');
 }
 function yzCardLib(){
   if(!D.cardLib)D.cardLib={};
