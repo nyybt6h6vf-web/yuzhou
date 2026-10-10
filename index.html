@@ -1092,7 +1092,12 @@ body{
 <div class="row"><div class="lab">动态背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setMomBg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('momBg')">上传图</div><div class="chip" onclick="setColor('momBg','')">清</div></div></div>
         <div class="row" style="flex-direction:column;align-items:stretch">
           <div class="lab" style="margin-bottom:8px">气泡 CSS（.msg .bubble 通用，写一条两边都生效）</div>
-          <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty()"></textarea>
+          <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty();yzPreviewBubble();"></textarea>
+          <div class="lab" style="margin-top:12px;margin-bottom:6px">预览</div>
+          <div id="bubblePreview" style="background:var(--card);border:1px solid var(--sub);border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;gap:10px">
+            <div class="msg him" style="display:flex"><div class="bubble">梦角消息示例</div></div>
+            <div class="msg me" style="display:flex"><div class="bubble">我的消息示例</div></div>
+          </div>
         </div>
       </div>
       <div class="group">
@@ -4304,6 +4309,7 @@ function fillSettings(){
     if(c&&/^#[0-9a-fA-F]{6}$/.test(v))c.value=v;
   });
   $('#setBubble').value=D.bubble||'';
+  try{yzPreviewBubble();}catch(e){}
   if($('#setDelay'))$('#setDelay').value=D.delay;
   if($('#setSendGap'))$('#setSendGap').value=(D.sendGap!==undefined?D.sendGap:D.delay);
   $('#setTran').value=D.tran;$('#setCall').value=D.callRate;
@@ -4369,6 +4375,7 @@ function saveBeauty(){
   if($('#setMomBg'))D.momBg=$('#setMomBg').value;
   if($('#setBubble'))D.bubble=$('#setBubble').value;
   save();scheduleApply();
+  try{yzPreviewBubble();}catch(e){}
 }
 let _applyTimer=null;
 function scheduleApply(){
@@ -4513,10 +4520,9 @@ function applyCustom(){
   if(rawBubble){
     var hasBlock=/[{]/.test(rawBubble)&&/[}]/.test(rawBubble);
     if(hasBlock){
-      /* 用户贴的是完整 CSS 块（带选择器/花括号/注释/伪元素）→ 整段原样塞 */
-      css+=rawBubble;
-      /* 兼容：把 .message / .message-sent / .message-received 映射到本应用气泡 */
-      css+=rawBubble.replace(/\.message-sent/g,'.msg.me .bubble').replace(/\.message-received/g,'.msg.him .bubble').replace(/\.message(?![\w-])/g,'.bubble');
+      /* 用户贴的是完整 CSS 块：先映射选择器，再给每条声明补 !important 确保生效 */
+      var mapped=rawBubble.replace(/\.message-sent/g,'.msg.me .bubble').replace(/\.message-received/g,'.msg.him .bubble').replace(/\.message(?![\w-])/g,'.bubble');
+      css+=forceImportant(mapped);
     }else{
       /* 裸声明 → 包进气泡选择器，每条补 !important */
       var decls=rawBubble.split(/[;\n]+/).map(function(t){t=t.trim();return t.replace(/!important/ig,'').trim();}).filter(function(t){return t&&t.indexOf(':')>=0;});
@@ -4531,7 +4537,44 @@ function applyCustom(){
 
 window.__tranTap=function(i){try{tranAct(i);}catch(e){}};
 window.__bubbleDecls=null;
-window.__applyBubbleInline=function(){/* 已改为纯样式表注入，这里不再硬拆 inline，避免“只生效一半” */};
+window.__applyBubbleInline=function(){/* 纯样式表注入，不拆 inline */};
+/* 把 CSS 文本里每条声明末尾补 !important（跳过注释、已有 important 的、@规则行） */
+function forceImportant(cssText){
+  var out=cssText.replace(/\/\*[\s\S]*?\*\//g,''); // 去注释
+  out=out.replace(/([^;{}]+?)(?=;|}|\})/g,function(m){
+    var t=m.trim();
+    if(!t||t.indexOf(':')<0)return m;
+    if(/@|\{/.test(t))return m;
+    if(/!important/i.test(t))return m;
+    return m.replace(/\s*$/,'')+' !important';
+  });
+  return out;
+}
+window.forceImportant=forceImportant;
+/* 气泡CSS预览：把用户CSS映射+important后，注入到预览盒子 */
+function yzPreviewBubble(){
+  var box=document.getElementById('bubblePreview');
+  if(!box)return;
+  var raw=String((D&&D.bubble)||'').trim().replace(/：/g,':');
+  var st=document.getElementById('bubblePreviewStyle');
+  if(!st){st=document.createElement('style');st.id='bubblePreviewStyle';document.head.appendChild(st);}
+  if(!raw){st.textContent='';return;}
+  var mapped=raw.replace(/\.message-sent/g,'.msg.me .bubble').replace(/\.message-received/g,'.msg.him .bubble').replace(/\.message(?![\w-])/g,'.bubble');
+  var cssText='';
+  if(/[{]/.test(mapped)&&/[}]/.test(mapped)){
+    cssText=forceImportant(mapped);
+  }else{
+    var decls=mapped.split(/[;\n]+/).map(function(t){return t.trim();}).filter(function(t){return t&&t.indexOf(':')>=0;});
+    if(decls.length)cssText='.msg.him .bubble,.msg.me .bubble{'+decls.map(function(x){return x+' !important';}).join(';')+';}';
+  }
+  /* 限定在预览盒内 */
+  cssText=cssText.replace(/(^|\})\s*([^@}][^{]*)\{/g,function(mm,pre,sel){
+    var s2=sel.split(',').map(function(x){return '#bubblePreview '+x.trim();}).join(',');
+    return pre+s2+'{';
+  });
+  st.textContent=cssText;
+}
+window.yzPreviewBubble=yzPreviewBubble;
 
 function checkPass(){
   const v=($('#passInput').value||'').trim();
