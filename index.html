@@ -4507,18 +4507,20 @@ function applyCustom(){
   const bme=(D.bubbleMe||'').trim();
   if(bh){css+=`.msg.him .bubble,.msg.him .bubble.voice,.msg.him .bubble.patb,.bubble.patb{background:${bh} !important;}`;}
   if(bme){css+=`.msg.me .bubble,.msg.me .bubble.voice{background:${bme} !important;}`;}
-  /* 自定义气泡CSS：只作兜底，不抢优先级 */
-  const rawBubble=(D.bubble||'').trim();
-  window.__bubbleDecls=null;
+  /* 自定义气泡CSS：原样注入，不再硬拆，避免“只生效一半” */
+  var rawBubble=String(D.bubble||'').trim().replace(/：/g,':');
   if(rawBubble){
-    const decls=[];
-    rawBubble.replace(/：/g,':').split(/[;\n]+/).forEach(function(t){
-      t=t.trim();if(!t)return;
-      if(t.indexOf(':')<0)return;
-      t=t.replace(/!important/ig,'').trim();
-      decls.push(t);
-    });
-    if(decls.length){var _imp=decls.map(function(x){return x+' !important';}).join(';');css+=`.msg.him .bubble,.msg.me .bubble{${_imp};}`;}
+    var hasBlock=/[{]/.test(rawBubble)&&/[}]/.test(rawBubble);
+    if(hasBlock){
+      /* 用户贴的是完整 CSS 块（带选择器/花括号/注释/伪元素）→ 整段原样塞 */
+      css+=rawBubble;
+      /* 兼容：把 .message / .message-sent / .message-received 映射到本应用气泡 */
+      css+=rawBubble.replace(/\.message-sent/g,'.msg.me .bubble').replace(/\.message-received/g,'.msg.him .bubble').replace(/\.message(?![\w-])/g,'.bubble');
+    }else{
+      /* 裸声明 → 包进气泡选择器，每条补 !important */
+      var decls=rawBubble.split(/[;\n]+/).map(function(t){t=t.trim();return t.replace(/!important/ig,'').trim();}).filter(function(t){return t&&t.indexOf(':')>=0;});
+      if(decls.length){var _imp=decls.map(function(x){return x+' !important';}).join(';');css+='.msg.him .bubble,.msg.me .bubble{'+_imp+';}';}
+    }
   }
   let st=document.getElementById('customStyle');
   if(!st){st=document.createElement('style');st.id='customStyle';document.head.appendChild(st);}
