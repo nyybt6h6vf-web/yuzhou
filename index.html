@@ -4796,7 +4796,13 @@ function applyBackup(txt){
 function saveProfile(){
   /* 关键设置优先、独立保存，防止后面任何异常导致不落盘 */
   try{
-                if($('#setLetterSent')){var _m=String($('#setLetterSent').value||'').match(/\d+/g)||[];var _a=Math.max(1,parseInt(_m[0])||1);var _b=Math.max(_a,parseInt(_m[1])||_a);D.letterSent=_a+'-'+_b;}
+    if($('#setMomGap')&&String($('#setMomGap').value).trim()!=='')D.momGap=parseFloat($('#setMomGap').value)||1;
+    if($('#setMomMin')&&String($('#setMomMin').value).trim()!=='')D.momMin=Math.max(1,parseInt($('#setMomMin').value)||1);
+    if($('#setMomMax')&&String($('#setMomMax').value).trim()!=='')D.momMax=Math.max(D.momMin||1,parseInt($('#setMomMax').value)||(D.momMin||1));
+    if($('#setFeelGap')&&String($('#setFeelGap').value).trim()!=='')D.feelGap=parseFloat($('#setFeelGap').value)||30;
+    if($('#setReplyGap')&&String($('#setReplyGap').value).trim()!=='')D.replyGap=parseFloat($('#setReplyGap').value)||5;
+    if($('#setLetterGap')&&String($('#setLetterGap').value).trim()!=='')D.letterGap=parseFloat($('#setLetterGap').value)||10;
+    if($('#setLetterSent')){var _m=String($('#setLetterSent').value||'').match(/\d+/g)||[];var _a=Math.max(1,parseInt(_m[0])||1);var _b=Math.max(_a,parseInt(_m[1])||_a);D.letterSent=_a+'-'+_b;}
     save();
   }catch(e){}
   if($('#setNick'))D.nick=$('#setNick').value;if($('#setMyNick'))D.myNick=$('#setMyNick').value;
