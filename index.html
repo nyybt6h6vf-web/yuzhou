@@ -183,6 +183,15 @@ body{
 .convitem .cinfo{flex:1;min-width:0;}
 .convitem .cnm{font-size:15px;font-weight:600;color:var(--text);}
 .convitem .clast{font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px;}
+/* 聊天列表左滑 */
+.convrow{position:relative;overflow:hidden;border-bottom:1px solid var(--line);}
+.convrow .convitem{border-bottom:none;transition:transform .22s cubic-bezier(.2,.8,.2,1);will-change:transform;position:relative;z-index:2;background:var(--page-bg,#fff);}
+.convrow .convacts{position:absolute;top:0;right:0;height:100%;display:flex;z-index:1;}
+.convrow .convacts .cact{height:100%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600;padding:0 22px;}
+.convrow .convacts .cact.pin{background:#859ecb;}
+.convrow .convacts .cact.del{background:#ff3b30;}
+.convrow .cnm .pintag{display:inline-block;font-size:10px;color:#859ecb;border:1px solid #859ecb;border-radius:6px;padding:0 4px;margin-right:6px;vertical-align:1px;}
+
 #clPlus{position:absolute;top:96px;right:16px;z-index:25;background:var(--panel);border-radius:16px;box-shadow:0 8px 26px rgba(0,0,0,.22);padding:6px;display:none;min-width:150px;}
 #clPlus.show{display:block;}
 .clplus-item{padding:12px 18px;font-size:14px;color:var(--text);cursor:pointer;border-radius:12px;}
@@ -1699,7 +1708,13 @@ function yzDoCreateGroup(){
 
 function renderChatList(){
   var l=document.getElementById('convList');if(!l)return;l.innerHTML='';
-  (D.convs||[]).forEach(function(cv){
+  var arr=(D.convs||[]).slice();
+  arr.sort(function(a,b){
+    var pa=a.pin?1:0,pb=b.pin?1:0;
+    if(pa!==pb)return pb-pa;
+    return 0;
+  });
+  arr.forEach(function(cv){
     var title=yzConvTitle(cv);
     var av='';
     if(cv.type==='group'){av='群';}
@@ -1709,12 +1724,70 @@ function renderChatList(){
       else{av=(title||'他')[0];}
     }
     var last=(cv.msgs&&cv.msgs.length)?(function(m){var t=m.text||'';if(m.type==='img')t='[表情]';if(m.type==='transfer')t='[转账]';if(m.type==='pat')t='[拍一拍]';return (m.from==='me'?'我：':'')+t;})(cv.msgs[cv.msgs.length-1]):'还没有聊天';
-    l.insertAdjacentHTML('beforeend','<div class="convitem" onclick="yzOpenConv(\''+cv.id+'\')">'+
-      '<div class="cav">'+av+'</div>'+
-      '<div class="cinfo"><div class="cnm">'+esc(title)+'</div><div class="clast">'+esc(last.slice(0,20))+'</div></div>'+
+    var pinn=cv.pin?'<span class="pintag">置顶</span>':'';
+    var pinLabel=cv.pin?'取消置顶':'置顶';
+    l.insertAdjacentHTML('beforeend',
+      '<div class="convrow" data-cid="'+cv.id+'">'+
+        '<div class="convacts">'+
+          '<div class="cact pin" onclick="yzConvPin(\''+cv.id+'\',event)">'+pinLabel+'</div>'+
+          '<div class="cact del" onclick="yzConvDel(\''+cv.id+'\',event)">删除</div>'+
+        '</div>'+
+        '<div class="convitem" onclick="yzOpenConv(\''+cv.id+'\')">'+
+          '<div class="cav">'+av+'</div>'+
+          '<div class="cinfo"><div class="cnm">'+pinn+esc(title)+'</div><div class="clast">'+esc(last.slice(0,20))+'</div></div>'+
+        '</div>'+
       '</div>');
   });
   if(!(D.convs||[]).length){l.innerHTML='<div class="empty">点右上角 ＋ 添加梦角</div>';}
+  yzBindSwipe();
+}
+function yzConvPin(cid,ev){
+  if(ev)ev.stopPropagation();
+  var cv=(D.convs||[]).find(function(c){return c.id===cid;});if(!cv)return;
+  cv.pin=!cv.pin;save();renderChatList();
+  toast(cv.pin?'已置顶':'已取消置顶');
+}
+function yzConvDel(cid,ev){
+  if(ev)ev.stopPropagation();
+  var cv=(D.convs||[]).find(function(c){return c.id===cid;});if(!cv)return;
+  if(!confirm('确定删除和「'+yzConvTitle(cv)+'」的对话？'))return;
+  D.convs=(D.convs||[]).filter(function(c){return c.id!==cid;});
+  if(D.curConv===cid){D.curConv=(D.convs[0]||{}).id||'';}
+  save();renderChatList();
+  toast('已删除');
+}
+function yzBindSwipe(){
+  var l=document.getElementById('convList');if(!l)return;
+  var rows=l.querySelectorAll('.convrow');
+  var open=null;
+  rows.forEach(function(row){
+    var item=row.querySelector('.convitem');
+    var acts=row.querySelector('.convacts');
+    var w=acts?acts.offsetWidth:0;
+    var sx=0,sy=0,dx=0,dy=0,dragging=false,cur=0;
+    item.addEventListener('touchstart',function(e){
+      var t=e.touches[0];sx=t.clientX;sy=t.clientY;dx=0;dy=0;dragging=false;
+      cur=(row._open?1:0)*w;
+    },{passive:true});
+    item.addEventListener('touchmove',function(e){
+      var t=e.touches[0];dx=t.clientX-sx;dy=t.clientY-sy;
+      if(!dragging){ if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>8){dragging=true;} else {return;} }
+      var nx=cur+dx;
+      if(nx>0)nx=0; if(nx<-w)nx=-w;
+      item.style.transition='none';item.style.transform='translateX('+nx+'px)';
+    },{passive:true});
+    item.addEventListener('touchend',function(e){
+      if(!dragging)return;
+      var nx=cur+dx;
+      var openIt=(nx<-w/2);
+      if(openIt){nx=-w;} else {nx=0;}
+      item.style.transition='transform .22s cubic-bezier(.2,.8,.2,1)';
+      item.style.transform='translateX('+nx+'px)';
+      row._open=openIt;
+      if(open&&open!==row){var oi=open.querySelector('.convitem');if(oi){oi.style.transition='transform .22s cubic-bezier(.2,.8,.2,1)';oi.style.transform='translateX(0)';}open._open=false;}
+      open=openIt?row:null;
+    },{passive:true});
+  });
 }
 function yzChatPlus(){var p=document.getElementById('clPlus'),m=document.getElementById('clMask');var on=p.classList.toggle('show');m.classList.toggle('show',on);}
 function yzCloseChatPlus(){document.getElementById('clPlus').classList.remove('show');document.getElementById('clMask').classList.remove('show');}
