@@ -2567,7 +2567,8 @@ function pickMultiCardsFor(cid){
   return out.join('');
 }
 function pickMultiCards(){
-  const cs=(D.cards&&D.cards.length)?D.cards:DEFAULT_CARDS;
+  var cs=null; try{var _id=(typeof yzCurKaoCharId==='function')?yzCurKaoCharId():'';var _lb=(D.cardLib||{})[_id];if(_lb&&_lb.main&&_lb.main.length)cs=_lb.main;}catch(e){}
+  if(!cs||!cs.length){cs=(D.cards&&D.cards.length)?D.cards:DEFAULT_CARDS;}
   const pr=parseFloat(D.comboRate)||0;
   if(pr<=0||!cs.length||Math.random()*100>=pr)return pickCard();
   const minC=Math.max(2,parseInt(D.comboMin)||2);
@@ -2715,7 +2716,17 @@ function himPat(){
   const t=ps[Math.floor(Math.random()*ps.length)];
   push({from:'him',type:'pat',text:t,_t:clockStr()});
 }
-function pickCard(){const cs=(D.cards&&D.cards.length)?D.cards:DEFAULT_CARDS;return cs[Math.floor(Math.random()*cs.length)];}
+function pickCard(){
+  /* 始终取主字卡池，不受字卡库当前 tab（如颜文字）影响 */
+  var cs=null;
+  try{
+    var id=(typeof yzCurKaoCharId==='function')?yzCurKaoCharId():'';
+    var lib=(D.cardLib||{})[id];
+    if(lib&&lib.main&&lib.main.length)cs=lib.main;
+  }catch(e){}
+  if(!cs||!cs.length){ cs=(D.cards&&D.cards.length)?D.cards:DEFAULT_CARDS; }
+  return cs[Math.floor(Math.random()*cs.length)];
+}
 
 
 /* ============ 测一测（连接深度） ============ */
@@ -4811,14 +4822,14 @@ function saveProfile(){
   if($('#setDaifuGap'))startShopLoop();
   if($('#setComboMin'))D.comboMin=Math.max(2,parseInt($('#setComboMin').value)||2);
   if($('#setComboMax'))D.comboMax=Math.max(D.comboMin||2,parseInt($('#setComboMax').value)||(D.comboMin||2));
-  if($('#setMomMin'))D.momMin=Math.max(1,parseInt($('#setMomMin').value)||1);
-  if($('#setMomMax'))D.momMax=Math.max(D.momMin||1,parseInt($('#setMomMax').value)||(D.momMin||1));
+  if($('#setMomMin')&&String($('#setMomMin').value).trim()!=='')D.momMin=Math.max(1,parseInt($('#setMomMin').value)||1);
+  if($('#setMomMax')&&String($('#setMomMax').value).trim()!=='')D.momMax=Math.max(D.momMin||1,parseInt($('#setMomMax').value)||(D.momMin||1));
   if($('#setLetterSent')){var _m=String($('#setLetterSent').value||'').match(/\d+/g)||[];var _a=Math.max(1,parseInt(_m[0])||1);var _b=Math.max(_a,parseInt(_m[1])||_a);D.letterSent=_a+'-'+_b;}
-  if($('#setMomGap'))D.momGap=parseFloat($('#setMomGap').value)||1;
+  if($('#setMomGap')&&String($('#setMomGap').value).trim()!=='')D.momGap=parseFloat($('#setMomGap').value)||1;
   if($('#setProactiveGap')){D.proactiveGap=Math.max(1,parseFloat($('#setProactiveGap').value)||10);startProactiveLoop();}
-  if($('#setFeelGap'))D.feelGap=parseFloat($('#setFeelGap').value)||30;
-  if($('#setReplyGap'))D.replyGap=parseFloat($('#setReplyGap').value)||5;
-  if($('#setLetterGap'))D.letterGap=parseFloat($('#setLetterGap').value)||10;
+  if($('#setFeelGap')&&String($('#setFeelGap').value).trim()!=='')D.feelGap=parseFloat($('#setFeelGap').value)||30;
+  if($('#setReplyGap')&&String($('#setReplyGap').value).trim()!=='')D.replyGap=parseFloat($('#setReplyGap').value)||5;
+  if($('#setLetterGap')&&String($('#setLetterGap').value).trim()!=='')D.letterGap=parseFloat($('#setLetterGap').value)||10;
   // 兜底已移除：它会把其它屏幕里未初始化的空输入框写进 D，导致昵称等被覆盖
   save();updateHomeAvatar();$('#chatTitle').textContent=D.nick||'他';
   startMomLoop();startFeelLoop();startLetterLoop();
