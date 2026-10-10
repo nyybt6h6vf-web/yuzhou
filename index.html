@@ -4502,11 +4502,12 @@ function applyCustom(){
 #phone .lab,#phone .row>span,#phone .screen,#phone .screen .txt,#phone h4,#phone .val{color:${fc} !important;}`;}
   if(lf){css+=`#lock{color:${lf} !important;}
 #lock .h,#lock .d,#lock .name,#lock .hint,#lock .statusbar span{color:${lf} !important;}`;}
-  /* 气泡换色：梦角 / 我方 分开 */
+  /* 气泡换色：梦角 / 我方 分开；但用户填了自定义气泡CSS时，以CSS为准 */
   const bh=(D.bubbleHim||'').trim();
   const bme=(D.bubbleMe||'').trim();
-  if(bh){css+=`.msg.him .bubble,.msg.him .bubble.voice,.msg.him .bubble.patb,.bubble.patb{background:${bh} !important;}`;}
-  if(bme){css+=`.msg.me .bubble,.msg.me .bubble.voice{background:${bme} !important;}`;}
+  const __hasCss=!!String(D.bubble||'').trim();
+  if(bh&&!__hasCss){css+=`.msg.him .bubble,.msg.him .bubble.voice,.msg.him .bubble.patb,.bubble.patb{background:${bh} !important;}`;}
+  if(bme&&!__hasCss){css+=`.msg.me .bubble,.msg.me .bubble.voice{background:${bme} !important;}`;}
   /* 自定义气泡CSS：原样注入，不再硬拆，避免“只生效一半” */
   var rawBubble=String(D.bubble||'').trim().replace(/：/g,':');
   if(rawBubble){
