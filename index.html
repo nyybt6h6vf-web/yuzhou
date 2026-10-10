@@ -7,6 +7,11 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Yu·Zhou</title>
+<link id="yzFavIcon" rel="icon" href="data:,">
+<link id="yzAppleIcon" rel="apple-touch-icon" sizes="180x180" href="data:,">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Yu·Zhou">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
 :root{
   --page-bg:#ffffff;
@@ -3723,7 +3728,7 @@ $('#filePick').addEventListener('change',function(){
       else if(target==='photocard'){D['photo'+(_photoN||1)]=res;save();renderPhotoWall();done();toast('照片已放上');}
       else if(target==='diarybg'){D.diaryBg=res;save();renderDiaryProfile();done();toast('背景已更新');}
       else if(target==='diaryav'){D.diaryAv=res;save();renderDiaryProfile();done();toast('头像已更新');}
-      else if(target==='favicon'){D.favicon=res;save();applyFavicon(res);done();toast('图标已更新，重新添加到桌面会生效');}
+      else if(target==='favicon'){yzSquareFavicon(res,function(sq){D.favicon=sq;save();applyFavicon(sq);});done();toast('图标已更新，重新添加到桌面会生效');}
       else if(target==='charaav'){var _ch=(D.charas||[]).find(function(c){return c.id===_yzAvatarFor;});if(_ch){_ch.avatar=res;if(yzCurConv()&&yzCurConv().type!=='group'){D.avatarHim=res;}save();renderCharaDial(_ch);renderChatList();}done();toast('头像已更新');}
       else if(target==='himbg'){D.himBg=res;save();renderHimProfile();done();toast('背景已更新');}
       else if(target==='himav'){D.himAv=res;save();renderHimProfile();done();toast('头像已更新');}
@@ -4665,12 +4670,37 @@ function renderMemInfo(){
 function pickFavicon(){pickTarget='favicon';var f=document.getElementById('filePick');if(f)f.click();}
 function applyFavicon(url){
   if(!url)return;
-  var l=document.querySelector('link[rel="apple-touch-icon"]');
-  if(!l){l=document.createElement('link');l.rel='apple-touch-icon';document.head.appendChild(l);}
-  l.href=url;
-  var l2=document.querySelector('link[rel="icon"]');
-  if(!l2){l2=document.createElement('link');l2.rel='icon';document.head.appendChild(l2);}
-  l2.href=url;
+  var a=document.getElementById('yzAppleIcon');
+  if(!a){a=document.querySelector('link[rel="apple-touch-icon"]');}
+  if(!a){a=document.createElement('link');a.rel='apple-touch-icon';document.head.appendChild(a);}
+  a.href=url;
+  var f=document.getElementById('yzFavIcon');
+  if(!f){f=document.querySelector('link[rel="icon"]');}
+  if(!f){f=document.createElement('link');f.rel='icon';document.head.appendChild(f);}
+  f.href=url;
+  var sc=document.querySelector('link[rel="shortcut icon"]');
+  if(sc)sc.href=url;
+}
+/* 把选中的图缩成 180x180 正方形（iOS 主屏标准） */
+function yzSquareFavicon(dataUrl,cb){
+  try{
+    var img=new Image();
+    img.onload=function(){
+      try{
+        var S=180;
+        var cv=document.createElement('canvas');cv.width=S;cv.height=S;
+        var ctx=cv.getContext('2d');
+        ctx.fillStyle='#ffffff';ctx.fillRect(0,0,S,S);
+        var w=img.width,h=img.height;
+        var m=Math.min(w,h);
+        var sw=(w-m)/2, sh=(h-m)/2;
+        ctx.drawImage(img,sw,sh,m,m,0,0,S,S);
+        cb(cv.toDataURL('image/png'));
+      }catch(e){cb(dataUrl);}
+    };
+    img.onerror=function(){cb(dataUrl);};
+    img.src=dataUrl;
+  }catch(e){cb(dataUrl);}
 }
 
 function fillSettings(){
