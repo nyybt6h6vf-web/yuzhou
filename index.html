@@ -2035,13 +2035,11 @@ YZDB.open(function(ok){
       try{
         var o=JSON.parse(existing);
         if(o&&typeof o==='object'){
-          /* localStorage 为同步写入、更可靠；仅在它没值时才用 IDB 补 */
-          var _hasLS=false; try{_hasLS=!!localStorage.getItem(DKEY);}catch(_){}
-          if(!_hasLS){
-            D=Object.assign(D,o);
-            try{document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light');}catch(_){}
-            try{renderHome();applyCustom();}catch(_){}
-          }
+          /* IDB 存的是完整数据（含图片），为权威源；localStorage 只是瘦身兜底 */
+          D=Object.assign(D,o);
+          try{document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light');}catch(_){}
+          try{renderHome();applyCustom();}catch(_){}
+          try{if(typeof yzBindAvatarKey==='function')yzBindAvatarKey();}catch(_){}
           try{if(window.__YZ_AFTER_IDB)window.__YZ_AFTER_IDB();}catch(_){}
         }
       }catch(e){}
@@ -2051,7 +2049,9 @@ YZDB.open(function(ok){
     }
   });
 });
-function save(){var __j='';try{__j=JSON.stringify(D);}catch(e){return;}try{localStorage.setItem(DKEY,__j);window.__yzSaveErr=false;}catch(e){window.__yzSaveErr=true;try{console.warn('[SAVE FAIL]',e&&e.name);}catch(_){}}try{YZDB.set(DKEY,__j);}catch(e){}}
+var YZ_BIGKEYS=['packs','heroImg','avatarMe','avatarHim','himBg','himAv','diaryBg','diaryAv','photo1','photo2','photo3','photo4','pageBg','page2Bg','chatBg','momBg','lockBg'];
+function yzSlender(){try{var o={};for(var k in D){if(YZ_BIGKEYS.indexOf(k)>=0)continue;if(k==='charas'||k==='convs'){continue;}o[k]=D[k];}if(D.charas)o.charas=(D.charas||[]).map(function(c){var x={};for(var k in c){if(k==='avatar')continue;x[k]=c[k];}return x;});if(D.convs)o.convs=(D.convs||[]).map(function(cv){var x={};for(var k in cv){if(k==='msgs')continue;x[k]=cv[k];}x.msgs=(cv.msgs||[]).map(function(m){var y={};for(var k in m){if(k==='src')continue;y[k]=m[k];}if(m.type==='img')y.src='';return y;});return x;});return JSON.stringify(o);}catch(e){return '';}}
+function save(){var __j='';try{__j=JSON.stringify(D);}catch(e){return;}try{YZDB.set(DKEY,__j);}catch(e){}if(YZDB&&YZDB.ready){window.__yzSaveErr=false;try{var sl=yzSlender();if(sl)localStorage.setItem(DKEY,sl);}catch(e){}}else{/* IDB 未就绪：完整数据先存 localStorage 保底 */try{localStorage.setItem(DKEY,__j);window.__yzSaveErr=false;}catch(e){window.__yzSaveErr=true;}}}
 function $(s){return document.querySelector(s);}
 function pad(n){return n<10?'0'+n:''+n;}
 
@@ -3863,7 +3863,7 @@ $('#packPick').addEventListener('change',function(){
   D.packs=D.packs||[];
   let loaded=0;
   const total=files.length;
-  const finish=()=>{loaded++;if(loaded>=total){input.value='';save();renderPacks();if($('#packs').classList.contains('active'))go('packs');if(window.__yzSaveErr){toast('存储已满，部分表情包可能未保存');}}}
+  const finish=()=>{loaded++;if(loaded>=total){input.value='';save();renderPacks();if($('#packs').classList.contains('active'))go('packs');if(window.__yzSaveErr){toast('图片较多，已存入本地数据库');}}}
   files.forEach(f=>{
     const r=new FileReader();
     r.onload=()=>{yzShrinkImg(r.result,300,0.82,function(out){D.packs.push(out);finish();});};
