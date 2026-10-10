@@ -237,6 +237,15 @@ body{
 .fingersheet .fcd.on{opacity:.92;}
 .fingersheet .fhist{margin-top:26px;font-size:12px;opacity:.6;line-height:1.7;text-align:center;max-width:80%;}
 .fingersheet .fhist b{opacity:.9;font-weight:600;}
+.fingersheet .fhistbtn{margin-top:14px;font-size:12.5px;color:#9fb2d8;border:1px solid rgba(159,178,216,.5);border-radius:14px;padding:6px 16px;cursor:pointer;}
+.fp-hsheet{position:fixed;inset:0;z-index:99;display:none;align-items:flex-end;justify-content:center;background:rgba(10,12,25,.5);}
+.fp-hsheet.show{display:flex;}
+.fp-hsheet .fph-box{width:100%;max-width:520px;max-height:70dvh;overflow-y:auto;background:#1a1f2e;color:#fff;border-radius:22px 22px 0 0;padding:18px 18px 28px;box-sizing:border-box;}
+.fp-hsheet .fph-t{font-size:15px;font-weight:700;margin-bottom:12px;}
+.fp-hsheet .fph-i{display:flex;justify-content:space-between;padding:9px 4px;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px;}
+.fp-hsheet .fph-i .fph-l{color:#9fb2d8;font-weight:600;}
+.fp-hsheet .fph-i .fph-time{opacity:.55;font-size:11.5px;}
+.fp-hsheet .fph-empty{opacity:.6;font-size:13px;padding:18px 0;text-align:center;}
 
 
 .plusgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px 10px;}
@@ -1011,6 +1020,8 @@ body{
       <div class="fcd" id="fcd"></div>
       <div class="fstat" id="fStat">长按右边指纹 3 秒</div>
       <div class="fhist" id="fHist"></div>
+      <div class="fhistbtn" onclick="openFpHistory()">查看历史记录</div>
+      <div class="fp-hsheet" id="fpHistSheet" onclick="if(event.target===this)closeFpHistory()"><div class="fph-box"><div class="fph-t">连接深度 · 历史记录</div><div id="fphBody"></div><div style="text-align:center;margin-top:16px"><span class="fhistbtn" onclick="clearFpHistory()">清空历史</span></div></div></div>
     </div>
   </div>
 
@@ -2927,6 +2938,20 @@ function yzFpRenderHistory(){
     box.innerHTML=html;
   }catch(e){}
 }
+function openFpHistory(){
+  try{
+    var box=document.getElementById('fphBody');if(!box)return;
+    var hs=(D.fpHistory||[]).slice().reverse();
+    if(!hs.length){box.innerHTML='<div class="fph-empty">还没有记录，去测一测吧</div>';}
+    else{
+      box.innerHTML='';
+      hs.forEach(function(h){box.insertAdjacentHTML('beforeend','<div class="fph-i"><span class="fph-l">'+esc(h.label||'')+(h.pct!=null?('　'+h.pct+'%'):'')+'</span><span class="fph-time">'+esc(h.time||'')+'</span></div>');});
+    }
+    var sc=document.getElementById('fpHistSheet');if(sc)sc.classList.add('show');
+  }catch(e){}
+}
+function closeFpHistory(){var sc=document.getElementById('fpHistSheet');if(sc)sc.classList.remove('show');}
+function clearFpHistory(){try{if(!confirm('确定清空所有历史记录？'))return;D.fpHistory=[];save();openFpHistory();yzFpRenderHistory();toast('已清空');}catch(e){}}
 function yzFpCountdown(sec,cb){
   var el=document.getElementById('fcd');
   var n=sec;
