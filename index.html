@@ -2584,16 +2584,30 @@ function respond(){
   var _cv=yzCurConv();
   if(_cv&&_cv.type==='group'){ respondGroup(_cv); return; }
   const delay=replyDelayMs();
-  const n=nextCount();
+  const maxN=Math.max(1,parseInt(D.sendMax)||1);
+  var n=nextCount();
+  if(n>maxN)n=maxN;
   const gap=sendGapMs();
+  /* 主字卡优先占坑：先发 n 条主字卡 */
   setTyping(true);
   setTimeout(()=>{
     setTyping(false);
     markRead();
-    himSay();
+    himSayMain();
     for(let i=1;i<n;i++){
       setTimeout(()=>{setTyping(true);},gap*i-gap+400>0?gap*i-gap+400:0);
-      setTimeout(()=>{setTyping(false);himSay();},gap*i);
+      setTimeout(()=>{setTyping(false);himSayMain();},gap*i);
+    }
+    /* 剩余坑：最多再给 1 条表情包、1 条颜文字，总数不超 maxN */
+    var left=maxN-n;
+    if(left>0){
+      var idx=0;
+      var hitPack=(parseFloat(D.packRate)||0)>0 && (D.packs||[]).length && Math.random()*100<(parseFloat(D.packRate)||0);
+      var _km=(typeof yzMaybeKaomojiFor==='function')?yzMaybeKaomojiFor((typeof yzCurKaoCharId==='function'?yzCurKaoCharId():'')):'';
+      var hitKm=!!_km;
+      /* 两个都中：各占一个坑；只有一个中：占一个坑 */
+      if(hitPack){ idx++; var _pp=D.packs[Math.floor(Math.random()*D.packs.length)]; (function(P){setTimeout(function(){setTyping(false);push({from:'him',type:'img',src:P,_t:clockStr()});},gap*(n+idx-1));})(_pp); }
+      if(hitKm && (left-idx)>0){ idx++; (function(K){setTimeout(function(){setTyping(false);push({from:'him',text:K,type:'text',_t:clockStr()});},gap*(n+idx-1));})(_km); }
     }
    },delay);
 }
@@ -2658,13 +2672,12 @@ function quoteBrief(m){
   return String(m.text||'').slice(0,60);
 }
 function himSay(){ himSayFor(null); }
-function himSayFor(who){
-  /* 第一步：先回主字卡（含连发、引用、拼字卡） */
+function himSayMain(who){
+  /* 只发主字卡（含连发、引用、拼字卡），不追发表情包/颜文字 */
   var _txt;
   if(who){ _txt=pickMultiCardsFor(who); }
   else { _txt=pickMultiCards(); }
   var msg={from:'him',text:_txt,type:'text',_t:clockStr()};
-  /* 引用概率 */
   var qr=parseFloat(D.quoteRate);
   if(!isNaN(qr)&&qr>0&&Math.random()*100<qr){
     var qi=pickQuoteRef();
@@ -2674,19 +2687,21 @@ function himSayFor(who){
   }
   if(who)msg.who=who;
   push(msg);
-  /* 第二步：主字卡回完后，再看要不要追一条表情包或颜文字（每次最多一条） */
+}
+function himSayFor(who){
+  /* 其他场景（主动消息/群聊等）：先主字卡，再最多追一条表情包或颜文字 */
+  himSayMain(who);
+  var picked=false;
   var pr=parseFloat(D.packRate)||0;
   if(pr>0&&(D.packs||[]).length&&Math.random()*100<pr){
     var p=D.packs[Math.floor(Math.random()*D.packs.length)];
-    var pm={from:'him',type:'img',src:p,_t:clockStr()};
-    if(who){ var f=function(){var m={from:'him',type:'img',src:p,_t:clockStr()};if(who)m.who=who;push(m);}; setTimeout(f,700+Math.random()*600); }
-    else setTimeout(function(){push(pm);},700+Math.random()*600);
-    return;
+    (function(P){setTimeout(function(){var m={from:'him',type:'img',src:P,_t:clockStr()};if(who)m.who=who;push(m);},700+Math.random()*600);})(p);
+    picked=true;
   }
-  var id=who||(typeof yzCurKaoCharId==='function'?yzCurKaoCharId():'');
-  var km=(typeof yzMaybeKaomojiFor==='function')?yzMaybeKaomojiFor(id):'';
-  if(km){
-    setTimeout(function(){ var m={from:'him',text:km,type:'text',_t:clockStr()}; if(who)m.who=who; push(m); },600+Math.random()*500);
+  if(!picked){
+    var id=who||(typeof yzCurKaoCharId==='function'?yzCurKaoCharId():'');
+    var km=(typeof yzMaybeKaomojiFor==='function')?yzMaybeKaomojiFor(id):'';
+    if(km){ setTimeout(function(){ var m={from:'him',text:km,type:'text',_t:clockStr()}; if(who)m.who=who; push(m); },600+Math.random()*500); }
   }
 }
 
