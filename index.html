@@ -1234,6 +1234,8 @@ body{
          <div class="row"><div class="lab">发表情包概率（%）（通用）</div><input type="number" id="setPackRate" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">主动来电概率（%）</div><input type="number" id="setCall" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">开启消息通知</div><div class="chip" onclick="yzAskNotify()">开启 / 检查</div></div>
+        <div class="row"><div class="lab">测试通知</div><div class="chip" onclick="yzTestNotify()">发一条试试</div></div>
+        <div class="row"><div class="lab">后台保活</div><div class="chip" id="keepAliveBtn" onclick="yzToggleKeepAlive()">关闭</div></div>
         <div class="row"><div class="lab">主动发消息间隔（分钟）</div><input type="number" id="setProactiveGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">主动找我（开关）</div><div class="chip" onclick="toggleProactive()" id="proactiveBtn">关闭</div></div>
         <div class="row"><div class="lab">梦角发动态间隔（分钟）</div><input type="number" id="setMomGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
@@ -2892,15 +2894,38 @@ function yzAskNotify(){
     Notification.requestPermission().then(function(p){toast(p==='granted'?'通知已开启':'你拒绝了通知');});
   }catch(e){toast('通知不可用');}
 }
-function yzNotify(title,body){
+function yzNotify(title,body,force){
   try{
     if(!('Notification' in window))return;
     if(Notification.permission!=='granted')return;
-    if(!document.hidden)return; // 页面在前台不用弹
+    if(!force&&!document.hidden)return; // 页面在前台不用弹；force 时强制
     var n=new Notification(title||((D.nick||'他')),{body:body||'给你发消息了',icon:D.avatarHim||undefined,tag:'yz-msg'});
     setTimeout(function(){try{n.close();}catch(e){}},6000);
   }catch(e){}
 }
+function yzTestNotify(){
+  try{
+    if(!('Notification' in window)){toast('这个浏览器不支持通知');return;}
+    if(Notification.permission!=='granted'){toast('请先点「开启 / 检查」允许通知');return;}
+    yzNotify('梦角','这是一条测试消息，能看到就说明通知正常',true);
+    toast('已发送测试通知');
+  }catch(e){toast('通知不可用');}
+}
+/* ===== 后台保活 ===== */
+var _yzWakeLock=null;
+function yzKeepAlive(){
+  try{
+    if('wakeLock' in navigator && document.visibilityState==='visible'){
+      navigator.wakeLock.request('screen').then(function(w){_yzWakeLock=w;w.addEventListener('release',function(){});}).catch(function(){});
+    }
+  }catch(e){}
+}
+function yzToggleKeepAlive(){
+  D.keepAlive=!D.keepAlive;save();
+  var b=document.getElementById('keepAliveBtn');if(b)b.textContent=D.keepAlive?'开启':'关闭';
+  if(D.keepAlive){yzKeepAlive();toast('已开启后台保活');}else{try{if(_yzWakeLock)_yzWakeLock.release();}catch(e){}toast('已关闭后台保活');}
+}
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&D.keepAlive){yzKeepAlive();}});
 
 
 /* ============ 19. 主动发消息 ============ */
@@ -4915,6 +4940,7 @@ function fillSettings(){
     else if(D[k]!==undefined){el.value=D[k];}
   });
   if($('#feelToggle'))$('#feelToggle').textContent=D.feelOn===false?'关闭':'开启';
+  try{var _ka=document.getElementById('keepAliveBtn');if(_ka)_ka.textContent=D.keepAlive?'开启':'关闭';}catch(e){}
   if($('#readToggle'))$('#readToggle').textContent=D.readOn?'开启':'关闭';
   if($('#typingToggle'))$('#typingToggle').textContent=D.typingOn?'开启':'关闭';
   $('#thLight').classList.toggle('on',D.theme!=='dark');
