@@ -231,6 +231,11 @@ body{
 .fingersheet .flab{margin-top:10px;font-size:12px;opacity:.7;}
 .fingersheet .fline{width:60px;height:2px;background:linear-gradient(90deg,#7d93c9,#9a7dc9);border-radius:2px;}
 .fingersheet .fstat{margin-top:44px;font-size:14px;opacity:.85;letter-spacing:1px;text-align:center;min-height:20px;}
+.fingersheet .fcd{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:120px;font-weight:200;color:#9fb2d8;opacity:0;pointer-events:none;}
+.fingersheet .fcd.on{opacity:.92;}
+.fingersheet .fhist{margin-top:26px;font-size:12px;opacity:.6;line-height:1.7;text-align:center;max-width:80%;}
+.fingersheet .fhist b{opacity:.9;font-weight:600;}
+
 
 .plusgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 10px;}
 .plusitem{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;}
@@ -993,11 +998,13 @@ body{
       <div class="fclose" onclick="closeFingerTest()">✕</div>
       <div class="ftitle">连接深度测试</div>
       <div class="frow">
-        <div class="ffp" id="fpMe"><div class="fring"></div><div class="flab">我</div></div>
-        <div class="fline"></div>
         <div class="ffp" id="fpYou"><div class="fring"></div><div class="flab">TA</div></div>
+        <div class="fline"></div>
+        <div class="ffp" id="fpMe"><div class="fring"></div><div class="flab">我</div></div>
       </div>
+      <div class="fcd" id="fcd"></div>
       <div class="fstat" id="fStat">长按右边指纹 3 秒</div>
+      <div class="fhist" id="fHist"></div>
     </div>
   </div>
 
@@ -1562,7 +1569,7 @@ const ICONS={
  transfer:'<svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="11" rx="3"/><path d="M3 11h18"/><circle cx="12" cy="14.5" r="1.3"/></svg>',
  call:'<svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L8.1 9.5a16 16 0 0 0 6 6l1.1-1.1a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 2z"/></svg>',
  mic:'<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>',
- pat:'<svg viewBox="0 0 24 24"><path d="M8 13V6a1.5 1.5 0 0 1 3 0v6"/><path d="M11 12V5a1.5 1.5 0 0 1 3 0v7"/><path d="M14 12V6.5a1.5 1.5 0 0 1 3 0V14a7 7 0 0 1-7 7h-1a6 6 0 0 1-6-6v-3a1.5 1.5 0 0 1 3 0"/></svg>',
+ pat:'<svg viewBox="0 0 24 24"><path d="M12 20.5C7 16.5 3.5 13.4 3.5 9.8 3.5 7.2 5.5 5.5 7.8 5.5c1.6 0 3.1.9 4.2 2.4 1.1-1.5 2.6-2.4 4.2-2.4 2.3 0 4.3 1.7 4.3 4.3 0 3.6-3.5 6.7-8.5 10.7z"/></svg>',
  listen:'<svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>',
  letter:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 7l9 6 9-6"/></svg>',
  album:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-6 6-3-3-4 4"/></svg>',
@@ -2899,42 +2906,92 @@ function pickCard(){
 
 
 /* ============ 测一测（连接深度） ============ */
-var _fpTimer=null,_fpPress=null,_fpMine=false,_fpYours=false;
+var _fpTimer=null,_fpPress=null,_fpMine=false,_fpYours=false,_fpCdTimer=null,_fpCd=null;
+function yzFpHistoryLabel(lvl,label){
+  var t=new Date();var hh=t.getHours();var mm=t.getMinutes();
+  return (hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm+'  '+label;
+}
+function yzFpRenderHistory(){
+  try{
+    var box=document.getElementById('fHist');if(!box)return;
+    var hs=(D.fpHistory||[]).slice(-4).reverse();
+    if(!hs.length){box.innerHTML='';return;}
+    var html='最近：';
+    hs.forEach(function(h,i){html+=(i>0?' · ':'')+'<b>'+esc(h.label||'')+'</b> '+esc(h.time||'');});
+    box.innerHTML=html;
+  }catch(e){}
+}
+function yzFpCountdown(sec,cb){
+  var el=document.getElementById('fcd');
+  var n=sec;
+  function step(){
+    if(n<=0){if(el){el.textContent='';el.classList.remove('on');}cb();return;}
+    if(el){el.textContent=n;el.classList.add('on');}
+    n--;
+    _fpCdTimer=setTimeout(step,1000);
+  }
+  step();
+}
 function openFingerTest(){
   _fpMine=false;_fpYours=false;
   var s=$('#fingerSheet');if(!s)return;
   $('#fpMe').classList.remove('done');$('#fpYou').classList.remove('done');
+  var el=document.getElementById('fcd');if(el){el.textContent='';el.classList.remove('on');}
   $('#fStat').textContent='长按右边指纹 3 秒';
+  yzFpRenderHistory();
   s.classList.add('show');
   var you=$('#fpYou');
-  function start(){ if(_fpMine)return; _fpPress=Date.now(); $('#fStat').textContent='按住中…不要松手'; }
+  function start(){ if(_fpMine)return; _fpPress=Date.now(); if(_fpCdTimer)clearTimeout(_fpCdTimer);
+    yzFpCountdown(3,function(){});
+    $('#fStat').textContent='按住中…不要松手'; }
+  function cancelCd(){ if(_fpCdTimer){clearTimeout(_fpCdTimer);_fpCdTimer=null;} var e=document.getElementById('fcd');if(e){e.textContent='';e.classList.remove('on');} }
   function end(){ if(_fpMine)return; if(!_fpPress)return; var d=Date.now()-_fpPress; _fpPress=null;
-    if(d>=2800){ _fpMine=true; $('#fpMe').classList.add('done'); $('#fStat').textContent='TA 正在按指纹中……';
-      setTimeout(function(){ _fpYours=true; $('#fpYou').classList.add('done'); $('#fStat').textContent='TA已经按好指纹啦～';
+    if(d>=2800){ _fpMine=true; cancelCd(); $('#fpMe').classList.add('done'); $('#fStat').textContent='TA 正在按指纹中……';
+      setTimeout(function(){ _fpYours=true; $('#fpYou').classList.add('done'); $('#fStat').textContent='TA 已经按好指纹啦~';
         setTimeout(function(){ $('#fStat').textContent='现在进行连接深度测试';
           setTimeout(runFingerResult,1200); },900); },5000);
-    } else { $('#fStat').textContent='要按满 3 秒哦，再试一次'; }
+    } else { cancelCd(); $('#fStat').textContent='要按满 3 秒哦，再试一次'; }
   }
   you.onmousedown=start; you.ontouchstart=function(e){e.preventDefault();start();};
   you.onmouseup=end; you.ontouchend=function(e){e.preventDefault();end();};
   you.onmouseleave=function(){ if(!_fpMine)end(); };
 }
-function closeFingerTest(){ var s=$('#fingerSheet');if(s)s.classList.remove('show'); _fpPress=null; }
+function closeFingerTest(){ var s=$('#fingerSheet');if(s)s.classList.remove('show'); _fpPress=null; if(_fpCdTimer){clearTimeout(_fpCdTimer);_fpCdTimer=null;} var e=document.getElementById('fcd');if(e){e.textContent='';e.classList.remove('on');} }
 function runFingerResult(){
-  var r=Math.random()*100, lvl,label;
-  if(r<2){lvl=1;label='连接不稳';}
-  else if(r<7){lvl=2;label='初度连接';}
-  else if(r<17){lvl=3;label='连接较稳';}
-  else if(r<37){lvl=4;label='连接较深';}
+  /* 连接深度：基于历史微调，避免纯随机 */
+  var hs=(D.fpHistory||[]);
+  var base=50;
+  if(hs.length){var sum=0;hs.slice(-5).forEach(function(h){sum+=(h.lvl||3);});base=(sum/hs.slice(-5).length)*18;}
+  var r=Math.max(0,Math.min(99,base+(Math.random()*60-30)));
+  var lvl,label;
+  if(r<8){lvl=1;label='连接不稳';}
+  else if(r<24){lvl=2;label='初度连接';}
+  else if(r<46){lvl=3;label='连接较稳';}
+  else if(r<72){lvl=4;label='连接较深';}
   else {lvl=5;label='心有灵犀';}
-  $('#fStat').textContent='结果：'+label;
+  var pct=Math.round(r);
+  D.fpHistory=D.fpHistory||[];
+  D.fpHistory.push({lvl:lvl,label:label,pct:pct,time:yzFpHistoryLabel(lvl,label)});
+  if(D.fpHistory.length>30)D.fpHistory=D.fpHistory.slice(-30);
+  save();
+  $('#fStat').textContent='连接深度：'+label+'（'+pct+'%）';
+  yzFpRenderHistory();
   setTimeout(function(){
     closeFingerTest();
-    push({from:'him',type:'text',text:'我们的连接深度：'+label+'。'+ (lvl>=4?'我就知道是你。':'再靠近一点。'),_t:clockStr()});
+    var say=['我们的连接深度：'+label+'，'+pct+'%。'+(lvl>=4?'我就知道是你。':'再靠近一点。'),
+      ' '+''];
+    push({from:'him',type:'text',text:say[0],_t:clockStr()});
+    /* 梦角自动插话 */
+    try{
+      var extra='';
+      if(lvl>=5)extra='你按指纹的时候，我也在想你。';
+      else if(lvl===4)extra='差一点就是心有灵犀了。';
+      else if(lvl===3)extra='我们再熟一点就好了。';
+      else extra='没事，我们有的是时间。';
+      setTimeout(function(){push({from:'him',type:'text',text:extra,_t:clockStr()});},900);
+    }catch(e){}
   },1600);
 }
-
-
 /* ============ 19. 后台通知 ============ */
 function yzAskNotify(){
   try{
