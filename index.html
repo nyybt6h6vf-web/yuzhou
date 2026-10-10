@@ -1180,9 +1180,13 @@ body{
 <div class="row"><div class="lab">页面背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPageBg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('pageBg')">上传图</div><div class="chip" onclick="setColor('pageBg','')">清</div></div></div>
 <div class="row"><div class="lab">第二页背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPage2Bg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('page2Bg')">上传图</div><div class="chip" onclick="setColor('page2Bg','')">清</div></div></div>
 <div class="row"><div class="lab">聊天背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setChatBg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('chatBg')">上传图</div><div class="chip" onclick="setColor('chatBg','')">清</div></div></div>
-<div class="row"><div class="lab">主界面字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('fontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('fontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setFontColorColor" oninput="setColor('fontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fontColor','')">清</div></div></div>
+<div class="row"><div class="lab">聊天字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('fontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('fontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setFontColorColor" oninput="setColor('fontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fontColor','')">清</div></div></div>
 <div class="row"><div class="lab">梦角气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleHim','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleHim','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleHimColor" oninput="setColor('bubbleHim',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleHim','')">清</div></div></div>
 <div class="row"><div class="lab">我方气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleMe','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleMe','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleMeColor" oninput="setColor('bubbleMe',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleMe','')">清</div></div></div>
+<div class="row"><div class="lab">转账卡片色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setTranColor" oninput="setColor('tranColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('tranColor','')">清</div></div></div>
+<div class="row"><div class="lab">气泡大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setBubbleSize" min="80" max="140" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="bubbleSizeVal" style="min-width:38px;text-align:right">100%</span></div></div>
+<div class="row"><div class="lab">聊天字体大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setChatFontSize" min="11" max="22" step="1" value="14" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="chatFontSizeVal" style="min-width:38px;text-align:right">14px</span></div></div>
+<div class="row"><div class="lab">转账卡片大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setTranSize" min="80" max="150" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="tranSizeVal" style="min-width:38px;text-align:right">100%</span></div></div>
 <div class="row"><div class="lab">动态背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setMomBg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('momBg')">上传图</div><div class="chip" onclick="setColor('momBg','')">清</div></div></div>
         <div class="row" style="flex-direction:column;align-items:stretch">
           <div class="lab" style="margin-bottom:8px">气泡 CSS（.msg .bubble 通用，写一条两边都生效）</div>
@@ -4833,12 +4837,15 @@ function fillSettings(){
   if($('#setSlogan'))$('#setSlogan').value=D.slogan||'';
   $('#setPageBg').value=D.pageBg||'';if($('#setPage2Bg'))$('#setPage2Bg').value=D.page2Bg||'';$('#setChatBg').value=D.chatBg||'';
   if($('#setMomBg'))$('#setMomBg').value=D.momBg||'';
-  ['lockFg','fontColor','bubbleHim','bubbleMe'].forEach(function(k){
+  ['lockFg','fontColor','bubbleHim','bubbleMe','tranColor'].forEach(function(k){
     var c=$('#set'+k.charAt(0).toUpperCase()+k.slice(1)+'Color');
     var v=(D[k]||'').trim();
     if(c&&/^#[0-9a-fA-F]{6}$/.test(v))c.value=v;
   });
   $('#setBubble').value=D.bubble||'';
+  try{if($('#setBubbleSize'))$('#setBubbleSize').value=(D.bubbleSize!==undefined?D.bubbleSize:100);if($('#bubbleSizeVal'))$('#bubbleSizeVal').textContent=(D.bubbleSize!==undefined?D.bubbleSize:100)+'%';}catch(e){}
+  try{if($('#setChatFontSize'))$('#setChatFontSize').value=(D.chatFontSize!==undefined?D.chatFontSize:14);if($('#chatFontSizeVal'))$('#chatFontSizeVal').textContent=(D.chatFontSize!==undefined?D.chatFontSize:14)+'px';}catch(e){}
+  try{if($('#setTranSize'))$('#setTranSize').value=(D.tranSize!==undefined?D.tranSize:100);if($('#tranSizeVal'))$('#tranSizeVal').textContent=(D.tranSize!==undefined?D.tranSize:100)+'%';}catch(e){}
   try{yzPreviewBubble();}catch(e){}
   if($('#setDelay'))$('#setDelay').value=D.delay;
   if($('#setSendGap'))$('#setSendGap').value=(D.sendGap!==undefined?D.sendGap:D.delay);
@@ -4896,7 +4903,7 @@ function fillSettings(){
 function setColor(k,v){
   D[k]=v||'';
   if(k==='lockBg'){setTimeout(()=>$,0);}
-  const cid={lockFg:'setLockFgColor',fontColor:'setFontColorColor',bubbleHim:'setBubbleHimColor',bubbleMe:'setBubbleMeColor',pageBg:null,chatBg:null,momBg:null,lockBg:null}[k];
+  const cid={lockFg:'setLockFgColor',fontColor:'setFontColorColor',bubbleHim:'setBubbleHimColor',bubbleMe:'setBubbleMeColor',tranColor:'setTranColor',pageBg:null,chatBg:null,momBg:null,lockBg:null}[k];
   if(cid){const inp=$('#'+cid);if(inp)inp.value=v||'#000000';}
   save();
   scheduleApply();
@@ -4911,6 +4918,9 @@ function saveBeauty(){
   if($('#setChatBg'))D.chatBg=$('#setChatBg').value;
   if($('#setMomBg'))D.momBg=$('#setMomBg').value;
   if($('#setBubble'))D.bubble=$('#setBubble').value;
+  if($('#setBubbleSize'))D.bubbleSize=parseInt($('#setBubbleSize').value)||100;
+  if($('#setChatFontSize'))D.chatFontSize=parseInt($('#setChatFontSize').value)||14;
+  if($('#setTranSize'))D.tranSize=parseInt($('#setTranSize').value)||100;
   save();scheduleApply();
   try{yzPreviewBubble();}catch(e){}
 }
@@ -5053,16 +5063,27 @@ function applyCustom(){
     else mq.style.background=mb||'';
   }
   const fc=(D.fontColor||'').trim();
-  if(fc){document.documentElement.style.setProperty('--fg-color',fc);}
-  else{document.documentElement.style.removeProperty('--fg-color');}
+  if(fc){document.documentElement.style.setProperty('--chat-text-color',fc);}
+  else{document.documentElement.style.removeProperty('--chat-text-color');}
   const lf=(D.lockFg||'').trim();
   if(lf){document.documentElement.style.setProperty('--lock-fg-color',lf);}
   else{document.documentElement.style.removeProperty('--lock-fg-color');}
   let css='';
-  if(fc){css+=`#phone{color:${fc} !important;}
-#phone .lab,#phone .row>span,#phone .screen,#phone .screen .txt,#phone h4,#phone .val{color:${fc} !important;}`;}
-  if(lf){css+=`#lock{color:${lf} !important;}
-#lock .h,#lock .d,#lock .name,#lock .hint,#lock .statusbar span{color:${lf} !important;}`;}
+  if(fc){css+='.msg .bubble,.msg .bubble .quotebar,.msg .bubble.transfer .tt,.msg .bubble.transfer .td,.msg .bubble.transfer .tstmt,.msg .bubble.transfer .tamt,.msg .bubble.transfer .tact span{color:'+fc+';}';}
+  if(lf){css+='#lock{color:'+lf+' !important;}';css+='#lock .h,#lock .d,#lock .name,#lock .hint,#lock .statusbar span{color:'+lf+' !important;}';}
+  /* 转账卡片色 */
+  const tc=(D.tranColor||'').trim();
+  if(tc){css+='.bubble.transfer .tt{background:'+tc+' !important;}';css+='.bubble.transfer .td,.bubble.transfer .tstmt{background:'+tc+' !important;}';css+='.bubble.transfer{background:'+tc+' !important;}';}
+  /* 气泡大小 */
+  const bs=(D.bubbleSize!==undefined?D.bubbleSize:100);
+  if(bs!==100){var _sc=bs/100;css+='.msg .bubble{transform:scale('+_sc+');transform-origin:'+"center"+';}';
+    css+='.msg.me .bubble{transform-origin:right center;}';css+='.msg.him .bubble{transform-origin:left center;}';}
+  /* 聊天字体大小 */
+  const cfz=(D.chatFontSize!==undefined?D.chatFontSize:14);
+  if(cfz!==14){css+='.msg .bubble{font-size:'+cfz+'px !important;}';}
+  /* 转账卡片大小 */
+  const tsz=(D.tranSize!==undefined?D.tranSize:100);
+  if(tsz!==100){var _ts=tsz/100;css+='.bubble.transfer{transform:scale('+_ts+');transform-origin:center;}';}
   /* 气泡换色：梦角 / 我方 分开；但用户填了自定义气泡CSS时，以CSS为准 */
   const bh=(D.bubbleHim||'').trim();
   const bme=(D.bubbleMe||'').trim();
