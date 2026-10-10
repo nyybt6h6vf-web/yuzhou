@@ -699,6 +699,20 @@ body{
 .phboot{position:absolute;inset:0;background:#000;display:flex;align-items:center;justify-content:center;}
 .phbootlogo{font-size:52px;opacity:0;transform:scale(.8);transition:opacity 1.1s ease,transform 1.1s ease;}
 .phbootlogo.show{opacity:1;transform:scale(1);}
+.favwrap{padding:4px 2px 20px;}
+.favback{font-size:14px;color:#9aa0ad;margin-bottom:10px;}
+.favsec{margin-bottom:18px;}
+.favtitle{font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px;}
+.favnum{font-size:12px;color:#9aa0ad;font-weight:400;}
+.favempty{font-size:12.5px;color:#b3b8c4;padding:8px 0;}
+.favitem{background:var(--card,#fff);border-radius:14px;padding:12px 14px;margin-bottom:9px;box-shadow:0 2px 8px rgba(30,34,50,.07);}
+[data-theme="dark"] .favitem{background:#1d1d20;}
+.favtxt{font-size:14px;color:var(--text);line-height:1.45;}
+.favdate{font-size:11px;color:#9aa0ad;}
+.favnote{font-size:13px;color:#e08a9b;margin-top:6px;}
+.favmeta{font-size:11px;color:#b3b8c4;margin-top:6px;}
+.favdel{font-size:11.5px;color:#c07070;margin-top:6px;}
+
 #yzPhThanks{position:fixed;left:50%;top:26%;transform:translate(-50%,-16px) scale(.96);background:#fff;border-radius:20px;padding:18px 22px;box-shadow:0 12px 40px rgba(0,0,0,.24);opacity:0;pointer-events:none;transition:.32s;z-index:10000;max-width:82%;text-align:center;}
 [data-theme="dark"] #yzPhThanks{background:#26262a;}
 #yzPhThanks.show{opacity:1;transform:translate(-50%,0) scale(1);}
@@ -1206,6 +1220,15 @@ body{
         <h4>聊天显示</h4>
         <div class="row"><div class="lab">显示已读状态</div><div class="chip" id="readToggle" onclick="toggleRead()">关闭</div></div>
         <div class="row"><div class="lab">显示"对方正在输入"</div><div class="chip" id="typingToggle" onclick="toggleTyping()">关闭</div></div>
+      </div>
+      <div class="group">
+        <h4>梦角收藏（概率 %）</h4>
+        <div class="row"><div class="lab">收藏我的消息</div><input type="number" id="setFavMsg" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">收藏我加的音乐</div><input type="number" id="setFavMusic" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">收藏我发的动态</div><input type="number" id="setFavMoment" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">收藏我的日记</div><input type="number" id="setFavDiary" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">回看（翻旧内容）</div><input type="number" id="setFavReread" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">回看后收藏</div><input type="number" id="setFavRereadFav" oninput="saveProfile()" style="max-width:80px"></div>
       </div>
       <div class="group">
         <h4>备份</h4>
@@ -1913,6 +1936,7 @@ function tick(){
   ['lockTimeTop','homeTimeTop','chatTimeTop','cardTimeTop','togTimeTop','setTimeTop','moTimeTop','lisTimeTop','letTimeTop','lrTimeTop','pkTimeTop'].forEach(id=>{const el=$('#'+id);if(el)el.textContent=t;});
   $('#lockH').textContent=t;$('#lockD').textContent=ds;
   try{yzPhTick();}catch(e){}
+  try{if(!window.__yzFavLast||Date.now()-window.__yzFavLast>180000){window.__yzFavLast=Date.now();yzFavReread();}}catch(e){}
 }
 
 function go(id){
@@ -2081,7 +2105,93 @@ function yzPhThanks(){
 }
 function yzPhCharge(){ yzPhInit(); D.ph.myCharging=true; D.ph.chgAcc=0; save(); yzPhRender(); yzPhStatusIcon(); toast('已插上充电器'); }
 function yzPhUnplug(){ yzPhInit(); D.ph.myCharging=false; save(); yzPhRender(); yzPhStatusIcon(); toast('已拔充电器'); }
-function yzPhHtml(){ toast('收藏系统开发中'); }
+/* ===== 小手机 · 梦角收藏系统 ===== */
+function yzFavInit(){
+  if(!D.favs)D.favs={msg:[],music:[],moment:[],diary:[],seen:{}};
+  ['msg','music','moment','diary'].forEach(function(k){ if(!D.favs[k])D.favs[k]=[]; });
+  if(!D.favs.seen)D.favs.seen={};
+  if(D.favMsgRate===undefined)D.favMsgRate=30;
+  if(D.favMusicRate===undefined)D.favMusicRate=30;
+  if(D.favMomentRate===undefined)D.favMomentRate=30;
+  if(D.favDiaryRate===undefined)D.favDiaryRate=30;
+  if(D.favRereadRate===undefined)D.favRereadRate=20;
+  if(D.favRereadFavRate===undefined)D.favRereadFavRate=20;
+}
+function yzFavNote(){ try{ var id=yzCurKaoCharId(); return pickCardFor(id); }catch(e){ return ''; } }
+/* 梦角收藏一条。type: msg/music/moment/diary。item: 原始数据。srcTime: 我发它的时间 */
+function yzFavAdd(type,item,srcTime){
+  try{
+    yzFavInit();
+    if(!item)return;
+    var key=(item.id||item.url||item.title||item.text||'')+'';
+    if(!key)return;
+    if(D.favs.seen[type+':'+key])return;
+    D.favs.seen[type+':'+key]=1;
+    var nowStr=new Date().toLocaleString('zh-CN',{hour12:false}).slice(5,16);
+    D.favs[type].push({k:key,note:yzFavNote(),favTime:nowStr,srcTime:srcTime||'',text:(item.text||'').slice(0,120),title:item.title||'',by:item.by||'',url:item.url||'',date:item.date||''});
+    save();
+  }catch(e){}
+}
+/* 尝试收藏（按概率） */
+function yzFavTry(type,item,srcTime,rateKey){
+  try{
+    yzFavInit();
+    var r=D[rateKey]; if(r===undefined)r=30;
+    if(Math.random()*100<r) yzFavAdd(type,item,srcTime);
+  }catch(e){}
+}
+/* 回看：随机挑一条非收藏旧内容，按概率收藏 */
+function yzFavReread(){
+  try{
+    yzFavInit();
+    var r=D.favRereadRate; if(r===undefined)r=20;
+    if(Math.random()*100>=r)return;
+    var pool=[];
+    (D.msgs||[]).forEach(function(m){ if(m.from==='me'&&m.text)pool.push({type:'msg',item:m,src:m._t||''}); });
+    (D.moments||[]).forEach(function(x){ if(x.from==='me'&&x.text)pool.push({type:'moment',item:x,src:x.time||''}); });
+    (D.listenSongs||[]).forEach(function(s){ pool.push({type:'music',item:s,src:s.time||''}); });
+    (D.diaries||[]).forEach(function(d){ if((d.from||'me')==='me')pool.push({type:'diary',item:d,src:d.date||''}); });
+    if(!pool.length)return;
+    var pick=pool[Math.floor(Math.random()*pool.length)];
+    var key=(pick.item.id||pick.item.url||pick.item.title||pick.item.text||'')+'';
+    if(D.favs.seen[pick.type+':'+key])return;
+    var rr=D.favRereadFavRate; if(rr===undefined)rr=20;
+    if(Math.random()*100<rr){ yzFavAdd(pick.type,pick.item,pick.src); }
+  }catch(e){}
+}
+function yzFavCatLabel(t){ return t==='msg'?'收藏消息':(t==='music'?'收藏音乐':(t==='moment'?'收藏动态':'收藏日记')); }
+function yzPhHtml(){
+  yzFavInit();
+  var body=$('#phBody'); if(!body)return;
+  var h='<div class="favwrap">';
+  h+='<div class="favback" onclick="yzPhRender()">‹ 返回</div>';
+  ['msg','music','moment','diary'].forEach(function(t){
+    var arr=D.favs[t]||[];
+    h+='<div class="favsec">';
+    h+='<div class="favtitle">'+yzFavCatLabel(t)+' <span class="favnum">'+arr.length+'</span></div>';
+    if(!arr.length){ h+='<div class="favempty">还没有</div>'; }
+    else{
+      arr.slice().reverse().forEach(function(f,idx){
+        var realIdx=arr.length-1-idx;
+        h+='<div class="favitem">';
+        if(t==='msg'||t==='moment') h+='<div class="favtxt">'+(f.text||'')+'</div>';
+        if(t==='music') h+='<div class="favtxt">🎵 '+(f.title||'')+(f.by?' · '+f.by:'')+'</div>';
+        if(t==='diary') h+='<div class="favtxt">📖 '+(f.title||'')+' <span class="favdate">'+(f.date||'')+'</span></div>';
+        if(f.note) h+='<div class="favnote">'+(f.note)+'</div>';
+        h+='<div class="favmeta">收藏于 '+f.favTime+(f.srcTime?' · 发于 '+f.srcTime:'')+'</div>';
+        h+='<div class="favdel" onclick="yzFavDel(\''+t+'\','+realIdx+')">删除</div>';
+        h+='</div>';
+      });
+    }
+    h+='</div>';
+  });
+  h+='</div>';
+  body.innerHTML=h;
+}
+function yzFavDel(t,i){
+  try{ yzFavInit(); D.favs[t].splice(i,1); save(); yzPhHtml(); }catch(e){}
+}
+
 
 function yzPhStatusIcon(){
   var show=!!D.ph.myCharging;
@@ -2338,7 +2448,7 @@ function renderChat(){
   bindTranTaps();
   window.__applyBubbleInline&&window.__applyBubbleInline();
 }
-function push(m){D.msgs.push(m);save();if($('#chat').classList.contains('active')){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40));}}catch(e){}}
+function push(m){D.msgs.push(m);save();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}if($('#chat').classList.contains('active')){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40));}}catch(e){}}
 function jumpMsg(i){
   const list=document.querySelectorAll('#chatBody .msg');
   const el=list[i];if(!el)return;
@@ -3169,7 +3279,7 @@ function saveDiaryPost(){
   const text=($('#dwText')||{}).value||'';
   if(!String(text).trim()&&!String(title).trim()){toast('写点什么再发布');return;}
   D.diaries=D.diaries||[];
-  D.diaries.push({id:'dy'+Date.now(),from:'me',title:String(title).trim(),mood:dwMoodTmp||'',date:dToday(),text:String(text),comments:[],time:new Date().toISOString()});
+  D.diaries.push({id:'dy'+Date.now(),from:'me',title:String(title).trim(),mood:dwMoodTmp||'',date:dToday(),text:String(text),comments:[],time:new Date().toISOString()});try{yzFavTry('diary',D.diaries[D.diaries.length-1],dToday(),'favDiaryRate');}catch(e){}
   save();
   go('diary');renderDiary();toast('已发布');
 }
@@ -3723,7 +3833,7 @@ function confirmMoment(){
   const img=($('#moImg').value||'').trim();
   closeSheet2('moSendSheet');
   D.moments=D.moments||[];
-  D.moments.push({id:'m'+Date.now(),from:'me',text:t,img:img,time:nowStr(),likedBy:[],comments:[]});
+  D.moments.push({id:'m'+Date.now(),from:'me',text:t,img:img,time:nowStr(),likedBy:[],comments:[]});try{yzFavTry('moment',D.moments[D.moments.length-1],nowStr(),'favMomentRate');}catch(e){}
   save();renderMoments();
 }
 function toggleLike(id){
@@ -3894,7 +4004,7 @@ function playPlaylistIndex(i){
   if(i<0||i>=pl.length)return false;
   D.listenIdx=i;
   const sg=pl[i];
-  D.listenSongs.push({title:sg.title,by:sg.by,url:sg.url,time:nowStr()});
+  D.listenSongs.push({title:sg.title,by:sg.by,url:sg.url,time:nowStr()});try{yzFavTry('music',D.listenSongs[D.listenSongs.length-1],nowStr(),'favMusicRate');}catch(e){}
   save();renderListen();
   if($('#lisBy'))$('#lisBy').textContent='歌单第 '+(i+1)+'/'+pl.length+' 首';
   return true;
@@ -4007,7 +4117,7 @@ function addSongPrompt(){
         D.listenPlaylist=list;
         D.listenIdx=0;
         const first=list[0];
-        D.listenSongs.push({title:first.title,by:first.by,url:first.url,time:nowStr()});
+        D.listenSongs.push({title:first.title,by:first.by,url:first.url,time:nowStr()});try{yzFavTry('music',D.listenSongs[D.listenSongs.length-1],nowStr(),'favMusicRate');}catch(e){}
         save();renderListen();
         if($('#lisBy'))$('#lisBy').textContent='歌单 '+list.length+' 首，从第 1 首开始';
         setTimeout(function(){
@@ -4031,7 +4141,7 @@ function addSongPrompt(){
       }
     }catch(e){}
     if(!title||title.length>40)title='一起听的歌';
-    D.listenSongs.push({title:title,by:by,url:v,time:nowStr()});
+    D.listenSongs.push({title:title,by:by,url:v,time:nowStr()});try{yzFavTry('music',D.listenSongs[D.listenSongs.length-1],nowStr(),'favMusicRate');}catch(e){}
     save();renderListen();
     setTimeout(()=>{
       pushListenMsg('him',pickCard());
@@ -4524,6 +4634,12 @@ function fillSettings(){
   $('#setTran').value=D.tran;$('#setCall').value=D.callRate;
   if($('#setTranTo'))$('#setTranTo').value=D.tranTo;
   if($('#setPackRate'))$('#setPackRate').value=(D.packRate===undefined?25:D.packRate);
+  if($('#setFavMsg'))$('#setFavMsg').value=(D.favMsgRate===undefined?30:D.favMsgRate);
+  if($('#setFavMusic'))$('#setFavMusic').value=(D.favMusicRate===undefined?30:D.favMusicRate);
+  if($('#setFavMoment'))$('#setFavMoment').value=(D.favMomentRate===undefined?30:D.favMomentRate);
+  if($('#setFavDiary'))$('#setFavDiary').value=(D.favDiaryRate===undefined?30:D.favDiaryRate);
+  if($('#setFavReread'))$('#setFavReread').value=(D.favRereadRate===undefined?20:D.favRereadRate);
+  if($('#setFavRereadFav'))$('#setFavRereadFav').value=(D.favRereadFavRate===undefined?20:D.favRereadFavRate);
   if($('#setPass'))$('#setPass').value=D.pass||'';
   if($('#setMin'))$('#setMin').value=D.sendMin||1;
   if($('#setMax'))$('#setMax').value=D.sendMax||1;
@@ -4623,6 +4739,12 @@ function saveProfile(){
   D.tran=parseFloat($('#setTran').value)||0;D.callRate=parseFloat($('#setCall').value)||0;
   if($('#setTranTo'))D.tranTo=parseFloat($('#setTranTo').value)||0;
   if($('#setPackRate')){D.packRate=parseFloat($('#setPackRate').value)||0;D.packRateLis=D.packRate;D.packRateMom=D.packRate;}
+  if($('#setFavMsg'))D.favMsgRate=parseFloat($('#setFavMsg').value)||0;
+  if($('#setFavMusic'))D.favMusicRate=parseFloat($('#setFavMusic').value)||0;
+  if($('#setFavMoment'))D.favMomentRate=parseFloat($('#setFavMoment').value)||0;
+  if($('#setFavDiary'))D.favDiaryRate=parseFloat($('#setFavDiary').value)||0;
+  if($('#setFavReread'))D.favRereadRate=parseFloat($('#setFavReread').value)||0;
+  if($('#setFavRereadFav'))D.favRereadFavRate=parseFloat($('#setFavRereadFav').value)||0;
   if($('#setPass'))D.pass=$('#setPass').value.trim();
   if($('#setMin'))D.sendMin=Math.max(1,parseInt($('#setMin').value)||1);
   if($('#setMax'))D.sendMax=Math.max(D.sendMin||1,parseInt($('#setMax').value)||1);
@@ -4825,6 +4947,7 @@ window.__yzInfo=function(){
 function init(){
   try{_yzBindMsgs(D);}catch(e){}
   try{yzPhInit();}catch(e){}
+  try{yzFavInit();}catch(e){}
   try{if(D.favicon)applyFavicon(D.favicon);}catch(e){}
   document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light');
   tick();setInterval(tick,1000);
