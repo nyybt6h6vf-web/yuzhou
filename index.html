@@ -1094,7 +1094,6 @@ body{
           <div class="lab" style="margin-bottom:8px">气泡 CSS（.msg .bubble 通用，写一条两边都生效）</div>
           <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty();yzPreviewBubble();"></textarea>
           <div class="lab" style="margin-top:12px;margin-bottom:6px">预览</div>
-          <pre id="bubbleDebug" style="font-size:10px;color:#999;white-space:pre-wrap;max-height:80px;overflow:auto;margin:0 0 6px"></pre>
           <div id="bubblePreview" style="background:var(--card);border:1px solid var(--sub);border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;gap:10px">
             <div class="msg him" style="display:flex"><div class="bubble">梦角消息示例</div></div>
             <div class="msg me" style="display:flex"><div class="bubble">我的消息示例</div></div>
@@ -4579,12 +4578,6 @@ function yzPreviewBubble(){
     return pre+s2+'{';
   });
   st.textContent=cssText;
-  var dbg=document.getElementById('bubbleDebug');
-  if(dbg){
-    var mi=cssText.indexOf('.msg.me');
-    var seg=mi>=0?cssText.slice(mi,mi+220):'(no .msg.me in css)';
-    dbg.textContent='raw:'+raw.length+' | css:'+cssText.length+'\n[ME]'+seg;
-  }
 }
 window.yzPreviewBubble=yzPreviewBubble;
 
