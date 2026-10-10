@@ -695,6 +695,16 @@ body{
 .phofflogo{width:44px;height:44px;border:2px solid #333;border-radius:10px;opacity:.5;}
 .phofftxt{color:#555;font-size:13px;}
 .statusbar .right .phchg{color:#4caf50;font-size:11px;margin-right:3px;}
+.phoffbtns{display:flex;flex-direction:column;gap:12px;margin-top:18px;width:100%;max-width:280px;}
+.phboot{position:absolute;inset:0;background:#000;display:flex;align-items:center;justify-content:center;}
+.phbootlogo{font-size:52px;opacity:0;transform:scale(.8);transition:opacity 1.1s ease,transform 1.1s ease;}
+.phbootlogo.show{opacity:1;transform:scale(1);}
+#yzPhThanks{position:fixed;left:50%;top:26%;transform:translate(-50%,-16px) scale(.96);background:#fff;border-radius:20px;padding:18px 22px;box-shadow:0 12px 40px rgba(0,0,0,.24);opacity:0;pointer-events:none;transition:.32s;z-index:10000;max-width:82%;text-align:center;}
+[data-theme="dark"] #yzPhThanks{background:#26262a;}
+#yzPhThanks.show{opacity:1;transform:translate(-50%,0) scale(1);}
+#yzPhThanks .phtTitle{font-size:12.5px;color:#9aa0ad;margin-bottom:8px;}
+#yzPhThanks .phtBody{font-size:15px;color:var(--text);line-height:1.5;}
+
 #yzPhWarn{position:fixed;left:50%;top:14%;transform:translate(-50%,-20px);background:rgba(30,30,34,.94);color:#fff;padding:12px 20px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:9999;max-width:84%;text-align:center;}
 #yzPhWarn.show{opacity:1;transform:translate(-50%,0);}
 
@@ -1948,8 +1958,10 @@ function yzPhTick(){
     var now=Date.now();
     var dt=now-D.ph.lastTs;
     if(dt<0)dt=0;
-    if(dt>300000)dt=300000;
     D.ph.lastTs=now;
+    /* 只在网站开着（页面可见）时才累加 */
+    if(document.hidden){ return; }
+    if(dt>300000)dt=300000;
     /* 我的手机：累计 5 分钟扣 1 度（离线也累加，因为上线过就计入） */
     if(!D.ph.myCharging){
       D.ph.accMy+=dt;
@@ -2015,11 +2027,18 @@ function yzPhRender(){
   h+='</div>';
   body.innerHTML=h;
 }
+function yzPhHimName(){ try{ var id=yzCurKaoCharId(); var ch=(D.charas||[]).find(function(c){return c.id===id;}); if(ch&&ch.nick)return ch.nick; }catch(e){} return D.nick||'他'; }
+function yzPhHimCard(){ try{ var id=yzCurKaoCharId(); if(typeof pickCardFor==='function')return pickCardFor(id); }catch(e){} return ''; }
 function yzPhRenderHim(body){
   var him=yzPhPct(D.ph.him);
   if(!D.ph.himPower){
-    body.innerHTML='<div class="phoff" id="phOff" onclick="yzPhShutdownAnim()">'
-      +'<div class="phofflogo"></div><div class="phofftxt">已关机 · 轻触查看</div></div>';
+    body.innerHTML='<div class="phoff" id="phOff">'
+      +'<div class="phofflogo"></div>'
+      +'<div class="phofftxt">'+(D.nick||'他')+'的手机关机了</div></div>'
+      +'<div class="phoffbtns">'
+      +'<div class="phbtn on" id="phHelpBtn" onclick="yzPhHelpCharge()">帮'+yzPhHimName()+'充电</div>'
+      +'<div class="phbtn" id="phLeaveBtn" onclick="yzPhLeave()">不管他，离开</div>'
+      +'</div>';
     return;
   }
   var h='<div class="phcard phhim">';
@@ -2030,10 +2049,39 @@ function yzPhRenderHim(body){
   h+='</div>';
   body.innerHTML=h;
 }
+function yzPhHelpCharge(){
+  var body=$('#phBody'); if(!body)return;
+  /* 开机动画：黑底 -> 苹果标志淡入 -> 亮起 */
+  body.innerHTML='<div class="phboot"><div class="phbootlogo">🍎</div></div>';
+  var lg=body.querySelector('.phbootlogo');
+  setTimeout(function(){ if(lg)lg.classList.add('show'); },60);
+  setTimeout(function(){
+    yzPhInit();
+    D.ph.himPower=true; D.ph.himCharging=true; D.ph.himChgAcc=0;
+    if(D.ph.him<5)D.ph.him=5;
+    save();
+    yzPhRender();
+    /* 道谢弹窗 */
+    yzPhThanks();
+  },1600);
+}
+function yzPhLeave(){
+  go('home');
+}
+function yzPhThanks(){
+  var txt=yzPhHimCard();
+  if(!txt)return;
+  var name=yzPhHimName();
+  var el=$('#yzPhThanks');
+  if(!el){ el=document.createElement('div'); el.id='yzPhThanks'; document.body.appendChild(el); }
+  el.innerHTML='<div class="phtTitle">'+name+'想对你说</div><div class="phtBody">'+txt+'</div>';
+  el.classList.add('show');
+  clearTimeout(window.__phThanksT);
+  window.__phThanksT=setTimeout(function(){ el.classList.remove('show'); },5200);
+}
 function yzPhCharge(){ yzPhInit(); D.ph.myCharging=true; D.ph.chgAcc=0; save(); yzPhRender(); yzPhStatusIcon(); toast('已插上充电器'); }
 function yzPhUnplug(){ yzPhInit(); D.ph.myCharging=false; save(); yzPhRender(); yzPhStatusIcon(); toast('已拔充电器'); }
 function yzPhHtml(){ toast('收藏系统开发中'); }
-function yzPhShutdownAnim(){ toast('关机中…'); }
 
 function yzPhStatusIcon(){
   var show=!!D.ph.myCharging;
