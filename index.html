@@ -1133,7 +1133,6 @@ body{
     <div class="statusbar"><span id="setTimeTop">9:41</span><span class="right">●●● 100%</span></div>
     <div class="navbar"><div class="back" onclick="go('home')">‹</div><div class="title">设置</div></div>
     <div class="list">
-      <div class="group"><div class="row"><div class="lab" style="font-size:11px;color:#c07070" id="dbgSet">--</div></div></div>
       <div class="group">
         <h4>存储</h4>
         <div class="row"><div class="lab">本网站已占</div><div class="val" id="memUsed">--</div></div>
@@ -1237,7 +1236,7 @@ body{
       <div class="group">
         <h4>来信</h4>
         <div class="row"><div class="lab">他回信间隔（分钟）</div><input type="number" id="setReplyGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">回信/来信句数（通用）</div><input type="text" id="setLetterSent" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px" placeholder="如 1-2"></div>
+        <div class="row"><div class="lab">回信/来信最少句数</div><input type="number" id="setLetterMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">回信/来信最多句数</div><input type="number" id="setLetterMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">他主动来信间隔（分钟）</div><input type="number" id="setLetterGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
       </div>
       <div class="group">
@@ -4831,9 +4830,9 @@ function fillSettings(){
   if($('#setComboMin'))$('#setComboMin').value=D.comboMin||2;
   if($('#setComboMax'))$('#setComboMax').value=D.comboMax||3;
   if($('#setMomMin'))$('#setMomMin').value=D.momMin||1;
-  try{if($('#dbgSet'))$('#dbgSet').textContent='D: momGap='+D.momGap+' momMin='+D.momMin+' replyGap='+D.replyGap+' letterGap='+D.letterGap;}catch(e){}
   if($('#setMomMax'))$('#setMomMax').value=D.momMax||2;
   if($('#setLetterSent'))$('#setLetterSent').value=D.letterSent||((D.letterMin||1)+'-'+(D.letterMax||2));
+  try{var _ls=String(D.letterSent||'1-2').match(/\d+/g)||[];if($('#setLetterMin'))$('#setLetterMin').value=_ls[0]||1;if($('#setLetterMax'))$('#setLetterMax').value=_ls[1]||_ls[0]||2;}catch(e){}
   if($('#setMomGap'))$('#setMomGap').value=D.momGap||1;
   if($('#setFeelGap'))$('#setFeelGap').value=D.feelGap||30;
   if($('#setFeelList'))$('#setFeelList').value=(D.feelings||[]).join('\n');
@@ -4918,7 +4917,7 @@ function saveProfile(){
     if($('#setFeelGap')&&String($('#setFeelGap').value).trim()!=='')D.feelGap=parseFloat($('#setFeelGap').value)||30;
     if($('#setReplyGap')&&String($('#setReplyGap').value).trim()!=='')D.replyGap=parseFloat($('#setReplyGap').value)||5;
     if($('#setLetterGap')&&String($('#setLetterGap').value).trim()!=='')D.letterGap=parseFloat($('#setLetterGap').value)||10;
-    if($('#setLetterSent')){var _m=String($('#setLetterSent').value||'').match(/\d+/g)||[];var _a=Math.max(1,parseInt(_m[0])||1);var _b=Math.max(_a,parseInt(_m[1])||_a);D.letterSent=_a+'-'+_b;}
+    if($('#setLetterMin')||$('#setLetterMax')){var _a=Math.max(1,parseInt(($('#setLetterMin')||{}).value)||1);var _b=Math.max(_a,parseInt(($('#setLetterMax')||{}).value)||_a);D.letterSent=_a+'-'+_b;}
     save();
   }catch(e){}
   if($('#setNick'))D.nick=$('#setNick').value;if($('#setMyNick'))D.myNick=$('#setMyNick').value;
@@ -4953,7 +4952,7 @@ function saveProfile(){
   if($('#setComboMax'))D.comboMax=Math.max(D.comboMin||2,parseInt($('#setComboMax').value)||(D.comboMin||2));
   if($('#setMomMin')&&String($('#setMomMin').value).trim()!=='')D.momMin=Math.max(1,parseInt($('#setMomMin').value)||1);
   if($('#setMomMax')&&String($('#setMomMax').value).trim()!=='')D.momMax=Math.max(D.momMin||1,parseInt($('#setMomMax').value)||(D.momMin||1));
-  if($('#setLetterSent')){var _m=String($('#setLetterSent').value||'').match(/\d+/g)||[];var _a=Math.max(1,parseInt(_m[0])||1);var _b=Math.max(_a,parseInt(_m[1])||_a);D.letterSent=_a+'-'+_b;}
+  if($('#setLetterMin')||$('#setLetterMax')){var _a=Math.max(1,parseInt(($('#setLetterMin')||{}).value)||1);var _b=Math.max(_a,parseInt(($('#setLetterMax')||{}).value)||_a);D.letterSent=_a+'-'+_b;}
   if($('#setMomGap')&&String($('#setMomGap').value).trim()!=='')D.momGap=parseFloat($('#setMomGap').value)||1;
   if($('#setProactiveGap')){D.proactiveGap=Math.max(1,parseFloat($('#setProactiveGap').value)||10);startProactiveLoop();}
   if($('#setFeelGap')&&String($('#setFeelGap').value).trim()!=='')D.feelGap=parseFloat($('#setFeelGap').value)||30;
