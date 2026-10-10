@@ -1957,6 +1957,7 @@ function go(id){
   if(id==='period')renderPeriod();
   if(id==='shop')renderShop();
   if(id==='phony'){try{yzPhInit();yzPhRender();}catch(e){}}
+  try{yzPhStatusIcon();}catch(e){}
   if(id==='himprofile')renderHimProfile();
   if(id==='letterWrite'){const to=$('#lwTo');if(to)to.textContent=letterTo(D.nick);}
   if(id==='diaryWrite'){const dt=$('#dwDate');if(dt)dt.textContent=dToday();}
@@ -2017,11 +2018,11 @@ function yzPhTick(){
     }
     save();
     try{ yzPhStatusIcon(); }catch(e){}
-    if($('#phony') && $('#phony').classList.contains('active')){ try{ yzPhRender(); }catch(e){} }
+    if($('#phony') && $('#phony').classList.contains('active') && !D.phFavOpen){ try{ yzPhRender(); }catch(e){} }
   }catch(e){}
 }
 function yzPhCurPager(){ if(!D.phPage)D.phPage=1; return D.phPage; }
-function yzPhToggle(){ D.phPage=(yzPhCurPager()===1?2:1); save(); yzPhRender(); }
+function yzPhToggle(){ D.phFavOpen=false; D.phPage=(yzPhCurPager()===1?2:1); save(); yzPhRender(); }
 function yzPhPct(v){ return Math.max(0,Math.min(100,Math.round(v))); }
 function yzPhBatteryHtml(pct,charging,big){
   var w=big?150:96, h=big?76:48;
@@ -2162,10 +2163,11 @@ function yzFavReread(){
 }
 function yzFavCatLabel(t){ return t==='msg'?'收藏消息':(t==='music'?'收藏音乐':(t==='moment'?'收藏动态':'收藏日记')); }
 function yzPhHtml(){
+  D.phFavOpen=true;
   yzFavInit();
   var body=$('#phBody'); if(!body)return;
   var h='<div class="favwrap">';
-  h+='<div class="favback" onclick="yzPhRender()">‹ 返回</div>';
+  h+='<div class="favback" onclick="D.phFavOpen=false;yzPhRender()">‹ 返回</div>';
   ['msg','music','moment','diary'].forEach(function(t){
     var arr=D.favs[t]||[];
     h+='<div class="favsec">';
@@ -2195,13 +2197,20 @@ function yzFavDel(t,i){
 
 
 function yzPhStatusIcon(){
+  yzPhInit();
   var show=!!D.ph.myCharging;
+  var pct=Math.max(0,Math.min(100,Math.round(D.ph.my)));
   document.querySelectorAll('.statusbar .right').forEach(function(el){
     var b=el.querySelector('.phchg');
     if(show && !b){
       var s=document.createElement('span'); s.className='phchg'; s.textContent='⚡';
       el.insertBefore(s,el.firstChild);
     } else if(!show && b){ b.remove(); }
+    /* 把末尾的百分比数字替换成真实电量 */
+    var html=el.innerHTML;
+    html=html.replace(/\d+%/, pct+'%');
+    if(!/\d+%/.test(html)) html+=' '+pct+'%';
+    if(el.innerHTML!==html) el.innerHTML=html;
   });
 }
 
