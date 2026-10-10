@@ -2051,7 +2051,7 @@ YZDB.open(function(ok){
     }
   });
 });
-function save(){try{var __j=JSON.stringify(D);localStorage.setItem(DKEY,__j);}catch(e){}try{YZDB.set(DKEY,JSON.stringify(D));}catch(e){}}
+function save(){var __j='';try{__j=JSON.stringify(D);}catch(e){return;}try{localStorage.setItem(DKEY,__j);window.__yzSaveErr=false;}catch(e){window.__yzSaveErr=true;try{console.warn('[SAVE FAIL]',e&&e.name);}catch(_){}}try{YZDB.set(DKEY,__j);}catch(e){}}
 function $(s){return document.querySelector(s);}
 function pad(n){return n<10?'0'+n:''+n;}
 
@@ -3862,14 +3862,34 @@ $('#packPick').addEventListener('change',function(){
   if(!files.length){input.value='';return;}
   D.packs=D.packs||[];
   let loaded=0;
-  const done=()=>{loaded++;if(loaded>=files.length){input.value='';save();renderPacks();if($('#packs').classList.contains('active'))go('packs');}};
+  const total=files.length;
+  const finish=()=>{loaded++;if(loaded>=total){input.value='';save();renderPacks();if($('#packs').classList.contains('active'))go('packs');if(window.__yzSaveErr){toast('存储已满，部分表情包可能未保存');}}}
   files.forEach(f=>{
     const r=new FileReader();
-    r.onload=()=>{D.packs.push(r.result);done();};
-    r.onerror=()=>done();
+    r.onload=()=>{yzShrinkImg(r.result,300,0.82,function(out){D.packs.push(out);finish();});};
+    r.onerror=()=>finish();
     r.readAsDataURL(f);
   });
 });
+function yzShrinkImg(dataUrl,maxSide,quality,cb){
+  try{
+    var img=new Image();
+    img.onload=function(){
+      try{
+        var w=img.width,h=img.height,m=Math.max(w,h);
+        var sc=m>maxSide?(maxSide/m):1;
+        var W=Math.round(w*sc),H=Math.round(h*sc);
+        var cv=document.createElement('canvas');cv.width=W;cv.height=H;
+        var ctx=cv.getContext('2d');
+        ctx.drawImage(img,0,0,W,H);
+        var out=cv.toDataURL('image/jpeg',quality||0.8);
+        cb(out.length<dataUrl.length?out:dataUrl);
+      }catch(e){cb(dataUrl);}
+    };
+    img.onerror=function(){cb(dataUrl);};
+    img.src=dataUrl;
+  }catch(e){cb(dataUrl);}
+}
 
 function openCrop(who,src){
   cropTarget=who;cropSrc=src;
@@ -4918,9 +4938,9 @@ function saveBeauty(){
   if($('#setChatBg'))D.chatBg=$('#setChatBg').value;
   if($('#setMomBg'))D.momBg=$('#setMomBg').value;
   if($('#setBubble'))D.bubble=$('#setBubble').value;
-  if($('#setBubbleSize'))D.bubbleSize=parseInt($('#setBubbleSize').value)||100;
-  if($('#setChatFontSize'))D.chatFontSize=parseInt($('#setChatFontSize').value)||14;
-  if($('#setTranSize'))D.tranSize=parseInt($('#setTranSize').value)||100;
+  if($('#setBubbleSize')){D.bubbleSize=parseInt($('#setBubbleSize').value)||100;var _bv=document.getElementById('bubbleSizeVal');if(_bv)_bv.textContent=D.bubbleSize+'%';}
+  if($('#setChatFontSize')){D.chatFontSize=parseInt($('#setChatFontSize').value)||14;var _fv=document.getElementById('chatFontSizeVal');if(_fv)_fv.textContent=D.chatFontSize+'px';}
+  if($('#setTranSize')){D.tranSize=parseInt($('#setTranSize').value)||100;var _tv=document.getElementById('tranSizeVal');if(_tv)_tv.textContent=D.tranSize+'%';}
   save();scheduleApply();
   try{yzPreviewBubble();}catch(e){}
 }
@@ -5156,8 +5176,8 @@ function yzPreviewBubble(){
 }
 window.yzPreviewBubble=yzPreviewBubble;
 
-var _passBuf='';
-function yzUnlocked(){return sessionStorage.getItem('yz_unlocked')==='1';}
+var _passBuf=''; var _yzUnlock=false;
+function yzUnlocked(){return _yzUnlock===true;}
 function yzLocked(){return !!(D.pass&&D.pass.trim())&&!yzUnlocked();}
 function openPass(){
   _passBuf='';
@@ -5187,7 +5207,7 @@ function passKey(k){
   yzPassDots();
   var ek=document.getElementById('passErr');if(ek)ek.textContent='';
   if(_passBuf===(D.pass||'')){
-    sessionStorage.setItem('yz_unlocked','1');
+    _yzUnlock=true;
     setTimeout(function(){closeSheet2('passSheet');_passBuf='';},160);
   }else if(_passBuf.length>=(D.pass||'').length){
     var e2=document.getElementById('passErr');if(e2)e2.textContent='密码不对';
@@ -5257,7 +5277,7 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
   startMomLoop();startFeelLoop();startGiftLoop();startLetterLoop();startDiaryLoop();startShopLoop();
   startListenLoop();
   renderListen();
-  try{if(D.pass&&D.pass.trim()){sessionStorage.removeItem('yz_unlocked');openPass();}}catch(e){}
+  try{if(D.pass&&D.pass.trim()){_yzUnlock=false;openPass();}}catch(e){}
 }
 
 
