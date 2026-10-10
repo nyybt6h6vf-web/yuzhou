@@ -790,6 +790,21 @@ body{
 .favnote{font-size:13px;color:#e08a9b;margin-top:6px;}
 .favmeta{font-size:11px;color:#b3b8c4;margin-top:6px;}
 .favdel{font-size:11.5px;color:#c07070;margin-top:6px;}
+.favmod{display:flex;align-items:center;gap:10px;background:var(--card,#fff);border-radius:16px;padding:15px 16px;margin-bottom:10px;box-shadow:0 2px 10px rgba(30,34,50,.07);cursor:pointer;}
+[data-theme="dark"] .favmod{background:#1d1d20;}
+.favmod:active{transform:scale(.985);}
+.favmod .fmicon{font-size:18px;width:24px;text-align:center;}
+.favmod .fmname{flex:1;font-size:14.5px;color:var(--text);font-weight:500;}
+.favmod .fmnum{font-size:12.5px;color:var(--sub,#9aa0ad);}
+.favmod .fmarr{font-size:18px;color:var(--accent,#859ecb);font-weight:600;margin-left:2px;}
+.favsheet{position:fixed;inset:0;z-index:300;background:var(--page-bg,#fff);display:none;flex-direction:column;}
+.favsheet.show{display:flex;}
+.favsheet .fshead{display:flex;align-items:center;gap:10px;padding:16px 16px 10px;flex:0 0 auto;}
+.favsheet .fsback{font-size:16px;color:var(--accent,#859ecb);cursor:pointer;font-weight:600;}
+.favsheet .fstitle{flex:1;text-align:center;font-size:16px;font-weight:600;color:var(--text);}
+.favsheet .fsspacer{width:30px;}
+.favsheet .fsbody{flex:1;overflow-y:auto;padding:4px 16px 30px;}
+
 
 #yzPhThanks{position:fixed;left:50%;top:26%;transform:translate(-50%,-16px) scale(.96);background:#fff;border-radius:20px;padding:18px 22px;box-shadow:0 12px 40px rgba(0,0,0,.24);opacity:0;pointer-events:none;transition:.32s;z-index:10000;max-width:82%;text-align:center;}
 [data-theme="dark"] #yzPhThanks{background:#26262a;}
@@ -2348,36 +2363,60 @@ function yzFavReread(){
 }
 function yzFavCatLabel(t){ return t==='msg'?'收藏消息':(t==='music'?'收藏音乐':(t==='moment'?'收藏动态':'收藏日记')); }
 function yzPhHtml(){
-  D.phFavOpen=true;
   yzFavInit();
   var body=$('#phBody'); if(!body)return;
+  var cats=[['msg','\u{1F4AC}'],['music','\u{1F3B5}'],['moment','\u{1F4F7}'],['diary','\u{1F4D6}']];
   var h='<div class="favwrap">';
-  h+='<div class="favback" onclick="D.phFavOpen=false;yzPhRender()">‹ 返回</div>';
-  ['msg','music','moment','diary'].forEach(function(t){
-    var arr=D.favs[t]||[];
-    h+='<div class="favsec">';
-    h+='<div class="favtitle">'+yzFavCatLabel(t)+' <span class="favnum">'+arr.length+'</span></div>';
-    if(!arr.length){ h+='<div class="favempty">还没有</div>'; }
-    else{
-      arr.slice().reverse().forEach(function(f,idx){
-        var realIdx=arr.length-1-idx;
-        h+='<div class="favitem">';
-        if(t==='msg'||t==='moment') h+='<div class="favtxt">'+(f.text||'')+'</div>';
-        if(t==='music') h+='<div class="favtxt">🎵 '+(f.title||'')+(f.by?' · '+f.by:'')+'</div>';
-        if(t==='diary') h+='<div class="favtxt">📖 '+(f.title||'')+' <span class="favdate">'+(f.date||'')+'</span></div>';
-        if(f.note) h+='<div class="favnote">'+(f.note)+'</div>';
-        h+='<div class="favmeta">收藏于 '+f.favTime+(f.srcTime?' · 发于 '+f.srcTime:'')+'</div>';
-        h+='<div class="favdel" onclick="yzFavDel(\''+t+'\','+realIdx+')">删除</div>';
-        h+='</div>';
-      });
-    }
+  h+='<div class="favback" onclick="go(\'home\')">\u2039 \u8fd4\u56de</div>';
+  h+='<div class="favtitle" style="margin:6px 0 12px;">\u68a6\u89d2\u7684\u6536\u85cf</div>';
+  cats.forEach(function(c){
+    var t=c[0]; var arr=D.favs[t]||[];
+    h+='<div class="favmod" onclick="yzFavOpenCat(\''+t+'\')">';
+    h+='<span class="fmicon">'+c[1]+'</span>';
+    h+='<span class="fmname">'+yzFavCatLabel(t)+'</span>';
+    h+='<span class="fmnum">'+arr.length+'</span>';
+    h+='<span class="fmarr">\u203a</span>';
     h+='</div>';
   });
   h+='</div>';
   body.innerHTML=h;
 }
+function yzFavCatIcon(t){ return t==='msg'?'\u{1F4AC}':(t==='music'?'\u{1F3B5}':(t==='moment'?'\u{1F4F7}':'\u{1F4D6}')); }
+function yzFavOpenCat(t){
+  yzFavInit();
+  var el=$('#favSheet');
+  if(!el){
+    el=document.createElement('div'); el.id='favSheet'; el.className='favsheet';
+    el.innerHTML='<div class="fshead"><span class="fsback" onclick="yzFavCloseCat()">\u2039 \u8fd4\u56de</span><span class="fstitle" id="favSheetTitle"></span><span class="fsspacer"></span></div><div class="fsbody" id="favSheetBody"></div>';
+    document.body.appendChild(el);
+  }
+  var arr=D.favs[t]||[];
+  var tt=$('#favSheetTitle'); if(tt)tt.textContent=yzFavCatLabel(t)+' ('+arr.length+')';
+  var b=$('#favSheetBody');
+  if(b){
+    if(!arr.length){ b.innerHTML='<div class="favempty" style="padding:40px 0;text-align:center;">\u8fd8\u6ca1\u6709</div>'; }
+    else{
+      var hh='';
+      arr.slice().reverse().forEach(function(f,idx){
+        var realIdx=arr.length-1-idx;
+        hh+='<div class="favitem">';
+        if(t==='msg'||t==='moment') hh+='<div class="favtxt">'+(f.text||'')+'</div>';
+        if(t==='music') hh+='<div class="favtxt">\u{1F3B5} '+(f.title||'')+(f.by?' \u00b7 '+f.by:'')+'</div>';
+        if(t==='diary') hh+='<div class="favtxt">\u{1F4D6} '+(f.title||'')+' <span class="favdate">'+(f.date||'')+'</span></div>';
+        if(f.note) hh+='<div class="favnote">'+(f.note)+'</div>';
+        hh+='<div class="favmeta">\u6536\u85cf\u4e8e '+f.favTime+(f.srcTime?' \u00b7 \u53d1\u4e8e '+f.srcTime:'')+'</div>';
+        hh+='<div class="favdel" onclick="yzFavDel(\''+t+'\','+realIdx+')">\u5220\u9664</div>';
+        hh+='</div>';
+      });
+      b.innerHTML=hh;
+    }
+  }
+  el.classList.add('show');
+}
+function yzFavCloseCat(){ var el=$('#favSheet'); if(el)el.classList.remove('show'); }
+
 function yzFavDel(t,i){
-  try{ yzFavInit(); D.favs[t].splice(i,1); save(); yzPhHtml(); }catch(e){}
+  try{ yzFavInit(); D.favs[t].splice(i,1); save(); yzPhHtml(); yzFavOpenCat(t); }catch(e){}
 }
 
 
