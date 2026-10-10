@@ -642,6 +642,25 @@ body{
 .dlg .dbtns .b:active{transform:scale(.97);opacity:.9;}
 .dlg .b.cancel{background:var(--card);color:var(--sub);}
 .dlg .b.ok{background:var(--bubble-me);color:var(--bubble-me-text);box-shadow:0 6px 18px rgba(0,0,0,.18);}
+/* 仿苹果输密码界面 */
+#passSheet{background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);display:none;align-items:center;justify-content:center;flex-direction:column;}
+#passSheet.show{display:flex;}
+#passSheet .plock{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;height:100dvh;padding:12vh 0 4vh;box-sizing:border-box;}
+#passSheet .ptop{display:flex;flex-direction:column;align-items:center;}
+#passSheet .pav{width:74px;height:74px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;margin-bottom:14px;overflow:hidden;}
+#passSheet .pav img{width:100%;height:100%;object-fit:cover;}
+#passSheet .pnm{color:#fff;font-size:15px;letter-spacing:1px;margin-bottom:26px;opacity:.95;}
+#passSheet .pdots{display:flex;gap:18px;transition:transform .18s;}
+#passSheet .pdots i{width:13px;height:13px;border-radius:50%;border:1.5px solid rgba(255,255,255,.85);box-sizing:border-box;}
+#passSheet .pdots i.on{background:#fff;}
+#passSheet .perr{color:#ff6b6b;font-size:13px;height:18px;margin-top:18px;}
+#passSheet .pkeys{display:grid;grid-template-columns:repeat(3,74px);gap:22px;justify-content:center;}
+#passSheet .pk{width:74px;height:74px;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:30px;font-weight:400;cursor:pointer;-webkit-user-select:none;user-select:none;transition:background .12s,transform .08s;}
+#passSheet .pk:active{background:rgba(255,255,255,.34);transform:scale(.94);}
+#passSheet .pk .sub{font-size:9.5px;letter-spacing:1px;margin-top:1px;opacity:.85;}
+#passSheet .pk.empty{background:transparent;pointer-events:none;}
+#passSheet .pcancel{color:#fff;font-size:15px;margin-top:26px;opacity:.85;cursor:pointer;}
+
 
 
 /* 经期设置面板：限高 + 内容区滚动 + 底部按钮固定 */
@@ -1477,14 +1496,29 @@ body{
 <input type="file" id="packPick" accept="image/*" multiple style="display:none">
 <input type="file" id="backupPick" accept=".json,application/json" style="display:none">
 
-<div class="sheet" id="passSheet" style="z-index:200;background:rgba(10,12,25,.35);backdrop-filter:none;-webkit-backdrop-filter:none;position:fixed;inset:0;height:100dvh;align-items:center;justify-content:center">
-  <div class="dlg">
-    <h3>输入密码</h3>
-    <input type="text" id="passInput" placeholder="请输入密码" onkeydown="if(event.key==='Enter')checkPass()">
-    <div class="dbtns">
-      <div class="b cancel" style="visibility:visible;opacity:1" onclick="closeSheet2('passSheet')">取消</div>
-      <div class="b ok" onclick="checkPass()">进入</div>
+<div class="sheet" id="passSheet">
+  <div class="plock">
+    <div class="ptop">
+      <div class="pav" id="passAvatar">&#128274;</div>
+      <div class="pnm" id="passName">输入密码</div>
+      <div class="pdots" id="passDots"><i></i><i></i><i></i><i></i></div>
+      <div class="perr" id="passErr"></div>
     </div>
+    <div class="pkeys" id="passKeys">
+      <div class="pk" onclick="passKey('1')">1</div>
+      <div class="pk" onclick="passKey('2')">2<span class="sub">ABC</span></div>
+      <div class="pk" onclick="passKey('3')">3<span class="sub">DEF</span></div>
+      <div class="pk" onclick="passKey('4')">4<span class="sub">GHI</span></div>
+      <div class="pk" onclick="passKey('5')">5<span class="sub">JKL</span></div>
+      <div class="pk" onclick="passKey('6')">6<span class="sub">MNO</span></div>
+      <div class="pk" onclick="passKey('7')">7<span class="sub">PQRS</span></div>
+      <div class="pk" onclick="passKey('8')">8<span class="sub">TUV</span></div>
+      <div class="pk" onclick="passKey('9')">9<span class="sub">WXYZ</span></div>
+      <div class="pk empty"></div>
+      <div class="pk" onclick="passKey('0')">0</div>
+      <div class="pk" onclick="passDel()" style="font-size:22px">&#9003;</div>
+    </div>
+    <div class="pcancel" onclick="passCancel()">取消</div>
   </div>
 </div>
 
@@ -2030,6 +2064,8 @@ function tick(){
 function go(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const el=$('#'+id);if(el)el.classList.add('active');
+  if(id!=='lock'){try{yzPassGate();}catch(e){}}
+  if(id==='lock'){try{applyCustom();}catch(e){}}
   if(id==='home'){try{yzApplyHomeChara();}catch(e){}}
   if(id==='chatlist')renderChatList();
   if(id==='chat'){renderChat();$('#chat').style.background=getChatBg();setTimeout(scrollBottom,30);}
@@ -5099,10 +5135,54 @@ function yzPreviewBubble(){
 }
 window.yzPreviewBubble=yzPreviewBubble;
 
-function checkPass(){
-  const v=($('#passInput').value||'').trim();
-  if(v===(D.pass||'')){closeSheet2('passSheet');}
-  else{alert('密码不对');}
+var _passBuf='';
+function yzUnlocked(){return sessionStorage.getItem('yz_unlocked')==='1';}
+function yzLocked(){return !!(D.pass&&D.pass.trim())&&!yzUnlocked();}
+function openPass(){
+  _passBuf='';
+  var nm=document.getElementById('passName');
+  if(nm)nm.textContent=(D.lockName&&D.lockName.trim())?D.lockName:'输入密码';
+  var av=document.getElementById('passAvatar');
+  if(av){
+    var cv=(D.convs||[]).find(function(c){return c.id===D.curConv&&c.type!=='group';})||(D.convs||[]).find(function(c){return c.type!=='group';});
+    var ch=cv?(D.charas||[]).find(function(c){return c.id===cv.charas[0];}):null;
+    var img=ch&&ch.avatar?ch.avatar:(D.avatarHim||'');
+    av.innerHTML=img?('<img src="'+img+'">'):String.fromCharCode(0x1F512);
+  }
+  var ek=document.getElementById('passErr');if(ek)ek.textContent='';
+  yzPassDots();
+  openSheet2('passSheet');
+}
+function yzPassDots(){
+  var box=document.getElementById('passDots');if(!box)return;
+  var n=Math.max(4,_passBuf.length);
+  var html='';
+  for(var i=0;i<n;i++){html+='<i class="'+(i<_passBuf.length?'on':'')+'"></i>';}
+  box.innerHTML=html;
+}
+function passKey(k){
+  if(_passBuf.length>=12)return;
+  _passBuf+=k;
+  yzPassDots();
+  var ek=document.getElementById('passErr');if(ek)ek.textContent='';
+  if(_passBuf===(D.pass||'')){
+    sessionStorage.setItem('yz_unlocked','1');
+    setTimeout(function(){closeSheet2('passSheet');_passBuf='';},160);
+  }else if(_passBuf.length>=(D.pass||'').length){
+    var e2=document.getElementById('passErr');if(e2)e2.textContent='密码不对';
+    var box=document.getElementById('passDots');if(box)box.style.transform='translateX(-8px)';
+    setTimeout(function(){if(box)box.style.transform='';},200);
+    _passBuf='';setTimeout(yzPassDots,220);
+  }
+}
+function passDel(){_passBuf=_passBuf.slice(0,-1);yzPassDots();var e=document.getElementById('passErr');if(e)e.textContent='';}
+function passCancel(){_passBuf='';closeSheet2('passSheet');}
+function checkPass(){if(yzLocked())openPass();}
+function yzPassGate(){
+  if(!yzLocked())return false;
+  var ps=document.getElementById('passSheet');
+  if(ps&&!ps.classList.contains('show'))openPass();
+  return true;
 }
 let giftTimer=null;
 function startGiftLoop(){
@@ -5144,7 +5224,7 @@ function init(){
   $('#lock').addEventListener('click',()=>{go('home');try{setTimeout(function(){checkPeriodRemind();},600);}catch(e){}});
 document.addEventListener('click',function(e){var t=e.target;while(t&&t!==document){if(t.classList&&t.classList.contains('back')){try{if(t.closest&&t.closest('#settings')){['passSheet','packSheet','moSend','plusSheet'].forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove('show');});var mk=document.getElementById('mask');if(mk)mk.classList.remove('show');}}catch(err){}return;}t=t.parentNode;}},true);
   renderChat();
-  try{document.addEventListener('visibilitychange',function(){if(!document.hidden){try{var ll=document.querySelector('.duo .linkline');if(ll){ll.style.animation='none';void ll.offsetWidth;ll.style.animation='';}}catch(e){}}});}catch(e){}
+  try{document.addEventListener('visibilitychange',function(){if(!document.hidden){try{var ll=document.querySelector('.duo .linkline');if(ll){ll.style.animation='none';void ll.offsetWidth;ll.style.animation='';}}catch(e){}try{yzPassGate();}catch(e){}}});}catch(e){}
   if(!D.moments)D.moments=[];
   if(!D.letters)D.letters=[];
   if(!D.listenMsgs)D.listenMsgs=[];
@@ -5156,7 +5236,7 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
   startMomLoop();startFeelLoop();startGiftLoop();startLetterLoop();startDiaryLoop();startShopLoop();
   startListenLoop();
   renderListen();
-  if(D.pass&&D.pass.trim())openSheet2('passSheet');
+  try{if(D.pass&&D.pass.trim()){sessionStorage.removeItem('yz_unlocked');openPass();}}catch(e){}
 }
 
 
