@@ -1210,7 +1210,6 @@ body{
         <div class="row"><div class="lab">连发间隔（秒）</div><input type="number" id="setSendGap" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">最少连发条数</div><input type="number" id="setMin" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">最多连发条数</div><input type="number" id="setMax" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">颜文字回复概率（%）</div><input type="number" id="setKaoRate" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">拼字卡触发概率（%）</div><input type="number" id="setComboRate" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">拼字卡最少张数</div><input type="number" id="setComboMin" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">拼字卡最多张数</div><input type="number" id="setComboMax" oninput="saveProfile()" style="max-width:80px"></div>
@@ -4882,7 +4881,7 @@ function fillSettings(){
   if($('#setPass'))$('#setPass').value=D.pass||'';
   if($('#setMin'))$('#setMin').value=D.sendMin||1;
   if($('#setMax'))$('#setMax').value=D.sendMax||1;
-  if($('#setComboRate'))$('#setComboRate').value=D.comboRate||20; if($('#setKaoRate'))$('#setKaoRate').value=(D.kaoRate===undefined?0:D.kaoRate);
+  if($('#setComboRate'))$('#setComboRate').value=D.comboRate||20;
   if($('#setQuoteRate'))$('#setQuoteRate').value=(D.quoteRate===undefined?30:D.quoteRate);
   if($('#setAskDelay'))$('#setAskDelay').value=(D.askDelay===undefined?15:D.askDelay);
   if($('#setDiaryGap'))$('#setDiaryGap').value=(D.diaryGap===undefined?30:D.diaryGap);
@@ -5002,7 +5001,6 @@ function saveProfile(){
   if($('#setPass'))D.pass=$('#setPass').value.trim();
   if($('#setMin'))D.sendMin=Math.max(1,parseInt($('#setMin').value)||1);
   if($('#setMax'))D.sendMax=Math.max(D.sendMin||1,parseInt($('#setMax').value)||1);
-  if($('#setKaoRate'))D.kaoRate=Math.max(0,Math.min(100,parseFloat($('#setKaoRate').value)||0));
   if($('#setComboRate'))D.comboRate=Math.max(0,parseFloat($('#setComboRate').value)||0);
   if($('#setQuoteRate'))D.quoteRate=Math.max(0,Math.min(100,parseFloat($('#setQuoteRate').value)||0));
   if($('#setAskDelay'))D.askDelay=Math.max(0,parseFloat($('#setAskDelay').value)||0);
