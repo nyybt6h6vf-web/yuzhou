@@ -411,6 +411,25 @@ body{
 .listen-input{display:flex;gap:8px;padding:8px 12px 14px;align-items:center;}
 .listen-input input{flex:1;border:none;outline:none;background:var(--card);border-radius:20px;padding:11px 15px;font-size:14px;color:var(--text);font-family:inherit;}
 .listen-input .send{height:40px;padding:0 18px;border:none;border-radius:20px;background:var(--bubble-me);color:var(--bubble-me-text);font-size:14px;font-weight:600;cursor:pointer;}
+/* 一起听：播放列表弹层 */
+#lisListSheet{position:fixed;inset:0;z-index:90;display:none;align-items:flex-end;justify-content:center;background:rgba(10,12,25,.35);}
+#lisListSheet.show{display:flex;}
+#lisListSheet .llbox{width:100%;max-width:520px;max-height:66dvh;background:var(--panel);border-radius:22px 22px 0 0;padding:16px 16px 26px;overflow-y:auto;box-sizing:border-box;}
+#lisListSheet .lltitle{font-size:15px;font-weight:700;margin-bottom:10px;}
+#lisListSheet .lli{display:flex;align-items:center;gap:10px;padding:10px 6px;border-bottom:1px solid var(--line);cursor:pointer;}
+#lisListSheet .lli .llidx{width:22px;color:var(--sub);font-size:12px;text-align:center;flex:0 0 22px;}
+#lisListSheet .lli .llnm{flex:1;min-width:0;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#lisListSheet .lli .llby{font-size:11px;color:var(--sub);}
+#lisListSheet .lli.on .llnm{color:#7f9dd6;font-weight:700;}
+/* 一起听：小悬浮卡片（雾蓝） */
+#lisFloat{position:fixed;right:14px;bottom:16px;z-index:95;width:230px;background:linear-gradient(135deg,#a8bcd9,#8ba3c8);color:#fff;border-radius:18px;padding:12px 13px 11px;box-shadow:0 10px 30px rgba(90,110,150,.4);display:none;align-items:center;gap:10px;backdrop-filter:blur(6px);}
+#lisFloat.show{display:flex;}
+#lisFloat .lfm{flex:1;min-width:0;}
+#lisFloat .lft{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#lisFloat .lfb{font-size:11px;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
+#lisFloat .lfbtn{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;flex:0 0 30px;}
+#lisFloat .lfx{position:absolute;top:-7px;right:-4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.4);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+
 
 /* 来信 */
 #letters{background:var(--chat-bg);}
@@ -1022,9 +1041,11 @@ body{
       <div class="listen-now"><div class="snm" id="lisSong">还没有一起听的歌</div><div class="sby" id="lisBy">点右上角，贴一首歌的链接</div></div>
       <audio id="lisAudio" controls style="width:88%;margin:12px auto 0;display:none"></audio>
       <div id="lisFrameBox" style="width:88%;margin:12px auto 0;border-radius:16px;overflow:hidden;display:none"></div>
-      <div style="display:flex;gap:14px;justify-content:center;margin:10px auto 0">
-        <button onclick="prevSong()" style="border:none;background:var(--card);color:var(--text);border-radius:18px;padding:8px 20px;font-size:13px;font-family:inherit;cursor:pointer">上一首</button>
-        <button onclick="nextSong()" style="border:none;background:var(--card);color:var(--text);border-radius:18px;padding:8px 20px;font-size:13px;font-family:inherit;cursor:pointer">下一首</button>
+      <div style="display:flex;gap:10px;justify-content:center;align-items:center;margin:10px auto 0;flex-wrap:wrap">
+        <button onclick="prevSong()" style="border:none;background:var(--card);color:var(--text);border-radius:18px;padding:8px 16px;font-size:13px;font-family:inherit;cursor:pointer">上一首</button>
+        <button onclick="nextSong()" style="border:none;background:var(--card);color:var(--text);border-radius:18px;padding:8px 16px;font-size:13px;font-family:inherit;cursor:pointer">下一首</button>
+        <button id="lisModeBtn" onclick="cycleListenMode()" style="border:none;background:var(--card);color:var(--text);border-radius:18px;padding:8px 14px;font-size:13px;font-family:inherit;cursor:pointer">循环</button>
+        <button onclick="openListenList()" style="border:none;background:var(--card);color:var(--text);border-radius:18px;padding:8px 14px;font-size:13px;font-family:inherit;cursor:pointer">列表</button>
       </div>
       <div class="listen-chat" id="listenChat"></div>
       <div class="listen-input">
@@ -1035,6 +1056,8 @@ body{
     </div>
   </div>
 
+<div class="sheet" id="lisListSheet" onclick="if(event.target===this)closeSheet2('lisListSheet')"><div class="llbox"><div class="lltitle">播放列表</div><div id="lisListBody"></div></div></div>
+<div id="lisFloat"><div class="lfx" onclick="hideLisFloat()">✕</div><div class="lfm"><div class="lft" id="lisFloatT">一起听</div><div class="lfb" id="lisFloatB"></div></div><div class="lfbtn" onclick="prevSong()">⏮</div><div class="lfbtn" onclick="nextSong()">⏭</div></div>
   <div class="screen" id="letters">
     <div class="statusbar apple" id="letterBar"><span id="letTimeTop">9:41</span><span class="right">100%</span></div>
     <div class="navbar"><div class="back" onclick="go('home')">‹</div><div class="title">来信</div><div class="act" onclick="writeLetter()">＋ 写信</div></div>
@@ -4195,6 +4218,8 @@ function renderListen(){
     else{$('#lisSong').textContent='还没有一起听的歌';$('#lisBy').textContent='点右上角，贴一首歌的链接';}
   }
   renderListenPlayer(cur);
+  try{var _mb=document.getElementById('lisModeBtn');if(_mb){var _mm=D.listenMode||'loop';_mb.textContent=(_mm==='loop'?'循环':(_mm==='order'?'顺序':'随机'));}}catch(e){}
+  try{if((D.listenPlaylist||[]).length){showLisFloat();}}catch(e){}
   const c=$('#listenChat');if(!c)return;c.innerHTML='';
   D.listenMsgs.forEach(m=>{
     const isMe=m.from==='me';
@@ -4255,15 +4280,52 @@ function playPlaylistIndex(i){
   const sg=pl[i];
   D.listenSongs.push({title:sg.title,by:sg.by,url:sg.url,time:nowStr()});try{yzFavTry('music',D.listenSongs[D.listenSongs.length-1],nowStr(),'favMusicRate');}catch(e){}
   save();renderListen();
+  try{syncLisFloat();}catch(e){}
   if($('#lisBy'))$('#lisBy').textContent='歌单第 '+(i+1)+'/'+pl.length+' 首';
   return true;
 }
 function nextSong(){
   const pl=D.listenPlaylist||[];
   if(!pl.length){alert('还没有歌单，先贴个歌单链接');return;}
-  let i=(D.listenIdx||0)+1;
-  if(i>=pl.length)i=0;
+  var mode=D.listenMode||'loop';
+  var i;
+  if(mode==='random'){i=Math.floor(Math.random()*pl.length);}
+  else{i=(D.listenIdx||0)+1;if(i>=pl.length)i=0;}
   playPlaylistIndex(i);
+}
+function cycleListenMode(){
+  var m=D.listenMode||'loop';
+  m=(m==='loop')?'order':(m==='order'?'random':'loop');
+  D.listenMode=m;save();
+  var b=document.getElementById('lisModeBtn');
+  if(b)b.textContent=(m==='loop'?'循环':(m==='order'?'顺序':'随机'));
+  toast('播放模式：'+(m==='loop'?'循环':(m==='order'?'顺序':'随机')));
+}
+function renderListenList(){
+  var box=document.getElementById('lisListBody');if(!box)return;
+  var pl=D.listenPlaylist||[];
+  if(!pl.length){box.innerHTML='<div style="color:var(--sub);font-size:13px;padding:10px 0">还没有歌单，先贴个歌单链接</div>';return;}
+  box.innerHTML='';
+  pl.forEach(function(sg,i){
+    var on=(i===(D.listenIdx||0))?'on':'';
+    box.insertAdjacentHTML('beforeend','<div class="lli '+on+'" onclick="pickFromList('+i+')"><div class="llidx">'+(i+1)+'</div><div class="llnm">'+esc(sg.title||'未知歌曲')+'<div class="llby">'+esc(sg.by||'')+'</div></div></div>');
+  });
+}
+function openListenList(){renderListenList();openSheet2('lisListSheet');}
+function pickFromList(i){closeSheet2('lisListSheet');playPlaylistIndex(i);}
+function showLisFloat(){
+  var f=document.getElementById('lisFloat');if(!f)return;
+  var cur=(D.listenPlaylist&&D.listenPlaylist.length)?D.listenPlaylist[D.listenIdx||0]:null;
+  var t=document.getElementById('lisFloatT'),b=document.getElementById('lisFloatB');
+  if(t)t.textContent=(cur&&cur.title)?cur.title:'一起听';
+  if(b)b.textContent=cur?('第 '+((D.listenIdx||0)+1)+'/'+D.listenPlaylist.length+(cur.by?(' · '+cur.by):'')):(D.listenSongs&&D.listenSongs.length?D.listenSongs[D.listenSongs.length-1].title:'');
+  f.classList.add('show');
+}
+function hideLisFloat(){var f=document.getElementById('lisFloat');if(f)f.classList.remove('show');}
+function syncLisFloat(){
+  var f=document.getElementById('lisFloat');
+  if(!f||!f.classList.contains('show'))return;
+  showLisFloat();
 }
 function prevSong(){
   const pl=D.listenPlaylist||[];
