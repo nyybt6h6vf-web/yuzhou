@@ -4522,7 +4522,7 @@ function applyCustom(){
     var hasBlock=/[{]/.test(rawBubble)&&/[}]/.test(rawBubble);
     if(hasBlock){
       /* 用户贴的是完整 CSS 块：先映射选择器，再给每条声明补 !important 确保生效 */
-      var mapped=rawBubble.replace(/\.message-sent/g,'.msg.me .bubble').replace(/\.message-received/g,'.msg.him .bubble').replace(/\.message(?![\w-])/g,'.bubble');
+      var mapped=rawBubble.replace(/\.message-sent(?![\w-])/g,'.msg.me .bubble').replace(/\.message-received(?![\w-])/g,'.msg.him .bubble').replace(/\.message(?![\w-])/g,'.bubble');
       css+=forceImportant(mapped);
     }else{
       /* 裸声明 → 包进气泡选择器，每条补 !important */
@@ -4560,7 +4560,7 @@ function yzPreviewBubble(){
   var st=document.getElementById('bubblePreviewStyle');
   if(!st){st=document.createElement('style');st.id='bubblePreviewStyle';document.head.appendChild(st);}
   if(!raw){st.textContent='';return;}
-  var mapped=raw.replace(/\.message-sent/g,'.msg.me .bubble').replace(/\.message-received/g,'.msg.him .bubble').replace(/\.message(?![\w-])/g,'.bubble');
+  var mapped=raw.replace(/\.message-sent(?![\w-])/g,'.msg.me .bubble').replace(/\.message-received(?![\w-])/g,'.msg.him .bubble').replace(/\.message(?![\w-])/g,'.bubble');
   var cssText='';
   if(/[{]/.test(mapped)&&/[}]/.test(mapped)){
     cssText=forceImportant(mapped);
