@@ -4564,12 +4564,17 @@ function yzPreviewBubble(){
   if(/[{]/.test(mapped)&&/[}]/.test(mapped)){
     cssText=forceImportant(mapped);
   }else{
-    var decls=mapped.split(/[;\n]+/).map(function(t){return t.trim();}).filter(function(t){return t&&t.indexOf(':')>=0;});
+    var decls=mapped.split(';').map(function(t){return t.trim();}).filter(function(t){return t&&t.indexOf(':')>=0;});
     if(decls.length)cssText='.msg.him .bubble,.msg.me .bubble{'+decls.map(function(x){return x+' !important';}).join(';')+';}';
   }
-  /* 限定在预览盒内 */
+  /* 给预览盒子加更高优先级的 scope：#bubblePreview 自身也带上 .bubblePreviewScope */
+  box.classList.add('bubblePreviewScope');
   cssText=cssText.replace(/(^|\})\s*([^@}][^{]*)\{/g,function(mm,pre,sel){
-    var s2=sel.split(',').map(function(x){return '#bubblePreview '+x.trim();}).join(',');
+    var s2=sel.split(',').map(function(x){
+      var t=x.trim();
+      if(!t)return t;
+      return '.bubblePreviewScope '+t;
+    }).join(',');
     return pre+s2+'{';
   });
   st.textContent=cssText;
