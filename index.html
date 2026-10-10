@@ -4395,7 +4395,7 @@ function renderListen(){
 }
 const AUDIO_RE=/\.(mp3|m4a|aac|wav|ogg|flac|opus)(\?|#|$)/i;
 // === 歌单支持 ===
-function neteaseSongUrl(id){return 'https://music.163.com/song/media/outer/url?id='+id+'.mp3';}
+function neteaseSongUrl(id){var a=['https://api.injahow.cn/meting/?type=url&id='+id,'https://api.i-meto.com/meting/api?server=netease&type=url&id='+id,'https://music.163.com/song/media/outer/url?id='+id+'.mp3','https://api.injahow.cn/meting/?type=song&id='+id];return a.join('|');}
 function isPlaylistUrl(u){return /music\.163\.com\/(?:m\/)?playlist/i.test(u)||/[?&]id=\d+/.test(u)&&/playlist/i.test(u);}
 function parsePlaylistId(u){
   let m=u.match(/playlist\?[^#]*?[?&]id=(\d+)/);
@@ -4530,7 +4530,7 @@ function renderListenPlayer(cur){
       const tryNext=function(){
         if(timedOut)return;timedOut=true;
         si++;
-        if(si<srcs.length){timedOut=false;au.src=srcs[si];au.load();au._to=setTimeout(tryNext,6000);return;}
+        if(si<srcs.length){timedOut=false;au.src=srcs[si];au.load();au._to=setTimeout(tryNext,9000);return;}
         // 歌单模式：这首播不了，自动跳下一首
         if((D.listenPlaylist||[]).length){
           const ni=((D.listenIdx||0)+1)%D.listenPlaylist.length;
@@ -4543,14 +4543,14 @@ function renderListenPlayer(cur){
         fb.style.display='';
         fb.innerHTML='<div style="padding:18px 16px;text-align:center;font-size:13px;color:var(--sub);line-height:1.8;background:var(--card);border-radius:16px">'
           +'<div style="font-size:22px;margin-bottom:6px">🎵</div>'
-          +'这首的直链被平台拦了（VIP/防盗链），本机播不了<br>换成直链音频（.mp3/.m4a 结尾）我就能在这儿播'
+          +'这首歌是 VIP / 有版权保护，所有直链都被拦了<br>换一首，或点下面在平台里听'
           +'<div style="margin-top:12px"><a href="'+safe+'" target="_blank" style="display:inline-block;padding:9px 18px;border-radius:16px;background:var(--bubble-me);color:var(--bubble-me-text);text-decoration:none">在平台打开</a></div></div>';
       };
       au.onerror=tryNext;
       au.oncanplay=function(){if(au._to)clearTimeout(au._to);};
       au.src=srcs[0];
       au.load();
-      au._to=setTimeout(tryNext,6000);
+      au._to=setTimeout(tryNext,9000);
     }
     return;
   }
