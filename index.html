@@ -287,7 +287,7 @@ body{
 .duo .avatar,.duo .avatar2{flex:0 0 64px!important;width:64px!important;height:64px!important;}
     .duo .linkline{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44%;height:40px;overflow:visible;}
     .duo .linkline svg{width:100%;height:100%;display:block;overflow:visible;}
-    .duo .linkline .ecg{fill:none;stroke:#e0567a;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;opacity:.9;stroke-dasharray:900;stroke-dashoffset:900;animation:ecgdraw 2.4s cubic-bezier(.6,0,.4,1) infinite;}
+    .duo .linkline .ecg{fill:none;stroke:#e0567a;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;opacity:.9;stroke-dasharray:900;stroke-dashoffset:900;animation:ecgdraw 2.4s cubic-bezier(.6,0,.4,1) infinite;will-change:stroke-dashoffset;transform:translateZ(0);}
     @keyframes ecgdraw{0%{stroke-dashoffset:900}70%{stroke-dashoffset:0}100%{stroke-dashoffset:0}}
     @keyframes ecgline{0%,100%{opacity:.5}35%{opacity:1}60%{opacity:.75}}
     .duo .linkline{animation:ecgline 2.4s ease-in-out infinite;}
@@ -328,7 +328,7 @@ body{
 .dlg{width:86%;max-width:360px;background:var(--panel);border-radius:22px;padding:22px 20px;box-shadow:0 24px 60px rgba(0,0,0,.35);}
 .dlg h3{font-size:16px;font-weight:700;margin-bottom:16px;text-align:center;}
 .dlg input,.dlg .lb.lbimg{padding:4px;background:transparent;}
-.lb.lbimg img{max-width:150px;border-radius:12px;display:block;}
+.lb.lbimg img{max-width:90px;border-radius:12px;display:block;}
 .uprow{display:flex;align-items:center;gap:10px;margin:8px 0 2px;}
 .upbtn{flex:0 0 auto;padding:9px 14px;border-radius:12px;background:rgba(128,128,128,.16);font-size:13px;cursor:pointer;}
 .upname{font-size:12px;opacity:.55;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
@@ -408,10 +408,10 @@ body{
 #packs{background:var(--chat-bg);}
 .pack-grid{flex:1;overflow-y:auto;padding:14px;display:grid!important;grid-template-columns:repeat(3,1fr);gap:12px;align-content:flex-start;}
 .pack-grid>*{width:auto!important;height:auto!important;aspect-ratio:1;border-radius:16px;overflow:hidden;}
-.pack-cell{width:100%;height:100%;border-radius:16px;overflow:hidden;background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;}
+.pack-cell{border-radius:16px;overflow:hidden;background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;}
 .pack-cell img{width:100%;height:100%;object-fit:cover;display:block;}
 .pack-cell .pdel{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;}
-.pack-add{width:100%;height:100%;border-radius:16px;border:1.5px dashed var(--line);display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--sub);cursor:pointer;}
+.pack-add{border-radius:16px;border:1.5px dashed var(--line);display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--sub);cursor:pointer;}
 
 /* 动态 */
 #moments{background:var(--chat-bg);}
@@ -423,7 +423,7 @@ body{
 .mo .monm{flex:1;font-size:14px;font-weight:600;}
 .mo .motm{font-size:11px;color:var(--sub);}
 .mo .moc{font-size:14.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word;}
-.mo .moc img{max-width:100%;border-radius:12px;margin-top:8px;display:block;}
+.mo .moc img{max-width:130px;border-radius:12px;margin-top:8px;display:block;}
 .mo .moact{display:flex;gap:18px;margin-top:12px;font-size:13px;color:var(--sub);}
 .mo .moact div{cursor:pointer;}
 .mo .moact .on{color:#e0567a;}
@@ -726,7 +726,7 @@ body{
 #homeP2 .grid{padding-top:34px;}
 
 /* 照片墙 */
-.photowall{position:relative;height:196px;margin:6px 16px 0;flex:0 0 auto;}
+.photowall{position:relative;height:196px;margin:20px 16px 0;flex:0 0 auto;border:1px solid rgba(127,127,127,.22);border-radius:18px;padding:14px 8px;}
 .pcard{
   position:absolute;width:122px;height:158px;background:#fff;border-radius:6px;
   box-shadow:0 6px 18px rgba(30,34,50,.16),0 1px 2px rgba(30,34,50,.10);
@@ -807,7 +807,7 @@ body{
 .popdlg .ppmsg{font-size:16px;line-height:1.7;color:var(--text);text-align:center;padding:4px 0 2px;}
 .popdlg .ppadv{font-size:13.5px;line-height:1.7;color:var(--sub);text-align:center;padding:6px 0 2px;}
 
-.notewrap{display:flex;flex-direction:column;gap:9px;padding:4px 26px 0;margin-top:6px;}
+.notewrap{display:flex;flex-direction:column;gap:9px;padding:4px 26px 0;margin-top:20px;}
 .noteitem{display:flex;align-items:center;gap:9px;}
 .noteitem.ni-him{margin-left:46px;}
 .noteitem.ni-me{margin-right:46px;}
@@ -1087,14 +1087,15 @@ body{
 
   <div class="sheet" id="goodsSheet">
     <div class="dlg">
-      <h3>添加商品</h3>
+      <h3 id="goodsSheetTitle">添加商品</h3>
       <div class="gimgpick" id="gimgPick" onclick="pickGoodsImg()">＋ 商品图</div>
       <input type="text" id="gName" placeholder="商品名，例如：奶茶">
       <input type="number" id="gPrice" placeholder="价格（元）" value="18">
       <textarea id="gDesc" placeholder="一句话介绍"></textarea>
       <div class="dbtns">
+        <div class="b cancel" id="goodsSheetDel" style="display:none" onclick="delGoodsInSheet()">删除</div>
         <div class="b cancel" onclick="closeSheet2('goodsSheet')">取消</div>
-        <div class="b ok" onclick="saveGoods()">保存</div>
+        <div class="b ok" id="goodsSaveBtn" onclick="saveGoods()">保存</div>
       </div>
     </div>
   </div>
@@ -3032,11 +3033,11 @@ function renderShop(){
   list.forEach(function(g){
     const img=g.img?('<img class="gimg" src="'+g.img+'">'):'<div class="gimg ph">礼</div>';
     b.insertAdjacentHTML('beforeend',
-      '<div class="goodsitem">'+
+      '<div class="goodsitem" onclick="editGoods(\''+g.id+'\')">'+
       img+
       '<div class="ginfo"><div class="gname">'+esc(g.name)+'</div>'+
       '<div class="gdesc">'+esc(g.desc||'')+'</div>'+
-      '<div class="gprice">¥'+esc(g.price)+'</div>'+'<div class="gedit" onclick="event.stopPropagation();editGoods(\''+g.id+'\')">改信息</div></div>'+
+      '<div class="gprice">¥'+esc(g.price)+'</div></div>'+
       '<div class="gacts">'+
         '<div class="gbtn buy" onclick="buyGoods(\''+g.id+'\')">自己买</div>'+
         '<div class="gbtn give" onclick="giveGoods(\''+g.id+'\')">送给他</div>'+
@@ -3048,52 +3049,59 @@ function renderShop(){
   b.insertAdjacentHTML('beforeend','<div class="shopadd" onclick="addGoodsPrompt()">＋ 添加商品</div>');
 }
 let goodsImgTmp='';
+/* ===== 商城：卡片式编辑 ===== */
+var goodsEditId='';
+function editGoods(id){
+  var g=findGoods(id); if(!g)return;
+  goodsEditId=id;
+  goodsImgTmp=g.img||'';
+  var t=$('#goodsSheetTitle'); if(t)t.textContent='编辑商品';
+  var d=$('#goodsSheetDel'); if(d)d.style.display='';
+  if($('#gName'))$('#gName').value=g.name||'';
+  if($('#gPrice'))$('#gPrice').value=g.price||'';
+  if($('#gDesc'))$('#gDesc').value=g.desc||'';
+  var p=$('#gimgPick');
+  if(p){ if(goodsImgTmp){p.innerHTML='';p.style.backgroundImage='url('+goodsImgTmp+')';p.style.backgroundSize='cover';p.style.backgroundPosition='center';} else {p.innerHTML='＋ 商品图';p.style.backgroundImage='';} }
+  var sv=$('#goodsSaveBtn'); if(sv)sv.textContent='保存修改';
+  openSheet2('goodsSheet');
+}
 function addGoodsPrompt(){
-  goodsImgTmp='';
+  goodsEditId=''; goodsImgTmp='';
+  var t=$('#goodsSheetTitle'); if(t)t.textContent='添加商品';
+  var d=$('#goodsSheetDel'); if(d)d.style.display='none';
   if($('#gName'))$('#gName').value='';
   if($('#gPrice'))$('#gPrice').value='18';
   if($('#gDesc'))$('#gDesc').value='';
-  const p=$('#gimgPick');
+  var p=$('#gimgPick');
   if(p){p.innerHTML='＋ 商品图';p.style.background='';p.style.backgroundImage='';}
+  var sv=$('#goodsSaveBtn'); if(sv)sv.textContent='保存';
   openSheet2('goodsSheet');
 }
-function pickGoodsImg(){
-  pickTarget='goods';
-  $('#filePick').click();
-}
-function setGoodsImg(url){
-  goodsImgTmp=url||'';
-  const p=$('#gimgPick');
-  if(p){p.innerHTML='';p.style.backgroundImage='url('+url+')';p.style.backgroundSize='cover';p.style.backgroundPosition='center';}
-}
 function saveGoods(){
-  const name=($('#gName')?$('#gName').value:'').trim();
-  const price=parseFloat($('#gPrice')?$('#gPrice').value:0)||0;
-  const desc=($('#gDesc')?$('#gDesc').value:'').trim();
+  var name=($('#gName')?$('#gName').value:'').trim();
+  var price=parseFloat($('#gPrice')?$('#gPrice').value:0)||0;
+  var desc=($('#gDesc')?$('#gDesc').value:'').trim();
   if(!name){toast('先填商品名');return;}
   if(price<=0){toast('价格填大一点');return;}
-  goodsList().push({id:'gd'+Date.now(),name:name,price:price,desc:desc,img:goodsImgTmp});
-  save();closeSheet2('goodsSheet');renderShop();toast('商品已添加');
+  if(goodsEditId){
+    var g=findGoods(goodsEditId);
+    if(g){ g.name=name;g.price=price;g.desc=desc;g.img=goodsImgTmp; }
+    toast('商品已更新');
+  } else {
+    goodsList().push({id:'gd'+Date.now(),name:name,price:price,desc:desc,img:goodsImgTmp});
+    toast('商品已添加');
+  }
+  save(); closeSheet2('goodsSheet'); renderShop();
 }
-function editGoods(id){
-  var g=findGoods(id);if(!g)return;
-  askInput('商品名',g.name,function(nm){
-    g.name=(nm||'').trim()||g.name;
-    askInput('价格',String(g.price),function(pr){
-      g.price=parseFloat(pr)||g.price;
-      askInput('描述',g.desc||'',function(ds){
-        g.desc=(ds||'').trim();
-        save();renderShop();toast('商品已更新');
-      },'可以留空');
-    });
-  });
-}
-function delGoods(id){
+function delGoodsInSheet(){
+  if(!goodsEditId)return;
+  var id=goodsEditId;
   askConfirm('删除这个商品？',function(){
     D.goods=(D.goods||[]).filter(function(g){return g.id!==id;});
-    save();renderShop();
+    save(); closeSheet2('goodsSheet'); renderShop(); toast('已删除');
   });
 }
+
 function editBalance(){
   askInput('我的余额',String(D.balance===undefined?5200:D.balance),function(t){
     const v=parseFloat(t);if(isNaN(v)||v<0){toast('填个正常数字');return;}
@@ -4957,6 +4965,7 @@ function init(){
   $('#lock').addEventListener('click',()=>{go('home');try{setTimeout(function(){checkPeriodRemind();},600);}catch(e){}});
 document.addEventListener('click',function(e){var t=e.target;while(t&&t!==document){if(t.classList&&t.classList.contains('back')){try{if(t.closest&&t.closest('#settings')){['passSheet','packSheet','moSend','plusSheet'].forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove('show');});var mk=document.getElementById('mask');if(mk)mk.classList.remove('show');}}catch(err){}return;}t=t.parentNode;}},true);
   renderChat();
+  try{document.addEventListener('visibilitychange',function(){if(!document.hidden){try{var ll=document.querySelector('.duo .linkline');if(ll){ll.style.animation='none';void ll.offsetWidth;ll.style.animation='';}}catch(e){}}});}catch(e){}
   if(!D.moments)D.moments=[];
   if(!D.letters)D.letters=[];
   if(!D.listenMsgs)D.listenMsgs=[];
