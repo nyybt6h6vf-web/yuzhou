@@ -995,13 +995,6 @@ body{
       <div class="plusgrid" id="plusGrid"></div>
       <div class="ptip">选一个，我都在</div>
     </div>
-    <div class="groupsheet" id="homeCharaSheet">
-      <div class="gdial">
-        <div class="gtitle">选择主页展示的梦角</div>
-        <div class="gsel" id="homeCharaSel"></div>
-        <div class="gb cancel" onclick="document.getElementById('homeCharaSheet').classList.remove('show')">取消</div>
-      </div>
-    </div>
     <div class="groupsheet" id="groupSheet">
       <div class="gdial">
         <div class="gtitle">选择梦角（至少两个）</div>
@@ -5571,5 +5564,12 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
 console.log("YZ build 1300-all7-done");
 init();
 </script>
+    <div class="groupsheet" id="homeCharaSheet">
+      <div class="gdial">
+        <div class="gtitle">选择主页展示的梦角</div>
+        <div class="gsel" id="homeCharaSel"></div>
+        <div class="gb cancel" onclick="document.getElementById('homeCharaSheet').classList.remove('show')">取消</div>
+      </div>
+    </div>
 </body>
 </html>
