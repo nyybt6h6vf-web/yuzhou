@@ -4792,6 +4792,11 @@ function applyBackup(txt){
   }catch(e){alert('文件不对，导不进来');}
 }
 function saveProfile(){
+  /* 关键设置优先、独立保存，防止后面任何异常导致不落盘 */
+  try{
+                if($('#setLetterSent')){var _m=String($('#setLetterSent').value||'').match(/\d+/g)||[];var _a=Math.max(1,parseInt(_m[0])||1);var _b=Math.max(_a,parseInt(_m[1])||_a);D.letterSent=_a+'-'+_b;}
+    save();
+  }catch(e){}
   if($('#setNick'))D.nick=$('#setNick').value;if($('#setMyNick'))D.myNick=$('#setMyNick').value;
   D.delay=parseFloat($('#setDelay').value)||1.2;
   if($('#setSendGap'))D.sendGap=parseFloat($('#setSendGap').value)||1.2;
