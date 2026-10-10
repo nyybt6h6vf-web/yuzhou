@@ -2545,13 +2545,11 @@ function yzMaybeKaomojiFor(cid){
   return pool[Math.floor(Math.random()*pool.length)];
 }
 function pickCardFor(cid){
-  var _km=yzMaybeKaomojiFor(cid); if(_km)return _km;
   var lib=(D.cardLib||{})[cid];
   var cs=(lib&&lib.main&&lib.main.length)?lib.main:DEFAULT_CARDS;
   return cs[Math.floor(Math.random()*cs.length)];
 }
 function pickMultiCardsFor(cid){
-  var _km=yzMaybeKaomojiFor(cid); if(_km)return _km;
   var lib=(D.cardLib||{})[cid];
   var cs=(lib&&lib.main&&lib.main.length)?lib.main:DEFAULT_CARDS;
   var pr=parseFloat(D.comboRate)||0;
@@ -2565,7 +2563,6 @@ function pickMultiCardsFor(cid){
   return out.join('');
 }
 function pickMultiCards(){
-  var _km=yzMaybeKaomoji(); if(_km)return _km;
   const cs=(D.cards&&D.cards.length)?D.cards:DEFAULT_CARDS;
   const pr=parseFloat(D.comboRate)||0;
   if(pr<=0||!cs.length||Math.random()*100>=pr)return pickCard();
@@ -2699,7 +2696,7 @@ function himPat(){
   const t=ps[Math.floor(Math.random()*ps.length)];
   push({from:'him',type:'pat',text:t,_t:clockStr()});
 }
-function pickCard(){var _km=yzMaybeKaomoji();if(_km)return _km;const cs=(D.cards&&D.cards.length)?D.cards:DEFAULT_CARDS;return cs[Math.floor(Math.random()*cs.length)];}
+function pickCard(){const cs=(D.cards&&D.cards.length)?D.cards:DEFAULT_CARDS;return cs[Math.floor(Math.random()*cs.length)];}
 
 
 /* ============ 测一测（连接深度） ============ */
