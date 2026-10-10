@@ -694,6 +694,7 @@ body{
 .phoff{position:absolute;inset:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;border-radius:0;}
 .phofflogo{width:44px;height:44px;border:2px solid #333;border-radius:10px;opacity:.5;}
 .phofftxt{color:#555;font-size:13px;}
+.statusbar .right .phchg{color:#4caf50;font-size:11px;margin-right:3px;}
 #yzPhWarn{position:fixed;left:50%;top:14%;transform:translate(-50%,-20px);background:rgba(30,30,34,.94);color:#fff;padding:12px 20px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:9999;max-width:84%;text-align:center;}
 #yzPhWarn.show{opacity:1;transform:translate(-50%,0);}
 
@@ -1434,6 +1435,7 @@ body{
 <script id="appjs">
 const DKEY='yuzhou_data_v4';
 const ICONS={
+ phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
  chat:'<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
  cards:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18"/></svg>',
  together:'<svg viewBox="0 0 24 24"><path d="M12 21s-7-4.5-9.3-8.5A5 5 0 0 1 12 6a5 5 0 0 1 9.3 6.5C19 16.5 12 21 12 21z"/></svg>',
@@ -1462,7 +1464,7 @@ const HOME_APPS=[
  {act:'diary',ic:'diary',name:'日记'},
  {act:'period',ic:'period',name:'经期'},
  {act:'shop',ic:'shop',name:'商城'},
- {act:'phony',ic:'shop',name:'小手机'},
+ {act:'phony',ic:'phone',name:'小手机'},
  {act:'settings',ic:'tree',name:'设置'}
 ];
 const PLUS=[
@@ -1927,62 +1929,65 @@ function go(id){
 /* ===== 小手机 · 电量系统 ===== */
 var YZ_PH={ my:100, myCharging:false, him:100, himCharging:false, himPower:true, lastTick:0, lastHimTick:0, myAcc:0, himAcc:0, meWarned:false };
 function yzPhInit(){
-  if(!D.ph){ D.ph={my:100,myCharging:false,him:100,himCharging:false,himPower:true,meWarned:false,ts:Date.now()}; }
+  if(!D.ph){ D.ph={my:100,myCharging:false,him:100,himCharging:false,himPower:true,meWarned:false,accMy:0,accHim:0,accHimOff:0}; }
   if(D.ph.my===undefined)D.ph.my=100;
   if(D.ph.myCharging===undefined)D.ph.myCharging=false;
   if(D.ph.him===undefined)D.ph.him=100;
   if(D.ph.himCharging===undefined)D.ph.himCharging=false;
   if(D.ph.himPower===undefined)D.ph.himPower=true;
   if(D.ph.meWarned===undefined)D.ph.meWarned=false;
-  if(!D.ph.ts)D.ph.ts=Date.now();
-  if(!D.ph.himTs)D.ph.himTs=Date.now();
+  if(D.ph.accMy===undefined)D.ph.accMy=0;
+  if(D.ph.accHim===undefined)D.ph.accHim=0;
+  if(D.ph.chgAcc===undefined)D.ph.chgAcc=0;
+  if(D.ph.himChgAcc===undefined)D.ph.himChgAcc=0;
+  if(!D.ph.lastTs)D.ph.lastTs=Date.now();
 }
 function yzPhTick(){
   try{
     yzPhInit();
     var now=Date.now();
-    var el=now-D.ph.ts;
-    if(el>0){
-      var steps=Math.floor(el/300000);
-      if(steps>0){
-        D.ph.ts+=steps*300000;
-        if(D.ph.myCharging){ /* 充电时 1分钟+1 */ }
-        else{ D.ph.my=Math.max(0,D.ph.my-steps); }
-        if(D.ph.my<=20 && !D.ph.meWarned){ D.ph.meWarned=true; try{ yzPhWarn(); }catch(e){} }
-        save();
+    var dt=now-D.ph.lastTs;
+    if(dt<0)dt=0;
+    if(dt>300000)dt=300000;
+    D.ph.lastTs=now;
+    /* 我的手机：累计 5 分钟扣 1 度（离线也累加，因为上线过就计入） */
+    if(!D.ph.myCharging){
+      D.ph.accMy+=dt;
+      while(D.ph.accMy>=300000){
+        D.ph.accMy-=300000;
+        D.ph.my=Math.max(0,D.ph.my-1);
+        if(D.ph.my<=20 && !D.ph.meWarned){ D.ph.meWarned=true; try{yzPhWarn();}catch(e){} }
       }
-      /* 充电推进：1分钟1度 */
-      if(D.ph.myCharging){
-        var csteps=Math.floor((now-(D.ph.chgTs||now))/60000);
-        if(csteps>0){ D.ph.chgTs=now; D.ph.my=Math.min(100,D.ph.my+csteps); save(); }
-      }
+    } else {
+      D.ph.chgAcc+=dt;
+      while(D.ph.chgAcc>=60000){ D.ph.chgAcc-=60000; D.ph.my=Math.min(100,D.ph.my+1); }
     }
-    /* 梦角 2分钟 1 度，我离线也掉 */
-    var hel=now-D.ph.himTs;
-    if(hel>120000){
-      var hsteps=Math.floor(hel/120000);
-      D.ph.himTs+=hsteps*120000;
-      if(D.ph.himCharging){
-        var hc=Math.floor((now-(D.ph.himChgTs||now))/60000);
-        if(hc>0){D.ph.himChgTs=now;D.ph.him=Math.min(100,D.ph.him+hc);}
-      } else {
-        D.ph.him=Math.max(0,D.ph.him-hsteps);
+    /* 梦角的手机：2 分钟 1 度，无论我在不在 */
+    if(!D.ph.himPower){ /* 关机不掉 */ }
+    else if(D.ph.himCharging){
+      D.ph.himChgAcc+=dt;
+      while(D.ph.himChgAcc>=60000){ D.ph.himChgAcc-=60000; D.ph.him=Math.min(100,D.ph.him+1); }
+    } else {
+      D.ph.accHim+=dt;
+      while(D.ph.accHim>=120000){
+        D.ph.accHim-=120000;
+        D.ph.him=Math.max(0,D.ph.him-1);
         if(D.ph.him>0 && D.ph.him<=30 && Math.random()*100<(D.himChgRate===undefined?25:D.himChgRate)){
-          D.ph.himCharging=true; D.ph.himChgTs=now;
+          D.ph.himCharging=true; break;
         }
-        if(D.ph.him<=0){ D.ph.him=0; D.ph.himPower=false; D.ph.himCharging=false; }
+        if(D.ph.him<=0){ D.ph.him=0; D.ph.himPower=false; D.ph.himCharging=false; break; }
       }
-      save();
     }
+    save();
+    try{ yzPhStatusIcon(); }catch(e){}
     if($('#phony') && $('#phony').classList.contains('active')){ try{ yzPhRender(); }catch(e){} }
   }catch(e){}
 }
-/* ===== 小手机 · 渲染/交互 ===== */
 function yzPhCurPager(){ if(!D.phPage)D.phPage=1; return D.phPage; }
 function yzPhToggle(){ D.phPage=(yzPhCurPager()===1?2:1); save(); yzPhRender(); }
 function yzPhPct(v){ return Math.max(0,Math.min(100,Math.round(v))); }
 function yzPhBatteryHtml(pct,charging,big){
-  var w=big?150:96, h=big?76:48, cap=6;
+  var w=big?150:96, h=big?76:48;
   var fillW=Math.round((w-8)*pct/100);
   return '<div class="phbat"><div class="phbatbody" style="width:'+w+'px;height:'+h+'px">'+
     '<div class="phbatfill" style="width:'+fillW+'px"></div>'+
@@ -1993,10 +1998,8 @@ function yzPhBatteryHtml(pct,charging,big){
 function yzPhRender(){
   yzPhInit();
   var body=$('#phBody'); if(!body)return;
-  var pn=document.querySelector('#phony .navbar .title'); if(pn)pn.textContent='小手机';
   var pg=$('#phPager'); if(pg)pg.textContent=(yzPhCurPager()===1?'梦角的手机 ›':'‹ 我的手机');
   if(yzPhCurPager()===2){ yzPhRenderHim(body); return; }
-  /* 我的界面 */
   var my=yzPhPct(D.ph.my);
   var h='<div class="phcard phmy">';
   h+='<div class="phname">我的手机</div>';
@@ -2015,9 +2018,8 @@ function yzPhRender(){
 function yzPhRenderHim(body){
   var him=yzPhPct(D.ph.him);
   if(!D.ph.himPower){
-    /* 关机动画 */
-    body.innerHTML='<div class="phoff" id="phOff" onclick="yzPhBoot()">'
-      +'<div class="phofflogo"></div><div class="phofftxt">已关机 · 轻触开机</div></div>';
+    body.innerHTML='<div class="phoff" id="phOff" onclick="yzPhShutdownAnim()">'
+      +'<div class="phofflogo"></div><div class="phofftxt">已关机 · 轻触查看</div></div>';
     return;
   }
   var h='<div class="phcard phhim">';
@@ -2028,9 +2030,21 @@ function yzPhRenderHim(body){
   h+='</div>';
   body.innerHTML=h;
 }
-function yzPhCharge(){ yzPhInit(); if(D.ph.my>=100 && !D.ph.myCharging){ /* 允许满格也显示充电中 */ } D.ph.myCharging=true; D.ph.chgTs=Date.now(); save(); yzPhRender(); toast('已插上充电器'); }
-function yzPhUnplug(){ yzPhInit(); D.ph.myCharging=false; save(); yzPhRender(); toast('已拔充电器'); }
+function yzPhCharge(){ yzPhInit(); D.ph.myCharging=true; D.ph.chgAcc=0; save(); yzPhRender(); yzPhStatusIcon(); toast('已插上充电器'); }
+function yzPhUnplug(){ yzPhInit(); D.ph.myCharging=false; save(); yzPhRender(); yzPhStatusIcon(); toast('已拔充电器'); }
 function yzPhHtml(){ toast('收藏系统开发中'); }
+function yzPhShutdownAnim(){ toast('关机中…'); }
+
+function yzPhStatusIcon(){
+  var show=!!D.ph.myCharging;
+  document.querySelectorAll('.statusbar .right').forEach(function(el){
+    var b=el.querySelector('.phchg');
+    if(show && !b){
+      var s=document.createElement('span'); s.className='phchg'; s.textContent='⚡';
+      el.insertBefore(s,el.firstChild);
+    } else if(!show && b){ b.remove(); }
+  });
+}
 
 function yzPhWarn(){
   var el=$('#yzPhWarn');
