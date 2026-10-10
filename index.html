@@ -918,6 +918,13 @@ body{
     <div id="plusSheet">
       <div class="plusgrid" id="plusGrid"></div>
     </div>
+    <div class="groupsheet" id="homeCharaSheet">
+      <div class="gdial">
+        <div class="gtitle">选择主页展示的梦角</div>
+        <div class="gsel" id="homeCharaSel"></div>
+        <div class="gb cancel" onclick="document.getElementById('homeCharaSheet').classList.remove('show')">取消</div>
+      </div>
+    </div>
     <div class="groupsheet" id="groupSheet">
       <div class="gdial">
         <div class="gtitle">选择梦角（至少两个）</div>
@@ -1555,21 +1562,16 @@ function yzPickHomeChara(){
       +'<span style="flex:1">'+esc(c.nick||'梦角')+'</span>'
       +(on?'<span style="color:#859ecb">✓ 当前</span>':'')+'</div>';
   });
-  var g=document.getElementById('groupSheet');
-  if(!g)return;
-  g.querySelector('.gtitle').textContent='选择主页展示的梦角';
-  var box=g.querySelector('.gsel');
-  box.innerHTML=html;
-  var b=g.querySelector('.gb');
-  b.textContent='取消';
-  b.onclick=function(){g.classList.remove('show');};
-  g.classList.add('show');
+  var box=document.getElementById('homeCharaSel');
+  if(box)box.innerHTML=html;
+  var g=document.getElementById('homeCharaSheet');
+  if(g)g.classList.add('show');
 }
 function yzSetHomeChara(id){
   D.homeCharaId=id;
   yzApplyHomeChara();
   save();
-  var g=document.getElementById('groupSheet');if(g)g.classList.remove('show');
+  var g=document.getElementById('homeCharaSheet');if(g)g.classList.remove('show');
   var chip=document.getElementById('homeCharaChip');
   if(chip){var c=(D.charas||[]).find(function(x){return x.id===id;});chip.textContent=c?(c.nick||'选择'):'选择';}
   toast('主页已切换为这个梦角');
@@ -1666,6 +1668,8 @@ function yzCreateGroup(){
   var g=document.getElementById('groupSheet');
   if(!g)return;
   var box=g.querySelector('.gsel');
+  var _gt=g.querySelector('.gtitle'); if(_gt)_gt.textContent='选择梦角（至少两个）';
+  var _gb=g.querySelector('.gb'); if(_gb){_gb.textContent='创建';_gb.setAttribute('onclick','yzDoCreateGroup()');}
   box.innerHTML='';
   D.charas.forEach(function(c){
     box.insertAdjacentHTML('beforeend','<label class="gitem"><input type="checkbox" value="'+c.id+'"> '+esc(c.nick)+'</label>');
