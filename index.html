@@ -674,6 +674,29 @@ body{
 .hpages{flex:1;display:flex;width:200%;position:relative;transition:transform .34s cubic-bezier(.25,.8,.3,1);min-height:0;}
 .hpages.p2{transform:translateX(-50%);}
 .hpage{width:50%;flex:0 0 50%;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+/* ===== 小手机 ===== */
+.phbody{flex:1;overflow-y:auto;padding:18px 16px 30px;display:flex;flex-direction:column;align-items:center;}
+.phcard{width:100%;max-width:320px;border-radius:22px;padding:22px 18px;background:var(--card,#fff);box-shadow:0 6px 22px rgba(30,34,50,.10);display:flex;flex-direction:column;align-items:center;gap:10px;}
+[data-theme="dark"] .phcard{background:#1d1d20;}
+.phname{font-size:14px;color:var(--text);opacity:.8;}
+.phbat{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.phbatbody{position:relative;border:3px solid var(--text);border-radius:10px;padding:3px;overflow:hidden;}
+.phbatfill{height:100%;border-radius:5px;background:linear-gradient(135deg,#7fd47f,#4caf50);transition:width .3s;}
+.phbolt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px;}
+.phbatcap{width:5px;background:var(--text);border-radius:0 3px 3px 0;margin-left:2px;}
+.phpct{font-size:16px;font-weight:600;color:var(--text);}
+.phbtns{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap;justify-content:center;}
+.phbtn{padding:9px 22px;border-radius:20px;font-size:14px;background:rgba(127,127,127,.14);color:var(--text);}
+.phbtn.on{background:#4caf50;color:#fff;}
+.phbtn:active{opacity:.7;}
+.phstate{font-size:12.5px;color:#4caf50;}
+.phmini{margin-top:14px;font-size:13px;color:#9aa0ad;}
+.phoff{position:absolute;inset:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;border-radius:0;}
+.phofflogo{width:44px;height:44px;border:2px solid #333;border-radius:10px;opacity:.5;}
+.phofftxt{color:#555;font-size:13px;}
+#yzPhWarn{position:fixed;left:50%;top:14%;transform:translate(-50%,-20px);background:rgba(30,30,34,.94);color:#fff;padding:12px 20px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:9999;max-width:84%;text-align:center;}
+#yzPhWarn.show{opacity:1;transform:translate(-50%,0);}
+
 #homeP2{padding-bottom:26px;}
 #homeP2 .grid{padding-top:34px;}
 
@@ -1051,6 +1074,11 @@ body{
     </div>
   </div>
 
+  <div class="screen" id="phony">
+    <div class="statusbar"><span id="phTimeTop">9:41</span><span class="right">●●● 100%</span></div>
+    <div class="navbar"><div class="back" onclick="go('home')">‹</div><div class="title">小手机</div><div class="act" id="phPager" onclick="yzPhToggle()">梦角的手机 ›</div></div>
+    <div class="phbody" id="phBody"></div>
+  </div>
   <div class="screen" id="settings">
     <div class="statusbar"><span id="setTimeTop">9:41</span><span class="right">●●● 100%</span></div>
     <div class="navbar"><div class="back" onclick="go('home')">‹</div><div class="title">设置</div></div>
@@ -1434,6 +1462,7 @@ const HOME_APPS=[
  {act:'diary',ic:'diary',name:'日记'},
  {act:'period',ic:'period',name:'经期'},
  {act:'shop',ic:'shop',name:'商城'},
+ {act:'phony',ic:'shop',name:'小手机'},
  {act:'settings',ic:'tree',name:'设置'}
 ];
 const PLUS=[
@@ -1871,6 +1900,7 @@ function tick(){
   const ds=(d.getMonth()+1)+'月'+d.getDate()+'日 '+days[d.getDay()];
   ['lockTimeTop','homeTimeTop','chatTimeTop','cardTimeTop','togTimeTop','setTimeTop','moTimeTop','lisTimeTop','letTimeTop','lrTimeTop','pkTimeTop'].forEach(id=>{const el=$('#'+id);if(el)el.textContent=t;});
   $('#lockH').textContent=t;$('#lockD').textContent=ds;
+  try{yzPhTick();}catch(e){}
 }
 
 function go(id){
@@ -1889,10 +1919,128 @@ function go(id){
   if(id==='diary')renderDiary();
   if(id==='period')renderPeriod();
   if(id==='shop')renderShop();
+  if(id==='phony'){try{yzPhInit();yzPhRender();}catch(e){}}
   if(id==='himprofile')renderHimProfile();
   if(id==='letterWrite'){const to=$('#lwTo');if(to)to.textContent=letterTo(D.nick);}
   if(id==='diaryWrite'){const dt=$('#dwDate');if(dt)dt.textContent=dToday();}
 }
+/* ===== 小手机 · 电量系统 ===== */
+var YZ_PH={ my:100, myCharging:false, him:100, himCharging:false, himPower:true, lastTick:0, lastHimTick:0, myAcc:0, himAcc:0, meWarned:false };
+function yzPhInit(){
+  if(!D.ph){ D.ph={my:100,myCharging:false,him:100,himCharging:false,himPower:true,meWarned:false,ts:Date.now()}; }
+  if(D.ph.my===undefined)D.ph.my=100;
+  if(D.ph.myCharging===undefined)D.ph.myCharging=false;
+  if(D.ph.him===undefined)D.ph.him=100;
+  if(D.ph.himCharging===undefined)D.ph.himCharging=false;
+  if(D.ph.himPower===undefined)D.ph.himPower=true;
+  if(D.ph.meWarned===undefined)D.ph.meWarned=false;
+  if(!D.ph.ts)D.ph.ts=Date.now();
+  if(!D.ph.himTs)D.ph.himTs=Date.now();
+}
+function yzPhTick(){
+  try{
+    yzPhInit();
+    var now=Date.now();
+    var el=now-D.ph.ts;
+    if(el>0){
+      var steps=Math.floor(el/300000);
+      if(steps>0){
+        D.ph.ts+=steps*300000;
+        if(D.ph.myCharging){ /* 充电时 1分钟+1 */ }
+        else{ D.ph.my=Math.max(0,D.ph.my-steps); }
+        if(D.ph.my<=20 && !D.ph.meWarned){ D.ph.meWarned=true; try{ yzPhWarn(); }catch(e){} }
+        save();
+      }
+      /* 充电推进：1分钟1度 */
+      if(D.ph.myCharging){
+        var csteps=Math.floor((now-(D.ph.chgTs||now))/60000);
+        if(csteps>0){ D.ph.chgTs=now; D.ph.my=Math.min(100,D.ph.my+csteps); save(); }
+      }
+    }
+    /* 梦角 2分钟 1 度，我离线也掉 */
+    var hel=now-D.ph.himTs;
+    if(hel>120000){
+      var hsteps=Math.floor(hel/120000);
+      D.ph.himTs+=hsteps*120000;
+      if(D.ph.himCharging){
+        var hc=Math.floor((now-(D.ph.himChgTs||now))/60000);
+        if(hc>0){D.ph.himChgTs=now;D.ph.him=Math.min(100,D.ph.him+hc);}
+      } else {
+        D.ph.him=Math.max(0,D.ph.him-hsteps);
+        if(D.ph.him>0 && D.ph.him<=30 && Math.random()*100<(D.himChgRate===undefined?25:D.himChgRate)){
+          D.ph.himCharging=true; D.ph.himChgTs=now;
+        }
+        if(D.ph.him<=0){ D.ph.him=0; D.ph.himPower=false; D.ph.himCharging=false; }
+      }
+      save();
+    }
+    if($('#phony') && $('#phony').classList.contains('active')){ try{ yzPhRender(); }catch(e){} }
+  }catch(e){}
+}
+/* ===== 小手机 · 渲染/交互 ===== */
+function yzPhCurPager(){ if(!D.phPage)D.phPage=1; return D.phPage; }
+function yzPhToggle(){ D.phPage=(yzPhCurPager()===1?2:1); save(); yzPhRender(); }
+function yzPhPct(v){ return Math.max(0,Math.min(100,Math.round(v))); }
+function yzPhBatteryHtml(pct,charging,big){
+  var w=big?150:96, h=big?76:48, cap=6;
+  var fillW=Math.round((w-8)*pct/100);
+  return '<div class="phbat"><div class="phbatbody" style="width:'+w+'px;height:'+h+'px">'+
+    '<div class="phbatfill" style="width:'+fillW+'px"></div>'+
+    (charging?'<div class="phbolt">⚡</div>':'')+
+    '</div><div class="phbatcap" style="height:'+(h*0.34)+'px"></div></div>'+
+    '<div class="phpct">'+pct+'%'+(charging?' · 充电中':'')+'</div>';
+}
+function yzPhRender(){
+  yzPhInit();
+  var body=$('#phBody'); if(!body)return;
+  var pn=document.querySelector('#phony .navbar .title'); if(pn)pn.textContent='小手机';
+  var pg=$('#phPager'); if(pg)pg.textContent=(yzPhCurPager()===1?'梦角的手机 ›':'‹ 我的手机');
+  if(yzPhCurPager()===2){ yzPhRenderHim(body); return; }
+  /* 我的界面 */
+  var my=yzPhPct(D.ph.my);
+  var h='<div class="phcard phmy">';
+  h+='<div class="phname">我的手机</div>';
+  h+=yzPhBatteryHtml(my,D.ph.myCharging,true);
+  h+='<div class="phbtns">';
+  if(D.ph.myCharging){
+    h+='<div class="phbtn" onclick="yzPhUnplug()">拔充电器</div>';
+  } else {
+    h+='<div class="phbtn on" onclick="yzPhCharge()">充电</div>';
+  }
+  h+='</div>';
+  h+='<div class="phmini" onclick="yzPhToggle()">查看梦角的手机 ›</div>';
+  h+='</div>';
+  body.innerHTML=h;
+}
+function yzPhRenderHim(body){
+  var him=yzPhPct(D.ph.him);
+  if(!D.ph.himPower){
+    /* 关机动画 */
+    body.innerHTML='<div class="phoff" id="phOff" onclick="yzPhBoot()">'
+      +'<div class="phofflogo"></div><div class="phofftxt">已关机 · 轻触开机</div></div>';
+    return;
+  }
+  var h='<div class="phcard phhim">';
+  h+='<div class="phname">'+(D.nick||'他')+'的手机</div>';
+  h+=yzPhBatteryHtml(him,D.ph.himCharging,true);
+  h+='<div class="phstate">'+(D.ph.himCharging?'正在充电':'未充电')+'</div>';
+  h+='<div class="phbtns"><div class="phbtn on" onclick="yzPhHtml()">查看梦角收藏 ›</div></div>';
+  h+='</div>';
+  body.innerHTML=h;
+}
+function yzPhCharge(){ yzPhInit(); if(D.ph.my>=100 && !D.ph.myCharging){ /* 允许满格也显示充电中 */ } D.ph.myCharging=true; D.ph.chgTs=Date.now(); save(); yzPhRender(); toast('已插上充电器'); }
+function yzPhUnplug(){ yzPhInit(); D.ph.myCharging=false; save(); yzPhRender(); toast('已拔充电器'); }
+function yzPhHtml(){ toast('收藏系统开发中'); }
+
+function yzPhWarn(){
+  var el=$('#yzPhWarn');
+  if(!el){ el=document.createElement('div'); el.id='yzPhWarn'; document.body.appendChild(el); }
+  el.textContent='电量只剩 20% 了，去小手机充电吧';
+  el.classList.add('show');
+  clearTimeout(window.__phWarnT);
+  window.__phWarnT=setTimeout(function(){el.classList.remove('show');},3000);
+}
+
 const DOCK_ACTS=['chatlist','moments','letters','diary'];
 function renderHome(){
   const dock=$('#homeDock'),g=$('#homeGrid');
@@ -4614,6 +4762,7 @@ window.__yzInfo=function(){
 };
 function init(){
   try{_yzBindMsgs(D);}catch(e){}
+  try{yzPhInit();}catch(e){}
   try{if(D.favicon)applyFavicon(D.favicon);}catch(e){}
   document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light');
   tick();setInterval(tick,1000);
