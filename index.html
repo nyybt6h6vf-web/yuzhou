@@ -2357,11 +2357,12 @@ function renderHome(){
   const dock=$('#homeDock'),g=$('#homeGrid');
   const dk=HOME_APPS.filter(a=>DOCK_ACTS.indexOf(a.act)>=0);
   const rest=HOME_APPS.filter(a=>DOCK_ACTS.indexOf(a.act)<0);
+  function yzIconHtml(a){var cu=(D.appIcons||{})[a.act];if(cu){return '<img src="'+cu+'" style="width:100%;height:100%;object-fit:cover;border-radius:19px">';}return ICONS[a.ic]||'';}
   if(dock){dock.innerHTML='';dk.forEach(a=>{
-    dock.insertAdjacentHTML('beforeend',`<div class="app" onclick="go('${a.act}')"><div class="icon">${ICONS[a.ic]||''}</div><span>${a.name}</span></div>`);
+    dock.insertAdjacentHTML('beforeend',`<div class="app" data-act="${a.act}" onclick="go('${a.act}')" ontouchstart="yzAppPress('${a.act}',event)" oncontextmenu="return yzAppLong('${a.act}',event)"><div class="icon">${yzIconHtml(a)}</div><span>${a.name}</span></div>`);
   });}
   if(g){g.innerHTML='';rest.forEach(a=>{
-    g.insertAdjacentHTML('beforeend',`<div class="app" onclick="go('${a.act}')"><div class="icon">${ICONS[a.ic]||''}</div><span>${a.name}</span></div>`);
+    g.insertAdjacentHTML('beforeend',`<div class="app" data-act="${a.act}" onclick="go('${a.act}')" ontouchstart="yzAppPress('${a.act}',event)" oncontextmenu="return yzAppLong('${a.act}',event)"><div class="icon">${yzIconHtml(a)}</div><span>${a.name}</span></div>`);
   });}
   const sl=$('#homeSlogan'),ln=$('#lockName');
   if(sl){if(D.slogan&&D.slogan.trim()){sl.textContent=D.slogan;sl.style.display='';}else sl.style.display='none';}
@@ -2379,6 +2380,31 @@ function homePage(n,instant){
   if(w){ if(instant){w.style.transition='none';} w.classList.toggle('p2',n===2); if(instant){void w.offsetWidth;w.style.transition='';} }
   const dots=document.querySelectorAll('#homeDots i');
   dots.forEach((d,i)=>d.classList.toggle('on',i===n-1));
+}
+var _yzPressTimer=null,_yzPressAct='';
+function yzAppPress(act,ev){
+  _yzPressAct=act;
+  if(_yzPressTimer)clearTimeout(_yzPressTimer);
+  _yzPressTimer=setTimeout(function(){_yzPressTimer=null;yzAppMenu(act);},550);
+}
+function yzAppLong(act,ev){if(ev)ev.preventDefault();yzAppMenu(act);return false;}
+document.addEventListener('touchend',function(){if(_yzPressTimer){clearTimeout(_yzPressTimer);_yzPressTimer=null;}},true);
+document.addEventListener('touchmove',function(){if(_yzPressTimer){clearTimeout(_yzPressTimer);_yzPressTimer=null;}},true);
+function yzAppMenu(act){
+  try{
+    if(typeof askInput!=='function'){}
+    var nm=act;
+    (HOME_APPS||[]).forEach(function(a){if(a.act===act)nm=a.name;});
+    if(!confirm('「'+nm+'」图标：要点确定选图片，取消则更多')){
+      if(confirm('要恢复默认图标吗？（确定=恢复默认）')){yzClearAppIcon(act);}
+      return;
+    }
+    _yzAppIconAct=act;pickTarget='appicon';var f=document.getElementById('filePick');if(f)f.click();
+  }catch(e){}
+}
+var _yzAppIconAct='';
+function yzClearAppIcon(act){
+  try{D.appIcons=D.appIcons||{};delete D.appIcons[act];save();renderHome();toast('已恢复默认图标');}catch(e){}
 }
 function renderHomeBg2(){
   const pg=$('#homeP2');if(!pg)return;
@@ -3865,6 +3891,7 @@ $('#filePick').addEventListener('change',function(){
       else if(target==='photocard'){D['photo'+(_photoN||1)]=res;save();renderPhotoWall();done();toast('照片已放上');}
       else if(target==='diarybg'){D.diaryBg=res;save();renderDiaryProfile();done();toast('背景已更新');}
       else if(target==='diaryav'){D.diaryAv=res;save();renderDiaryProfile();done();toast('头像已更新');}
+      else if(target==='appicon'){D.appIcons=D.appIcons||{};D.appIcons[_yzAppIconAct]=res;save();renderHome();done();toast('图标已更换');}
       else if(target==='favicon'){yzSquareFavicon(res,function(sq){D.favicon=sq;save();applyFavicon(sq);});done();toast('图标已更新，重新添加到桌面会生效');}
       else if(target==='charaav'){var _ch=(D.charas||[]).find(function(c){return c.id===_yzAvatarFor;});if(_ch){_ch.avatar=res;if(yzCurConv()&&yzCurConv().type!=='group'){D.avatarHim=res;}save();renderCharaDial(_ch);renderChatList();}done();toast('头像已更新');}
       else if(target==='himbg'){D.himBg=res;save();renderHimProfile();done();toast('背景已更新');}
