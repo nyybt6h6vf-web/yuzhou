@@ -1080,7 +1080,7 @@ body{
 
   <div class="screen" id="himprofile">
     <div class="statusbar"><span id="hpTimeTop">9:41</span><span class="right">●●● 100%</span></div>
-    <div class="navbar"><div class="back" onclick="go('diary')">‹</div><div class="title">他的主页</div><div class="act" onclick="himWriteDiary()">＋</div></div>
+    <div class="navbar"><div class="back" onclick="go('diary')">‹</div><div class="title">梦角的主页</div><div class="act" onclick="himWriteDiary()">＋</div></div>
     <div class="pfbgwrap" id="hProfileWrap">
       <div class="pfbg" id="hProfBg" onclick="pickHimBg()"><span class="pfbgtip">点击上传背景</span></div>
       <div class="pfav" id="hProfAv" onclick="pickHimAv()"></div>
@@ -1219,11 +1219,11 @@ body{
         <div class="row"><div class="lab">日记间隔（分钟）</div><input type="number" id="setDiaryGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">日记最少句数</div><input type="number" id="setDiaryMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">日记最多句数</div><input type="number" id="setDiaryMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">他找你代付概率（%）</div><input type="number" id="setDaifuRate" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角找你代付概率（%）</div><input type="number" id="setDaifuRate" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">代付检查间隔（分钟）</div><input type="number" id="setDaifuGap" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">他代付处理时长（秒）</div><input type="number" id="setDaifuDelay" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角代付处理时长（秒）</div><input type="number" id="setDaifuDelay" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">转账收款概率（%）</div><input type="number" id="setTran" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">他主动转账概率（%）</div><input type="number" id="setTranTo" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角主动转账概率（%）</div><input type="number" id="setTranTo" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row" style="flex-direction:column;align-items:stretch">
            <div class="lab" style="margin-bottom:8px">转账金额（每行一个，随机抽一个）</div>
            <textarea id="setTranAmts" placeholder="13.14&#10;52&#10;520" oninput="saveTrans()"></textarea>
@@ -1237,7 +1237,7 @@ body{
          <div class="row"><div class="lab">开启消息通知</div><div class="chip" onclick="yzAskNotify()">开启 / 检查</div></div>
         <div class="row"><div class="lab">主动发消息间隔（分钟）</div><input type="number" id="setProactiveGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">主动找我（开关）</div><div class="chip" onclick="toggleProactive()" id="proactiveBtn">关闭</div></div>
-        <div class="row"><div class="lab">他发动态间隔（分钟）</div><input type="number" id="setMomGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角发动态间隔（分钟）</div><input type="number" id="setMomGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">动态最少句数</div><input type="number" id="setMomMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">动态最多句数</div><input type="number" id="setMomMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
        </div>
@@ -1253,15 +1253,15 @@ body{
       <div class="group">
         <h4>拍一拍</h4>
         <div class="row" style="flex-direction:column;align-items:stretch">
-          <div class="lab" style="margin-bottom:8px">梦角（）（每行一条，他拍你时随机抽一条；互动和人物都你自己填，如「揉了揉我的头」）</div>
+          <div class="lab" style="margin-bottom:8px">梦角（）（每行一条，梦角拍你时随机抽一条；互动和人物都你自己填，如「揉了揉我的头」）</div>
           <textarea id="setPats" placeholder="揉了揉你的头&#10;捏了捏你的脸&#10;从背后抱住你" oninput="savePats()"></textarea>
         </div>
       </div>
       <div class="group">
         <h4>来信</h4>
-        <div class="row"><div class="lab">他回信间隔（分钟）</div><input type="number" id="setReplyGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角回信间隔（分钟）</div><input type="number" id="setReplyGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">回信/来信最少句数</div><input type="number" id="setLetterMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">回信/来信最多句数</div><input type="number" id="setLetterMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">他主动来信间隔（分钟）</div><input type="number" id="setLetterGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角主动来信间隔（分钟）</div><input type="number" id="setLetterGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
       </div>
       <div class="group">
         <h4>聊天显示</h4>
