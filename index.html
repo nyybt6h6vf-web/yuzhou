@@ -1919,9 +1919,13 @@ YZDB.open(function(ok){
       try{
         var o=JSON.parse(existing);
         if(o&&typeof o==='object'){
-          D=Object.assign(D,o);
-          try{document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light');}catch(_){}
-          try{renderHome();applyCustom();}catch(_){}
+          /* localStorage 为同步写入、更可靠；仅在它没值时才用 IDB 补 */
+          var _hasLS=false; try{_hasLS=!!localStorage.getItem(DKEY);}catch(_){}
+          if(!_hasLS){
+            D=Object.assign(D,o);
+            try{document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light');}catch(_){}
+            try{renderHome();applyCustom();}catch(_){}
+          }
           try{if(window.__YZ_AFTER_IDB)window.__YZ_AFTER_IDB();}catch(_){}
         }
       }catch(e){}
