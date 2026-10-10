@@ -4580,7 +4580,11 @@ function yzPreviewBubble(){
   });
   st.textContent=cssText;
   var dbg=document.getElementById('bubbleDebug');
-  if(dbg){dbg.textContent='raw:'+raw.length+'ch | css:'+cssText.length+'ch\n'+cssText.slice(0,400);}
+  if(dbg){
+    var mi=cssText.indexOf('.msg.me');
+    var seg=mi>=0?cssText.slice(mi,mi+220):'(no .msg.me in css)';
+    dbg.textContent='raw:'+raw.length+' | css:'+cssText.length+'\n[ME]'+seg;
+  }
 }
 window.yzPreviewBubble=yzPreviewBubble;
 
