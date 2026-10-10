@@ -450,13 +450,14 @@ body{
 
 /* 表情包 */
 #packs{background:var(--chat-bg);}
-.pack-grid{flex:1;overflow-y:auto;padding:14px;display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:12px;align-content:flex-start;}
-.pack-cell,.pack-add{position:relative;width:100%;aspect-ratio:1/1;border-radius:16px;overflow:hidden;box-sizing:border-box;}
-.pack-cell{background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;}
-.pack-cell img{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;}
+.pack-grid{flex:1;overflow-y:auto;padding:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-content:flex-start;}
+.pack-cell,.pack-add{position:relative;width:100%;height:0;padding-bottom:100%;border-radius:16px;overflow:hidden;box-sizing:border-box;}
+.pack-cell{background:var(--card);cursor:pointer;}
+.pack-cell img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block;}
 .pack-cell .pdel{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;z-index:3;}
-.pack-add{border:1.5px dashed var(--line);display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--sub);cursor:pointer;}
-.pack-grid .mini{grid-column:1/-1;aspect-ratio:auto !important;height:auto !important;min-height:0;}
+.pack-add{display:block;border:1.5px dashed var(--line);}
+.pack-add .padd-ic{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--sub);}
+.pack-grid .mini{grid-column:1/-1;height:auto !important;padding-bottom:0 !important;}
 
 /* 动态 */
 #moments{background:var(--chat-bg);}
@@ -2945,7 +2946,7 @@ function openFingerTest(){
   $('#fStat').textContent='长按右边指纹 3 秒';
   yzFpRenderHistory();
   s.classList.add('show');
-  var you=$('#fpYou');
+  var me=$('#fpMe');
   function start(){ if(_fpMine)return; _fpPress=Date.now(); if(_fpCdTimer)clearTimeout(_fpCdTimer);
     yzFpCountdown(3,function(){});
     $('#fStat').textContent='按住中…不要松手'; }
@@ -2957,9 +2958,9 @@ function openFingerTest(){
           setTimeout(runFingerResult,1200); },900); },5000);
     } else { cancelCd(); $('#fStat').textContent='要按满 3 秒哦，再试一次'; }
   }
-  you.onmousedown=start; you.ontouchstart=function(e){e.preventDefault();start();};
-  you.onmouseup=end; you.ontouchend=function(e){e.preventDefault();end();};
-  you.onmouseleave=function(){ if(!_fpMine)end(); };
+  me.onmousedown=start; me.ontouchstart=function(e){e.preventDefault();start();};
+  me.onmouseup=end; me.ontouchend=function(e){e.preventDefault();end();};
+  me.onmouseleave=function(){ if(!_fpMine)end(); };
 }
 function closeFingerTest(){ var s=$('#fingerSheet');if(s)s.classList.remove('show'); _fpPress=null; if(_fpCdTimer){clearTimeout(_fpCdTimer);_fpCdTimer=null;} var e=document.getElementById('fcd');if(e){e.textContent='';e.classList.remove('on');} }
 function runFingerResult(){
@@ -4556,17 +4557,15 @@ function sendListen(){
 function renderPacks(){
   const g=$('#packGrid');if(!g)return;g.innerHTML='';
   (D.packs||[]).forEach((p,i)=>{
-    g.insertAdjacentHTML('beforeend',`<div class="pack-cell" onclick="sendPack(${i})"><img src="${p}"><div class="pdel" onclick="event.stopPropagation();delPack(${i})">✕</div></div>`);
+    g.insertAdjacentHTML('beforeend',`<div class="pack-cell" onclick="event.stopPropagation()"><img src="${p}"><div class="pdel" onclick="event.stopPropagation();delPack(${i})">✕</div></div>`);
   });
-  g.insertAdjacentHTML('beforeend',`<div class="pack-add" onclick="addPack()">＋</div>`);
-  g.insertAdjacentHTML('beforeend',`<div class="mini" style="grid-column:1/-1;width:100%;text-align:left;margin-top:6px;font-size:11px;color:var(--sub);line-height:1.5">点＋可一次选多张，选中后一起加进来</div>`);
+  g.insertAdjacentHTML('beforeend',`<div class="pack-add" onclick="event.stopPropagation();addPack()"><div class="padd-ic">＋</div></div>`);
+  g.insertAdjacentHTML('beforeend',`<div class="mini" style="grid-column:1/-1;width:100%;text-align:left;margin-top:6px;font-size:11px;color:var(--sub);line-height:1.5">点＋可一次选多张；点图不会发送，只能在聊天加号里发</div>`);
 }
 function delPack(i){D.packs.splice(i,1);save();renderPacks();}
 function sendPack(i){
-  const p=(D.packs||[])[i];if(!p)return;
-  push({from:'me',type:'img',src:p});
-  setTimeout(()=>push({from:'him',text:pickCard(),type:'text'}),1000);
-  go('chat');
+  /* 表情包页只能增删，不能发送；发送只在聊天加号里 */
+  return;
 }
 
 /* ===== 心情 / 拍一拍 设置 ===== */
@@ -5311,15 +5310,23 @@ window.__bubbleDecls=null;
 window.__applyBubbleInline=function(){/* 纯样式表注入，不拆 inline */};
 /* 把 CSS 文本里每条声明末尾补 !important（跳过注释、已有 important 的、@规则行） */
 function forceImportant(cssText){
-  var out=cssText.replace(/\/\*[\s\S]*?\*\//g,''); // 去注释
-  out=out.replace(/([^;{}]+?)(?=;|}|\})/g,function(m){
-    var t=m.trim();
-    if(!t||t.indexOf(':')<0)return m;
-    if(/@|\{/.test(t))return m;
-    if(/!important/i.test(t))return m;
-    return m.replace(/\s*$/,'')+' !important';
-  });
-  return out;
+  try{
+    var out=String(cssText||'').replace(/\/\*[\s\S]*?\*\//g,'');
+    var sb=[];
+    out.split(/;/).forEach(function(part){
+      var t=part;
+      if(!t||t.indexOf(':')<0){sb.push(t);return;}
+      if(/!important/i.test(t)){sb.push(t);return;}
+      if(/@|\{|\}/.test(t)){
+        /* 含大括号的片段（选择器或 @ 行）：只给尾部最后一对声明补 */
+        t=t.replace(/([^;{}]+?:[^;{}]+?)\s*$/g,function(m){return /!important/i.test(m)?m:m+' !important';});
+        sb.push(t);
+      }else{
+        sb.push(t.replace(/\s*$/,'')+' !important');
+      }
+    });
+    return sb.join(';');
+  }catch(e){return String(cssText||'');}
 }
 window.forceImportant=forceImportant;
 /* 气泡CSS预览：把用户CSS映射+important后，注入到预览盒子 */
