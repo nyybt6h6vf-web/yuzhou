@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Yu·Zhou</title>
-<link id="yzFavIcon" rel="icon" href="data:,">
+<link id="yzFavIcon" rel="icon" sizes="any" href="data:,">
 <link id="yzAppleIcon" rel="apple-touch-icon" sizes="180x180" href="data:,">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Yu·Zhou">
@@ -4670,16 +4670,29 @@ function renderMemInfo(){
 function pickFavicon(){pickTarget='favicon';var f=document.getElementById('filePick');if(f)f.click();}
 function applyFavicon(url){
   if(!url)return;
-  var a=document.getElementById('yzAppleIcon');
-  if(!a){a=document.querySelector('link[rel="apple-touch-icon"]');}
-  if(!a){a=document.createElement('link');a.rel='apple-touch-icon';document.head.appendChild(a);}
-  a.href=url;
-  var f=document.getElementById('yzFavIcon');
-  if(!f){f=document.querySelector('link[rel="icon"]');}
-  if(!f){f=document.createElement('link');f.rel='icon';document.head.appendChild(f);}
-  f.href=url;
-  var sc=document.querySelector('link[rel="shortcut icon"]');
-  if(sc)sc.href=url;
+  var stamp=Date.now();
+  function mk(rel,sizes){
+    var l=document.createElement('link');
+    l.rel=rel;
+    if(sizes)l.setAttribute('sizes',sizes);
+    l.href=url;
+    document.head.appendChild(l);
+    return l;
+  }
+  function drop(rel){
+    var arr=document.head.querySelectorAll('link[rel="'+rel+'"]');
+    for(var i=0;i<arr.length;i++){try{arr[i].parentNode.removeChild(arr[i]);}catch(e){}}
+  }
+  /* 浏览器 favicon：全部删掉重建（比改 href 更容易被重读） */
+  drop('icon'); drop('shortcut icon');
+  mk('icon','any');
+  mk('icon','180x180');
+  mk('shortcut icon');
+  /* iOS 主屏图标 */
+  drop('apple-touch-icon'); drop('apple-touch-icon-precomposed');
+  mk('apple-touch-icon','180x180');
+  mk('apple-touch-icon-precomposed','180x180');
+  document.title=document.title.replace(/^.*$/,'Yu·Zhou');
 }
 /* 把选中的图缩成 180x180 正方形（iOS 主屏标准） */
 function yzSquareFavicon(dataUrl,cb){
