@@ -7081,12 +7081,9 @@ function applyCustom(){
   if(lf){document.documentElement.style.setProperty('--lock-fg-color',lf);}
   else{document.documentElement.style.removeProperty('--lock-fg-color');}
   let css='';
-  if(fc){css+='.msg .bubble.transfer .tt,.msg .bubble.transfer .td,.msg .bubble.transfer .tstmt,.msg .bubble.transfer .tamt,.msg .bubble.transfer .tact span{color:'+fc+';}';}
+
   if(lf){css+='#lock{color:'+lf+' !important;}';css+='#lock .h,#lock .d,#lock .name,#lock .hint,#lock .statusbar span{color:'+lf+' !important;}';}
-  /* 转账卡片色 */
-  const tc=(D.tranColor||'').trim();
-  const __hasCss2=!!String(D.bubble||'').trim();
-  if(tc&&!__hasCss2){css+='.bubble.transfer .tt{background:'+tc+' !important;}';css+='.bubble.transfer .td,.bubble.transfer .tstmt{background:'+tc+' !important;}';css+='.bubble.transfer{background:'+tc+' !important;}';}
+  /* 转账卡片色(先记录，最后统一应用) */
   /* 气泡大小 */
   const bs=(D.bubbleSize!==undefined?D.bubbleSize:100);
   if(bs!==100){var _sc=bs/100;css+='.msg .bubble{transform:scale('+_sc+');transform-origin:'+"center"+';}';
@@ -7117,17 +7114,27 @@ function applyCustom(){
       if(decls.length){var _imp=decls.map(function(x){return x+' !important';}).join(';');css+='.msg.him .bubble,.msg.me .bubble{'+_imp+';}';}
     }
   }
-  /* 转账卡片底色保护：不让气泡CSS 的 .bubble 背景破坏分层 */
-  css+='.bubble.transfer{background:#fff !important;}[data-theme="dark"] .bubble.transfer{background:#3a3d52 !important;}';
-  css+='.bubble.transfer .tt{background:#f2f2f5 !important;}[data-theme="dark"] .bubble.transfer .tt{background:#4a4d63 !important;}';
-  css+='.bubble.transfer .tamt{background:#fff !important;}[data-theme="dark"] .bubble.transfer .tamt{background:#3a3d52 !important;}';
-  css+='.bubble.transfer .td{background:#fafafa !important;}[data-theme="dark"] .bubble.transfer .td{background:#43465c !important;}';
-  css+='.bubble.transfer .tstmt{background:#fff !important;}[data-theme="dark"] .bubble.transfer .tstmt{background:#3a3d52 !important;}';
+  /* 转账卡片：先给基础底色保护（不让 .bubble 背景串进来），再用用户色覆盖 */
+  const tc2=(D.tranColor||'').trim();
+  if(tc2){
+    css+='.bubble.transfer{background:'+tc2+' !important;color:inherit !important;}';
+    css+='.bubble.transfer .tt,.bubble.transfer .tamt,.bubble.transfer .td,.bubble.transfer .tstmt,.bubble.transfer .tact span{background:'+tc2+' !important;}';
+    css+='.bubble.transfer .tt,.bubble.transfer .td,.bubble.transfer .tstmt,.bubble.transfer .tact{border-color:rgba(128,128,128,0.28) !important;}';
+  }else{
+    css+='.bubble.transfer{background:#fff !important;}[data-theme="dark"] .bubble.transfer{background:#3a3d52 !important;}';
+    css+='.bubble.transfer .tt{background:#f2f2f5 !important;}[data-theme="dark"] .bubble.transfer .tt{background:#4a4d63 !important;}';
+    css+='.bubble.transfer .tamt{background:#fff !important;}[data-theme="dark"] .bubble.transfer .tamt{background:#3a3d52 !important;}';
+    css+='.bubble.transfer .td{background:#fafafa !important;}[data-theme="dark"] .bubble.transfer .td{background:#43465c !important;}';
+    css+='.bubble.transfer .tstmt{background:#fff !important;}[data-theme="dark"] .bubble.transfer .tstmt{background:#3a3d52 !important;}';
+  }
   /* 消息字色：放在气泡CSS 之后，确保最终胜出 */
   var hfc=(D.himFontColor||'').trim();
   if(hfc){css+='.msg.him .bubble,.msg.him .bubble *,.msg.him .bubble .quotebar,.msg.him .bubble.voice,.msg.him .bubble.patb{color:'+hfc+' !important;}';}
   var mfc=(D.meFontColor||'').trim();
   if(mfc){css+='.msg.me .bubble,.msg.me .bubble *,.msg.me .bubble .quotebar,.msg.me .bubble.voice{color:'+mfc+' !important;}';}
+  /* 转账字色：最后一个，!important 压过转账底色 */
+  var tfc=(D.fontColor||'').trim();
+  if(tfc){css+='.bubble.transfer,.bubble.transfer .tt,.bubble.transfer .tamt,.bubble.transfer .td,.bubble.transfer .tstmt,.bubble.transfer .tact span,.bubble.transfer .tic{color:'+tfc+' !important;}';}
   let st=document.getElementById('customStyle');
   if(!st){st=document.createElement('style');st.id='customStyle';document.head.appendChild(st);}
   if(st.textContent!==css)st.textContent=css;
