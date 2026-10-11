@@ -408,6 +408,41 @@ body{
 .statusbar.apple{height:50px;flex:0 0 50px;padding:0 22px;font-size:13.5px;font-weight:600;}
 .statusbar.apple .right{font-size:12px;}
 
+/* ===== 五子棋 ===== */
+#gomoku{background:var(--chat-bg);}
+.gmk-modes{display:flex;gap:8px;justify-content:center;padding:10px 12px 6px;flex-wrap:wrap;}
+.gmk-mode{padding:7px 16px;border-radius:16px;font-size:13px;background:var(--card);color:var(--sub);border:1px solid var(--line);cursor:pointer;}
+.gmk-mode.on{background:var(--accent,#859ecb);color:#fff;border-color:transparent;font-weight:600;}
+.gmk-status{text-align:center;font-size:12.5px;color:var(--sub);padding:2px 12px 8px;min-height:16px;}
+.gmk-boardwrap{display:flex;justify-content:center;padding:0 10px 8px;}
+.gmk-board{position:relative;display:grid;grid-template-columns:repeat(15,1fr);width:min(94vw,400px);aspect-ratio:1/1;background:#d9c39a;border-radius:10px;padding:8px;box-shadow:0 6px 20px rgba(120,100,60,.28);box-sizing:border-box;}
+.gmk-cell{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.gmk-cell::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(90,70,40,.42);}
+.gmk-cell::after{content:'';position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(90,70,40,.42);}
+.gmk-cell .gmk-s{position:relative;z-index:2;width:78%;height:78%;border-radius:50%;}
+.gmk-s.black{background:radial-gradient(circle at 34% 30%,#5a5a5a,#000);box-shadow:0 1px 2px rgba(0,0,0,.4);}
+.gmk-s.white{background:radial-gradient(circle at 34% 30%,#fff,#cfcfcf);box-shadow:0 1px 2px rgba(0,0,0,.28);}
+.gmk-s.last{outline:2px solid #e0574d;outline-offset:1px;}
+.gmk-over{position:absolute;inset:0;background:rgba(20,26,40,.72);border-radius:10px;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:5;}
+.gmk-over.show{display:flex;}
+.gmk-over .go-t{color:#fff;font-size:19px;font-weight:700;letter-spacing:1px;}
+.gmk-over .go-btns{display:flex;gap:14px;}
+.gmk-over .go-b{min-width:104px;padding:11px 0;border-radius:18px;font-size:14px;font-weight:600;text-align:center;cursor:pointer;}
+.gmk-over .go-b.re{background:#859ecb;color:#fff;}
+.gmk-over .go-b.leave{background:rgba(255,255,255,.16);color:#fff;}
+.gmk-chat{flex:1;overflow-y:auto;padding:6px 14px;display:flex;flex-direction:column;gap:8px;min-height:80px;}
+.gmk-chat .gm{display:flex;gap:8px;align-items:flex-end;max-width:82%;}
+.gmk-chat .gm.me{align-self:flex-end;flex-direction:row-reverse;}
+.gmk-chat .gm .gav{width:26px;height:26px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:var(--icon-bg);color:var(--icon-fg);flex:0 0 26px;}
+.gmk-chat .gm .gav img{width:100%;height:100%;object-fit:cover;}
+.gmk-chat .gm .gb{background:var(--bubble-him);color:var(--bubble-him-text);padding:8px 12px;border-radius:15px;font-size:13.5px;line-height:1.5;word-break:break-word;}
+.gmk-chat .gm.me .gb{background:var(--bubble-me);color:var(--bubble-me-text);}
+.gmk-chat .gm .gb.gimg{padding:4px;background:transparent;}
+.gmk-chat .gm .gb.gimg img{width:78px;height:78px;object-fit:cover;border-radius:10px;display:block;}
+.gmk-input{display:flex;gap:8px;padding:8px 12px 13px;align-items:center;}
+.gmk-input .upbtn{font-size:12.5px;padding:8px 12px;border-radius:16px;background:var(--card);color:var(--sub);cursor:pointer;flex:0 0 auto;}
+.gmk-input input{flex:1;border:none;outline:none;background:var(--card);border-radius:20px;padding:11px 15px;font-size:14px;color:var(--text);font-family:inherit;min-width:0;}
+.gmk-input .send{height:40px;padding:0 18px;border:none;border-radius:20px;background:var(--bubble-me);color:var(--bubble-me-text);font-size:14px;font-weight:600;cursor:pointer;}
 /* 一起听 */
 #listen{background:var(--chat-bg);}
 .listen-body{flex:1;overflow-y:auto;padding:18px 16px 14px;display:flex;flex-direction:column;}
@@ -1141,6 +1176,25 @@ body{
   </div>
 <div class="sheet" id="lisListSheet" onclick="if(event.target===this)closeSheet2('lisListSheet')"><div class="llbox"><div class="lltitle">播放列表</div><div id="lisListBody"></div></div></div>
 <div id="lisFloat"><div class="lfx" onclick="hideLisFloat()">✕</div><div class="lfgrip" id="lisGrip"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M9 6h.01"/><path d="M15 6h.01"/><path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M9 18h.01"/><path d="M15 18h.01"/></svg></div><div class="lfm" id="lisFloatJump" onclick="yzLisFloatJump()"><div class="lft" id="lisFloatT">一起听</div><div class="lfb" id="lisFloatB"></div></div><button class="lfmode" id="lisFloatMode" onclick="yzCycleModeQuick()"><svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></button><button class="lfbtn" onclick="prevSong()"><svg viewBox="0 0 24 24"><path d="M19 20 9 12l10-8v16z"/><path d="M5 19V5"/></svg></button><button class="lfbtn main" id="lisFloatPlay" onclick="yzTogglePlay()"><svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg></button><button class="lfbtn" onclick="nextSong()"><svg viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><path d="M19 5v14"/></svg></button></div>
+  <div class="screen" id="gomoku">
+    <div class="statusbar apple" id="gmkBar"><span id="gmkTimeTop">9:41</span><span class="right">100%</span></div>
+    <div class="navbar"><div class="back" onclick="gmkLeave()">‹</div><div class="title">五子棋</div><div class="actbtn" onclick="gmkRestart()">重新开局</div></div>
+    <div class="gmk-modes" id="gmkModes">
+      <div class="gmk-mode" data-m="easy" onclick="gmkSetMode('easy')">简单</div>
+      <div class="gmk-mode" data-m="random" onclick="gmkSetMode('random')">随机</div>
+      <div class="gmk-mode" data-m="hard" onclick="gmkSetMode('hard')">困难</div>
+    </div>
+    <div class="gmk-status" id="gmkStatus">点击棋盘落子</div>
+    <div class="gmk-boardwrap">
+      <div class="gmk-board" id="gmkBoard"><div class="gmk-over" id="gmkOver"><div class="go-t" id="gmkOverT"></div><div class="go-btns"><div class="go-b re" onclick="gmkRestart()">再来一局</div><div class="go-b leave" onclick="gmkLeave()">离开</div></div></div></div>
+    </div>
+    <div class="gmk-chat" id="gmkChat"></div>
+    <div class="gmk-input">
+      <div class="upbtn" onclick="openPackPickerFor('gomoku')">表情包</div>
+      <input id="gmkInput" type="text" placeholder="和梦角说点什么…" onkeydown="if(event.key==='Enter')gmkSend()">
+      <button class="send" onclick="gmkSend()">发送</button>
+    </div>
+  </div>
   <div class="screen" id="letters">
     <div class="statusbar apple" id="letterBar"><span id="letTimeTop">9:41</span><span class="right">100%</span></div>
     <div class="navbar"><div class="back" onclick="go('home')">‹</div><div class="title">来信</div><div class="act" onclick="writeLetter()">＋ 写信</div></div>
@@ -1656,6 +1710,7 @@ const ICONS={
  hand:'<svg viewBox="0 0 24 24"><path d="M7 11V5.5a1.5 1.5 0 0 1 3 0V10"/><path d="M10 10V4.5a1.5 1.5 0 0 1 3 0V10"/><path d="M13 10.5V5.5a1.5 1.5 0 0 1 3 0V13"/><path d="M16 12.5v-1a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-2a6 6 0 0 1-5-3l-2.2-3.5a1.5 1.5 0 0 1 2.4-1.8L7 14"/></svg>',
  pat:'<svg viewBox="0 0 24 24"><path d="M12 20.5C7 16.5 3.5 13.4 3.5 9.8 3.5 7.2 5.5 5.5 7.8 5.5c1.6 0 3.1.9 4.2 2.4 1.1-1.5 2.6-2.4 4.2-2.4 2.3 0 4.3 1.7 4.3 4.3 0 3.6-3.5 6.7-8.5 10.7z"/></svg>',
  listen:'<svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>',
+ gomoku:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/><path d="M3 9h18"/><path d="M3 15h18"/><circle cx="9" cy="9" r="2.1" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="2.1" fill="currentColor" stroke="none"/></svg>',
  letter:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 7l9 6 9-6"/></svg>',
  album:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-6 6-3-3-4 4"/></svg>',
  poke:'<svg viewBox="0 0 24 24"><path d="M12 21s-7-4.5-9.3-8.5A5 5 0 0 1 12 6a5 5 0 0 1 9.3 6.5C19 16.5 12 21 12 21z"/><path d="M12 9.5v4.5"/><path d="M9.8 11.5h4.4"/></svg>',
@@ -1675,6 +1730,7 @@ const HOME_APPS=[
  {act:'diary',ic:'diary',name:'日记'},
  {act:'period',ic:'period',name:'经期'},
  {act:'shop',ic:'shop',name:'商城'},
+ {act:'gomoku',ic:'gomoku',name:'五子棋'},
  {act:'phony',ic:'phone',name:'小手机'},
  {act:'settings',ic:'tree',name:'设置'}
 ];
@@ -2206,6 +2262,7 @@ function go(id){
   if(id==='period')renderPeriod();
   if(id==='shop')renderShop();
   if(id==='phony'){try{yzPhInit();yzPhRender();}catch(e){}}
+  if(id==='gomoku'){try{renderGomoku();}catch(e){}}
   try{yzPhStatusIcon();}catch(e){}
   if(id==='himprofile')renderHimProfile();
   if(id==='letterWrite'){const to=$('#lwTo');if(to)to.textContent=letterTo(D.nick);}
@@ -3374,6 +3431,7 @@ function usePackFrom(i){
   closePackSheet();
   if(packUse==='mo'){const el=$('#moImg');if(el){el.value=p;const n=$('#moImgName');if(n)n.textContent='已选表情包';}}
   else if(packUse==='listen'){pushListenImg('me',p);}
+  else if(packUse==='gomoku'){gmkSendImg(p);}
   else{sendPackFromChat(i);}
 }
 function closePackSheet(){$('#packSheet').classList.remove('show');}
@@ -4989,6 +5047,288 @@ function sendListen(){
   },delay);
 }
 
+/* ============================================================
+   五子棋
+   ============================================================ */
+var GMK_N=15;
+var _gmk={board:[],white:1,black:2,meColor:0,youColor:0,turn:0,mode:'easy',over:false,last:null,busy:false,chatTimer:null,started:false};
+function gmkInit(){
+  if(!D.gmkMsgs)D.gmkMsgs=[];
+}
+function gmkNewBoard(){
+  _gmk.board=[];
+  for(var y=0;y<GMK_N;y++){ var row=[]; for(var x=0;x<GMK_N;x++)row.push(0); _gmk.board.push(row); }
+}
+function gmkColorName(c){ return c===_gmk.black?'黑':(c===_gmk.white?'白':''); }
+/* 开局：随机黑白，黑先 */
+function gmkStart(){
+  gmkInit();
+  gmkNewBoard();
+  _gmk.over=false;_gmk.busy=false;_gmk.last=null;_gmk.started=true;
+  var r=Math.random()<0.5;
+  _gmk.meColor = r?_gmk.black:_gmk.white;
+  _gmk.youColor = r?_gmk.white:_gmk.black;
+  _gmk.turn = _gmk.black; /* 黑先 */
+  var ov=$('#gmkOver');if(ov)ov.classList.remove('show');
+  gmkRender();
+  gmkStatus('你是'+gmkColorName(_gmk.meColor)+'子，梦角是'+gmkColorName(_gmk.youColor)+'子。'+( _gmk.turn===_gmk.meColor?'你先下':'梦角先下'));
+  if(_gmk.turn===_gmk.youColor){ setTimeout(gmkAIMove, 650); }
+}
+function gmkSetMode(m){
+  _gmk.mode=m;
+  gmkRefreshModeUI();
+  try{save();}catch(e){}
+  toast('模式：'+(m==='random'?'随机':(m==='easy'?'简单':'困难')));
+}
+function gmkRefreshModeUI(){
+  try{
+    var ms=document.querySelectorAll('#gmkModes .gmk-mode');
+    for(var i=0;i<ms.length;i++){ ms[i].classList.toggle('on', ms[i].getAttribute('data-m')===_gmk.mode); }
+  }catch(e){}
+}
+function gmkStatus(t){ var el=$('#gmkStatus'); if(el)el.textContent=t||''; }
+function gmkRender(){
+  var b=$('#gmkBoard'); if(!b)return;
+  /* 保留 over 遮罩：重建格子，遮罩放最上层 */
+  var ov=$('#gmkOver');
+  b.innerHTML='';
+  for(var y=0;y<GMK_N;y++){
+    for(var x=0;x<GMK_N;x++){
+      var c=document.createElement('div');
+      c.className='gmk-cell';
+      c.setAttribute('data-x',x);c.setAttribute('data-y',y);
+      var v=_gmk.board[y][x];
+      if(v){
+        var sp=document.createElement('div');
+        sp.className='gmk-s '+(v===_gmk.black?'black':'white');
+        if(_gmk.last&&_gmk.last.x===x&&_gmk.last.y===y)sp.className+=' last';
+        c.appendChild(sp);
+      }
+      c.addEventListener('click',function(ev){ gmkHumanClick(+this.getAttribute('data-x'),+this.getAttribute('data-y')); });
+      b.appendChild(c);
+    }
+  }
+  if(ov)b.appendChild(ov);
+}
+function gmkHumanClick(x,y){
+  if(_gmk.inOver)return;
+  if(_gmk.busy||_gmk.over)return;
+  if(_gmk.turn!==_gmk.meColor){ gmkStatus('现在不是你的回合'); return; }
+  if(_gmk.board[y][x]!==0)return;
+  gmkPlace(x,y,_gmk.meColor);
+  if(_gmk.over)return;
+  _gmk.turn=_gmk.youColor;
+  gmkRender();
+  gmkStatus('梦角正在思考…');
+  _gmk.busy=true;
+  setTimeout(gmkAIMove, 420+Math.random()*380);
+}
+function gmkPlace(x,y,c){
+  _gmk.board[y][x]=c;
+  _gmk.last={x:x,y:y};
+  if(gmkWin(x,y,c)){
+    _gmk.over=true;_gmk.inOver=true;
+    gmkRender();
+    var youWon=(c===_gmk.meColor);
+    gmkStatus((youWon?'你':'梦角')+'赢了');
+    var ov=$('#gmkOver');if(ov){ov.classList.add('show'); var t=$('#gmkOverT'); if(t)t.textContent=(youWon?'你赢了 🎉':'梦角赢了');}
+    return true;
+  }
+  /* 平局 */
+  var full=true;
+  for(var yy=0;yy<GMK_N&&full;yy++)for(var xx=0;xx<GMK_N;xx++){ if(_gmk.board[yy][xx]===0){full=false;break;} }
+  if(full){ _gmk.over=true;_gmk.inOver=true; gmkStatus('平局'); var ov2=$('#gmkOver');if(ov2){ov2.classList.add('show'); var t2=$('#gmkOverT'); if(t2)t2.textContent='平局';} return true; }
+  return false;
+}
+function gmkInB(x,y){ return x>=0&&x<GMK_N&&y>=0&&y<GMK_N; }
+/* 检查某点落子后是否五连 */
+function gmkWin(x,y,c){
+  var dirs=[[1,0],[0,1],[1,1],[1,-1]];
+  for(var d=0;d<4;d++){
+    var cnt=1, dx=dirs[d][0], dy=dirs[d][1];
+    for(var s=1;s<5;s++){var nx=x+dx*s,ny=y+dy*s;if(!gmkInB(nx,ny)||_gmk.board[ny][nx]!==c)break;cnt++;}
+    for(var s2=1;s2<5;s2++){var nx2=x-dx*s2,ny2=y-dy*s2;if(!gmkInB(nx2,ny2)||_gmk.board[ny2][nx2]!==c)break;cnt++;}
+    if(cnt>=5)return true;
+  }
+  return false;
+}
+/* ===== AI ===== */
+function gmkEmptyNeighbors(dist){
+  /* 收集附近有空位的点，避免满盘扫描 */
+  var res=[],seen={};
+  for(var y=0;y<GMK_N;y++)for(var x=0;x<GMK_N;x++){
+    if(_gmk.board[y][x]!==0)continue;
+    var near=false;
+    for(var dy=-dist;dy<=dist&&!near;dy++)for(var dx=-dist;dx<=dist;dx++){
+      var nx=x+dx,ny=y+dy; if(gmkInB(nx,ny)&&_gmk.board[ny][nx]!==0){near=true;break;}
+    }
+    if(near){var k=x+','+y;if(!seen[k]){seen[k]=1;res.push({x:x,y:y});}}
+  }
+  if(!res.length){ /* 全空：中间 */ res.push({x:7,y:7}); }
+  return res;
+}
+/* 评估在某点落 c 后的“线型价值” */
+function gmkLineScore(x,y,c){
+  var dirs=[[1,0],[0,1],[1,1],[1,-1]]; var total=0;
+  for(var d=0;d<4;d++){
+    var dx=dirs[d][0],dy=dirs[d][1];
+    var cnt=1, openA=0, openB=0;
+    for(var s=1;s<5;s++){var nx=x+dx*s,ny=y+dy*s;if(!gmkInB(nx,ny)){openA=-1;break;}var v=_gmk.board[ny][nx];if(v===c)cnt++;else if(v===0){openA++;break;}else{openA=-1;break;}}
+    for(var s2=1;s2<5;s2++){var nx2=x-dx*s2,ny2=y-dy*s2;if(!gmkInB(nx2,ny2)){openB=-1;break;}var v2=_gmk.board[ny2][nx2];if(v2===c)cnt++;else if(v2===0){openB++;break;}else{openB=-1;break;}}
+    var open=0; if(openA>=0)open++; if(openB>=0)open++;
+    if(cnt>=5)total+=10000000;
+    else if(cnt===4){ total += (open>=2?1000000:(open===1?60000:0)); }
+    else if(cnt===3){ total += (open>=2?20000:(open===1?1200:0)); }
+    else if(cnt===2){ total += (open>=2?400:(open===1?60:0)); }
+    else if(cnt===1){ total += (open>=2?10:2); }
+  }
+  return total;
+}
+function gmkPick(cands,arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function gmkAIMove(){
+  if(_gmk.over||!(_gmk.turn===_gmk.youColor)){ _gmk.busy=false; return; }
+  var me=_gmk.youColor, foe=_gmk.meColor;
+  var cands=gmkEmptyNeighbors(2);
+  var pick=null;
+  if(_gmk.mode==='random'){
+    pick=gmkPick(cands,cands);
+  } else {
+    /* 计算每个候选：进攻分 + 防守分 */
+    var scored=cands.map(function(p){
+      var atk=gmkLineScore(p.x,p.y,me);
+      var def=gmkLineScore(p.x,p.y,foe);
+      return {x:p.x,y:p.y,atk:atk,def:def};
+    });
+    if(_gmk.mode==='easy'){
+      /* 优先能赢则赢，其次挡对方五，其余随机但保留小防守 */
+      var win=scored.filter(function(s){return s.atk>=10000000;});
+      if(win.length)pick=gmkPick(cands,win);
+      else{
+        var block=scored.filter(function(s){return s.def>=10000000;});
+        if(block.length)pick=gmkPick(cands,block);
+        else{
+          /* 简单：30% 认真挡活三，否则随机 */
+          if(Math.random()<0.7){
+            scored.sort(function(a,b){return (b.atk*0.6+b.def*0.4)-(a.atk*0.6+a.def*0.4);});
+            var top=scored.slice(0,Math.min(4,scored.length));
+            pick=gmkPick(cands,top);
+          } else { pick=gmkPick(cands,cands); }
+        }
+      }
+    } else {
+      /* 困难：先赢，再挡，再攻防兼顾取最高分（带随机扰动避免固定套路）*/
+      var win2=scored.filter(function(s){return s.atk>=10000000;});
+      if(win2.length)pick=gmkPick(cands,win2);
+      else{
+        var block2=scored.filter(function(s){return s.def>=10000000;});
+        if(block2.length)pick=gmkPick(cands,block2);
+        else{
+          scored.forEach(function(s){ s.total=s.atk*1.05+s.def*1.0+Math.random()*((s.atk+s.def)*0.03+1); });
+          scored.sort(function(a,b){return b.total-a.total;});
+          var best=scored[0].total;
+          var top2=scored.filter(function(s){return s.total>=best*0.92;});
+          pick=gmkPick(cands,top2);
+        }
+      }
+    }
+  }
+  if(!pick)pick=gmkPick(cands,cands);
+  gmkPlace(pick.x,pick.y,me);
+  _gmk.busy=false;
+  if(_gmk.over)return;
+  _gmk.turn=foe;
+  gmkRender();
+  gmkStatus('轮到你了');
+}
+/* ===== 聊天 ===== */
+function gmkChatRender(){
+  var c=$('#gmkChat'); if(!c)return;
+  c.innerHTML='';
+  (D.gmkMsgs||[]).forEach(function(m){
+    var isMe=m.from==='me';
+    var av=isMe?D.avatarMe:D.avatarHim;
+    var nm=isMe?(D.myNick||'我'):(D.nick||'他');
+    var avh=av?('<img src="'+av+'">'):(((nm||'')[0])||'');
+    var inner=(m.type==='img')?('<div class="gb gimg"><img src="'+String(m.src||'').replace(/"/g,'%22')+'"></div>'):('<div class="gb">'+esc(m.text||'')+'</div>');
+    c.insertAdjacentHTML('beforeend','<div class="gm '+(isMe?'me':'')+'"><div class="gav">'+avh+'</div><div>'+inner+'</div></div>');
+  });
+  c.scrollTop=c.scrollHeight;
+}
+function gmkPush(from,text,type,src){
+  D.gmkMsgs=D.gmkMsgs||[];
+  D.gmkMsgs.push({from:from,text:text||'',type:type||'text',src:src||''});
+  if(D.gmkMsgs.length>300)D.gmkMsgs=D.gmkMsgs.slice(-300);
+  try{save();}catch(e){}
+  if($('#gomoku')&&$('#gomoku').classList.contains('active'))gmkChatRender();
+}
+function gmkSend(){
+  var i=$('#gmkInput'); if(!i)return;
+  var v=(i.value||'').trim(); if(!v)return;
+  i.value='';
+  gmkPush('me',v);
+  gmkResetTimer();
+  /* 按设置里的回复概率 */
+  var r=(D.replyRate===undefined?100:D.replyRate);
+  if(Math.random()*100<r){
+    setTimeout(function(){
+      var t='';
+      try{ var cid=yzCurCharId(); t=(cid&&typeof pickCardFor==='function')?pickCardFor(cid):''; }catch(e){}
+      if(!t){try{t=pickCard();}catch(e){}}
+      if(!t)t='（继续下棋吧）';
+      gmkPush('him',t);
+    },700+Math.random()*900);
+  }
+}
+function gmkSendImg(src){
+  if(!src)return;
+  gmkPush('me','','img',src);
+  gmkResetTimer();
+  var r=(D.replyRate===undefined?100:D.replyRate);
+  if(Math.random()*100<r){
+    setTimeout(function(){
+      var t='';
+      try{ var cid=yzCurCharId(); t=(cid&&typeof pickCardFor==='function')?pickCardFor(cid):''; }catch(e){}
+      if(!t){try{t=pickCard();}catch(e){}}
+      if(!t)t='（继续下棋吧）';
+      gmkPush('him',t);
+    },700+Math.random()*900);
+  }
+}
+/* 20 秒自动说一句（不依赖设置概率） */
+function gmkAutoSpeak(){
+  try{
+    var t='';
+    try{ var cid=yzCurCharId(); t=(cid&&typeof pickCardFor==='function')?pickCardFor(cid):''; }catch(e){}
+    if(!t){try{t=pickCard();}catch(e){}}
+    if(!t)t='（还在下吗）';
+    gmkPush('him',t);
+  }catch(e){}
+}
+function gmkResetTimer(){
+  if(_gmk.chatTimer){clearInterval(_gmk.chatTimer);_gmk.chatTimer=null;}
+  _gmk.chatTimer=setInterval(function(){
+    if($('#gomoku')&&$('#gomoku').classList.contains('active'))gmkAutoSpeak();
+  },20000);
+}
+function gmkStopTimer(){ if(_gmk.chatTimer){clearInterval(_gmk.chatTimer);_gmk.chatTimer=null;} }
+function gmkRestart(){
+  _gmk.inOver=false;
+  gmkStart();
+}
+function gmkLeave(){
+  gmkStopTimer();
+  _gmk.inOver=false;
+  go('home');
+}
+function renderGomoku(){
+  gmkInit();
+  if(!_gmk.started){ gmkStart(); }
+  else{ gmkRender(); }
+  gmkRefreshModeUI();
+  gmkChatRender();
+  gmkResetTimer();
+  if(_gmk.over){ var ov=$('#gmkOver');if(ov)ov.classList.add('show'); }
+}
 /* ===== 表情包 ===== */
 function renderPacks(){
   const g=$('#packGrid');if(!g)return;g.innerHTML='';
