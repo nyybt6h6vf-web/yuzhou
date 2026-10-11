@@ -1812,12 +1812,13 @@ body{
   </div>
 
   <div class="sheet" id="daifuActSheet">
-    <div class="dlg">
-      <h3 id="daifuActTitle">代付</h3>
-      <p id="daifuActDesc" style="font-size:12.5px;color:var(--sub);text-align:center;line-height:1.6;margin:-4px 0 14px;padding:0 6px"></p>
+    <div class="dlg" style="position:relative">
+      <div class="dfaclose" onclick="closeDaifuAct()" style="position:absolute;top:-6px;right:-2px;width:26px;height:26px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;z-index:5">×</div>
+      <h3 id="daifuActTitle">代付请求</h3>
+      <div id="daifuActBody" style="margin:2px 0 12px"></div>
       <div class="dbtns" style="display:flex;gap:10px;justify-content:flex-end;align-items:center;margin-top:6px">
-        <div class="b cancel" style="cursor:pointer" onclick="daifuUserAct(false)">拒绝代付</div>
-        <div class="b ok" style="cursor:pointer" onclick="daifuUserAct(true)">帮梦角代付</div>
+        <div class="b cancel" style="cursor:pointer" onclick="daifuUserAct(false)">拒绝</div>
+        <div class="b ok" style="cursor:pointer" onclick="daifuUserAct(true)">代付</div>
       </div>
     </div>
   </div>
@@ -2955,7 +2956,7 @@ function bubbleHTML(m,i){
     else if(m.st==='no')st='<div class="dfst no">他拒绝了</div>';
     else st='<div class="dfst wait">'+(isMine?'等他代付…':'等你代付')+'</div>';
     var _canAct=(!isMine && (!m.st||m.st==='wait'));
-    var _click=_canAct?(' onclick="openDaifuAct("+i+")"'):'';
+    var _click=_canAct?(' data-dfi="'+i+'" onclick="openDaifuAct('+i+')"'):'';
     return '<div class="bubble dfbub'+(_canAct?' tap':'')+'"'+_click+'>'+
       '<div class="dfcap">'+esc(m.text||'亲爱的，帮我买这个吧～')+'</div>'+
       '<div class="dfgoods">'+gi+'<div class="gbtxt"><div class="gbn">'+esc(m.gname||'')+'</div><div class="gbp">¥'+esc(m.gprice||'')+'</div></div></div>'+
@@ -4012,12 +4013,29 @@ function giveGoods(id){
 }
 var _dfActIdx=-1;
 function openDaifuAct(i){
-  _dfActIdx=i;
-  var m=(D.msgs||[])[i]; if(!m||m.type!=='daifu')return;
+  _dfActIdx=parseInt(i,10);
+  var m=(D.msgs||[])[_dfActIdx]; if(!m||m.type!=='daifu')return;
   var t=document.getElementById('daifuActTitle'); if(t)t.textContent='代付请求';
-  var d=document.getElementById('daifuActDesc');
-  if(d)d.textContent='梦角想让你帮买「'+(m.gname||'')+'」（¥'+(m.gprice||'')+'）';
+  var b=document.getElementById('daifuActBody');
+  if(b){
+    var gi=m.gimg?('<img src="'+esc(m.gimg)+'" style="width:64px;height:64px;border-radius:12px;object-fit:cover">'):'<div style="width:64px;height:64px;border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:20px">礼</div>';
+    b.innerHTML='<div style="display:flex;gap:12px;align-items:center;padding:12px;border-radius:14px;background:var(--card);border:1px solid var(--line)">'+gi+
+      '<div style="flex:1;min-width:0"><div style="font-size:14.5px;font-weight:700">'+esc(m.gname||'')+'</div>'+
+      '<div style="font-size:15px;font-weight:700;color:var(--accent);margin-top:4px">¥'+esc(m.gprice||'')+'</div></div></div>'+
+      '<div style="font-size:12.5px;color:var(--sub);text-align:center;margin-top:10px">'+esc(m.text||'亲爱的，帮我买这个吧～')+'</div>';
+  }
   openSheet2('daifuActSheet');
+}
+function closeDaifuAct(){ _dfActIdx=-1; closeSheet2('daifuActSheet'); } /* × 关闭：不回复=默认拒绝 */
+/* 事件委托：点代付卡片（双保险） */
+if(!window.__dfDeleg){
+  window.__dfDeleg=true;
+  document.addEventListener('click',function(e){
+    try{
+      var el=e.target&&e.target.closest?e.target.closest('.dfbub[data-dfi]'):null;
+      if(el){ var k=el.getAttribute('data-dfi'); if(k!==null&&k!==''){ openDaifuAct(k); } }
+    }catch(_){}
+  },true);
 }
 function daifuUserAct(accept){
   closeSheet2('daifuActSheet');
