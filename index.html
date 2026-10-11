@@ -1226,9 +1226,7 @@ body{
             <button class="lc" onclick="nextSong()" aria-label="下一首"><svg viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><path d="M19 5v14"/></svg></button>
           </div>
           <div class="lis-modes" id="lisModes">
-            <div class="lm2" data-mode="order" onclick="setListenMode('order')"><svg viewBox="0 0 24 24"><path d="M3 6h13"/><path d="M3 12h13"/><path d="M3 18h9"/><path d="M18 15l3 3-3 3"/></svg></div>
-            <div class="lm2" data-mode="single" onclick="setListenMode('single')"><svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/><text x="10" y="15.5" font-size="8" fill="currentColor" stroke="none" font-weight="700">1</text></svg></div>
-            <div class="lm2" data-mode="random" onclick="setListenMode('random')"><svg viewBox="0 0 24 24"><path d="M3 6h13"/><path d="M3 12h13"/><path d="M3 18h9"/><path d="M18 15l3 3-3 3"/><circle cx="19" cy="7" r="2"/></svg></div>
+            <div class="lm2" id="lisModeBtn" data-mode="order" onclick="cycleListenMode()" aria-label="播放顺序"><svg viewBox="0 0 24 24"><path d="M3 6h13"/><path d="M3 12h13"/><path d="M3 18h9"/><path d="M18 15l3 3-3 3"/></svg></div>
             <div class="lm2" onclick="openListenList()" aria-label="列表"><svg viewBox="0 0 24 24"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg></div>
           </div>
           <audio id="lisAudio" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></audio>
@@ -4933,21 +4931,20 @@ function cycleListenMode(){
   setListenMode(order[(i+1)%order.length]);
 }
 function yzCycleModeQuick(){ cycleListenMode(); }
+function yzModeSvg(m){
+  if(m==='single')return '<svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/><text x="10" y="15.5" font-size="8" fill="currentColor" stroke="none" font-weight="700">1</text></svg>';
+  if(m==='random')return '<svg viewBox="0 0 24 24"><path d="M3 6h13"/><path d="M3 12h13"/><path d="M3 18h9"/><path d="M18 15l3 3-3 3"/><circle cx="19" cy="7" r="2"/></svg>';
+  return '<svg viewBox="0 0 24 24"><path d="M3 6h13"/><path d="M3 12h13"/><path d="M3 18h9"/><path d="M18 15l3 3-3 3"/></svg>';
+}
 function yzRefreshModeUI(){
   var m=_lisMode();
   try{
-    var ms=document.querySelectorAll('#lisModes .lm2');
-    for(var i=0;i<ms.length;i++){ if(ms[i].getAttribute('data-mode')===m)ms[i].classList.add('on');else ms[i].classList.remove('on'); }
+    var btn=document.getElementById('lisModeBtn');
+    if(btn){ btn.setAttribute('data-mode',m); btn.title=yzModeName(m); btn.innerHTML=yzModeSvg(m); }
   }catch(e){}
   try{
     var fb=document.getElementById('lisFloatMode');
-    if(fb){
-      var svg=fb.querySelector('svg');
-      if(svg){
-        // 用不同 stroke 宽度略区分；主要靠 title/提示
-        fb.title=yzModeName(m);
-      }
-    }
+    if(fb){ fb.title=yzModeName(m); fb.innerHTML=yzModeSvg(m); }
   }catch(e){}
 }
 function renderListenList(){
