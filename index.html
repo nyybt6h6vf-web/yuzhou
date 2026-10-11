@@ -415,10 +415,10 @@ body{
 .gmk-mode.on{background:var(--accent,#859ecb);color:#fff;border-color:transparent;font-weight:600;}
 .gmk-status{text-align:center;font-size:12.5px;color:var(--sub);padding:2px 12px 8px;min-height:16px;}
 .gmk-boardwrap{display:flex;justify-content:center;padding:0 10px 8px;}
-.gmk-board{position:relative;display:grid;grid-template-columns:repeat(15,1fr);width:min(94vw,400px);aspect-ratio:1/1;background:#d9c39a;border-radius:10px;padding:8px;box-shadow:0 6px 20px rgba(120,100,60,.28);box-sizing:border-box;}
+.gmk-board{position:relative;display:grid;grid-template-columns:repeat(15,1fr);width:min(94vw,400px);aspect-ratio:1/1;background:#fbfbfb;border-radius:10px;padding:8px;box-shadow:0 6px 20px rgba(80,90,110,.18);border:1px solid #e2e5ec;box-sizing:border-box;}
 .gmk-cell{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;}
-.gmk-cell::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(90,70,40,.42);}
-.gmk-cell::after{content:'';position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(90,70,40,.42);}
+.gmk-cell::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(120,130,150,.45);}
+.gmk-cell::after{content:'';position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(120,130,150,.45);}
 .gmk-cell .gmk-s{position:relative;z-index:2;width:78%;height:78%;border-radius:50%;}
 .gmk-s.black{background:radial-gradient(circle at 34% 30%,#5a5a5a,#000);box-shadow:0 1px 2px rgba(0,0,0,.4);}
 .gmk-s.white{background:radial-gradient(circle at 34% 30%,#fff,#cfcfcf);box-shadow:0 1px 2px rgba(0,0,0,.28);}
@@ -2012,8 +2012,22 @@ function yzConvDel(cid,ev){
   if(ev)ev.stopPropagation();
   var cv=(D.convs||[]).find(function(c){return c.id===cid;});if(!cv)return;
   if(!confirm('确定删除和「'+yzConvTitle(cv)+'」的对话？'))return;
+  var removedIds=(cv.type!=='group'&&cv.charas)?cv.charas.slice():[];
   D.convs=(D.convs||[]).filter(function(c){return c.id!==cid;});
   if(D.curConv===cid){D.curConv=(D.convs[0]||{}).id||'';}
+  // 清理孤儿梦角：若这些梦角不再被任何对话引用，则从 charas 里彻底删除
+  try{
+    removedIds.forEach(function(rid){
+      var stillUsed=(D.convs||[]).some(function(c){return (c.charas||[]).indexOf(rid)>=0;});
+      if(!stillUsed){
+        D.charas=(D.charas||[]).filter(function(ch){return ch.id!==rid;});
+        if(D.cardLib)delete D.cardLib[rid];
+        if(D.appIcons)delete D.appIcons[rid];
+        if(D.homeCharaId===rid)D.homeCharaId='';
+        if(D.cardLibCurChar===rid)D.cardLibCurChar=(D.charas&&D.charas[0])?D.charas[0].id:'';
+      }
+    });
+  }catch(e){}
   save();renderChatList();
   toast('已删除');
 }
@@ -5168,7 +5182,7 @@ function gmkStart(){
     _gmk.youColor=tmp?_gmk.white:_gmk.black;
     gmkRenderPlayers();
   },120);
-  var dur=1600;
+  var dur=3000;
   setTimeout(function(){
     clearInterval(iv);
     var r=Math.random()<0.5;
@@ -5189,13 +5203,17 @@ function gmkRestart(){ gmkStart(); }
 function gmkRender(){
   var b=$('#gmkBoard'); if(!b)return;
   var ov=$('#gmkOver'), sm=$('#gmkStartMask'), fc=$('#gmkFlip');
+  /* 先把遮罩类节点从棋盘里摘出来（避免被 innerHTML 清掉）*/
+  if(ov&&ov.parentNode)ov.parentNode.removeChild(ov);
+  if(sm&&sm.parentNode)sm.parentNode.removeChild(sm);
+  if(fc&&fc.parentNode)fc.parentNode.removeChild(fc);
   b.innerHTML='';
   if(!_gmk.started){
-    /* 未开始：渲染空盘 + 开始遮罩 */
     for(var yy=0;yy<GMK_N;yy++)for(var xx=0;xx<GMK_N;xx++){
       var cc=document.createElement('div'); cc.className='gmk-cell'; b.appendChild(cc);
     }
     if(sm)b.appendChild(sm);
+    if(fc)b.appendChild(fc);
     return;
   }
   for(var y=0;y<GMK_N;y++){
@@ -5235,20 +5253,27 @@ function gmkAISchedule(){
   var d=3000+Math.floor(Math.random()*3000);
   setTimeout(gmkAIMove,d);
 }
+function gmkShowOver(txt){
+  var ov=$('#gmkOver');
+  if(ov){ ov.classList.add('show'); }
+  var t=$('#gmkOverT'); if(t)t.textContent=txt;
+}
 function gmkPlace(x,y,c){
   _gmk.board[y][x]=c;
   _gmk.last={x:x,y:y};
   if(gmkWin(x,y,c)){
     _gmk.over=true;
-    gmkRender();gmkRenderPlayers();
+    gmkStatus('');
+    gmkRenderPlayers();
+    gmkRender();
     var youWon=(c===_gmk.meColor);
     gmkStatus((youWon?'你':'梦角')+'赢了');
-    var ov=$('#gmkOver');if(ov){ov.classList.add('show'); var t=$('#gmkOverT'); if(t)t.textContent=(youWon?'你赢了':'梦角赢了');}
+    setTimeout(function(){ gmkShowOver(youWon?'你赢了':'梦角赢了'); },450);
     return true;
   }
   var full=true;
   for(var yy=0;yy<GMK_N&&full;yy++){ for(var xx=0;xx<GMK_N;xx++){ if(_gmk.board[yy][xx]===0){full=false;break;} } }
-  if(full){ _gmk.over=true; gmkRender();gmkRenderPlayers(); gmkStatus('平局'); var ov2=$('#gmkOver');if(ov2){ov2.classList.add('show'); var t2=$('#gmkOverT'); if(t2)t2.textContent='平局';} return true; }
+  if(full){ _gmk.over=true; gmkRenderPlayers(); gmkRender(); gmkStatus('平局'); setTimeout(function(){ gmkShowOver('平局'); },450); return true; }
   return false;
 }
 function gmkInB(x,y){ return x>=0&&x<GMK_N&&y>=0&&y<GMK_N; }
@@ -5293,6 +5318,19 @@ function gmkLineScore(x,y,c){
   return total;
 }
 function gmkPickRand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function gmkPickRand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+/* 在给定局面评估“某方下在该点”的价值 */
+function gmkBestFor(side, cands, foe){
+  var best=-1, bestP=null;
+  for(var i=0;i<cands.length;i++){
+    var p=cands[i]; if(_gmk.board[p.y][p.x]!==0)continue;
+    var atk=gmkLineScore(p.x,p.y,side);
+    var def=gmkLineScore(p.x,p.y,foe);
+    var v=atk*1.1+def*0.9;
+    if(v>best){best=v;bestP=p;}
+  }
+  return {v:best,p:bestP};
+}
 function gmkAIMove(){
   if(_gmk.over||!(_gmk.turn===_gmk.youColor)){ _gmk.busy=false; return; }
   var me=_gmk.youColor, foe=_gmk.meColor;
@@ -5304,30 +5342,47 @@ function gmkAIMove(){
     var scored=cands.map(function(p){
       return {x:p.x,y:p.y,atk:gmkLineScore(p.x,p.y,me),def:gmkLineScore(p.x,p.y,foe)};
     });
-    if(_gmk.mode==='easy'){
-      var win=scored.filter(function(s){return s.atk>=10000000;});
-      if(win.length)pick=gmkPickRand(win);
-      else{
-        var block=scored.filter(function(s){return s.def>=10000000;});
-        if(block.length)pick=gmkPickRand(block);
-        else if(Math.random()<0.7){
-          scored.sort(function(a,b){return (b.atk*0.6+b.def*0.4)-(a.atk*0.6+a.def*0.4);});
-          pick=gmkPickRand(scored.slice(0,Math.min(4,scored.length)));
-        } else pick=gmkPickRand(cands);
-      }
+    /* 先赢 */
+    var win=scored.filter(function(s){return s.atk>=10000000;});
+    /* 再挡（对手五） */
+    var block=scored.filter(function(s){return s.def>=10000000;});
+    if(win.length){ pick=gmkPickRand(win); }
+    else if(block.length){ pick=gmkPickRand(block); }
+    else if(_gmk.mode==='easy'){
+      /* 简单：会挡活三/冲四，会抢好点，但不做深算，带随机 */
+      scored.forEach(function(s){
+        s.v = s.atk*0.85 + s.def*0.85 + Math.random()*Math.max(30,(s.atk+s.def)*0.08);
+        /* 不鼓励下到远离已有棋子的孤点 */
+        s.v += gmkNearCount(s.x,s.y)*4;
+      });
+      scored.sort(function(a,b){return b.v-a.v;});
+      var topE=scored.slice(0, Math.min(5, scored.length));
+      pick=gmkPickRand(topE);
     } else {
-      var win2=scored.filter(function(s){return s.atk>=10000000;});
-      if(win2.length)pick=gmkPickRand(win2);
-      else{
-        var block2=scored.filter(function(s){return s.def>=10000000;});
-        if(block2.length)pick=gmkPickRand(block2);
-        else{
-          scored.forEach(function(s){ s.total=s.atk*1.05+s.def*1.0+Math.random()*((s.atk+s.def)*0.03+1); });
-          scored.sort(function(a,b){return b.total-a.total;});
-          var best=scored[0].total;
-          pick=gmkPickRand(scored.filter(function(s){return s.total>=best*0.92;}));
-        }
+      /* 困难：两层预判 */
+      scored.forEach(function(s){ s.base=s.atk*1.05+s.def*1.0; });
+      scored.sort(function(a,b){return b.base-a.base;});
+      var top=scored.slice(0, Math.min(12, scored.length));
+      var bestVal=-1, bestList=[];
+      for(var i=0;i<top.length;i++){
+        var c=top[i];
+        /* 模拟：我下 c */
+        _gmk.board[c.y][c.x]=me;
+        var myAtk=gmkLineScore(c.x,c.y,me);
+        /* 对手的下一步（含对手能立即成五则视为灾难），仅看附近1格降复杂度 */
+        var cands2=gmkEmptyNeighbors(1);
+        if(cands2.length>80)cands2=cands2.slice(0,80);
+        var foeBest=gmkBestFor(foe, cands2, me);
+        _gmk.board[c.y][c.x]=0;
+        /* 我的净收益 = 我的进攻 + 对手受制程度 - 对手反击 */
+        var val = myAtk*1.0 + c.def*1.1 - foeBest.v*0.9;
+        val += Math.random()*Math.max(8,(myAtk+c.def)*0.02); /* 扰动，避免每次都一样 */
+        if(val>bestVal+1e-9){ bestVal=val; bestList=[c]; }
+        else if(Math.abs(val-bestVal)<1e-9){ bestList.push(c); }
       }
+      /* 从最优几个里随机挑一个（不固定套路） */
+      if(bestList.length>1){ pick=gmkPickRand(bestList); }
+      else{ pick=bestList[0]||top[0]; }
     }
   }
   if(!pick)pick=gmkPickRand(cands);
@@ -5337,6 +5392,14 @@ function gmkAIMove(){
   _gmk.turn=foe;
   gmkRender();gmkRenderPlayers();
   gmkStatus('轮到你了');
+}
+function gmkNearCount(x,y){
+  var n=0;
+  for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){
+    if(!dx&&!dy)continue;
+    var nx=x+dx,ny=y+dy; if(gmkInB(nx,ny)&&_gmk.board[ny][nx]!==0)n++;
+  }
+  return n;
 }
 /* ===== 聊天 ===== */
 function gmkChatRender(){
