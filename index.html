@@ -585,12 +585,23 @@ body{
 #lisListSheet .lli .llby{font-size:11px;color:var(--sub);}
 #lisListSheet .lli.on .llnm{color:#859ecb;font-weight:700;}
 /* 一起听：小悬浮卡片（雾蓝） */
-#lisFloat{position:fixed;right:14px;bottom:16px;z-index:95;width:230px;background:linear-gradient(135deg,#a8bcd9,#8ba3c8);color:#fff;border-radius:18px;padding:12px 13px 11px;box-shadow:0 10px 30px rgba(90,110,150,.4);display:none;align-items:center;gap:10px;backdrop-filter:blur(6px);}
+#lisFloat{position:fixed;right:14px;bottom:16px;z-index:95;width:min(80vw,300px);background:linear-gradient(135deg,#a8bcd9,#8ba3c8);color:#fff;border-radius:18px;padding:12px 14px 12px;box-shadow:0 10px 30px rgba(90,110,150,.4);display:none;flex-direction:column;gap:8px;backdrop-filter:blur(6px);touch-action:none;}
+
+#lisFloat .lfhead{display:flex;align-items:flex-start;gap:8px;width:100%;}
+#lisFloat .lfm{flex:1;min-width:0;}
+#lisFloat .lft{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#lisFloat .lfb{font-size:11.5px;opacity:.88;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
+#lisFloat .lflyric{font-size:12px;line-height:1.5;opacity:.92;max-height:66px;overflow:hidden;padding:6px 8px;background:rgba(255,255,255,.14);border-radius:10px;width:100%;box-sizing:border-box;text-align:center;}
+#lisFloat .lfctrl{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;}
+#lisFloat .lfgrip{cursor:grab;touch-action:none;display:flex;align-items:center;padding-top:2px;color:rgba(255,255,255,.7);flex:0 0 auto;}
 #lisFloat.show{display:flex;}
 #lisFloat .lfm{flex:1;min-width:0;}
 #lisFloat .lft{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 #lisFloat .lfb{font-size:11px;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
-#lisFloat .lfbtn{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;flex:0 0 30px;}
+#lisFloat .lfbtn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;flex:0 0 38px;}
+#lisFloat .lfbtn.main{width:46px;height:46px;flex:0 0 46px;background:rgba(255,255,255,.34);}
+#lisFloat .lfbtn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+#lisFloat .lfbtn.main svg{width:22px;height:22px;}
 #lisFloat .lfx{position:absolute;top:-7px;right:-4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.4);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 
 
@@ -1245,7 +1256,7 @@ body{
     </div>
   </div>
 <div class="sheet" id="lisListSheet" onclick="if(event.target===this)closeSheet2('lisListSheet')"><div class="llbox"><div class="lltitle">播放列表</div><div id="lisListBody"></div></div></div>
-<div id="lisFloat"><div class="lfx" onclick="hideLisFloat()">✕</div><div class="lfgrip" id="lisGrip"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M9 6h.01"/><path d="M15 6h.01"/><path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M9 18h.01"/><path d="M15 18h.01"/></svg></div><div class="lfm" id="lisFloatJump" onclick="yzLisFloatJump()"><div class="lft" id="lisFloatT">一起听</div><div class="lfb" id="lisFloatB"></div></div><button class="lfmode" id="lisFloatMode" onclick="yzCycleModeQuick()"><svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></button><button class="lfbtn" onclick="prevSong()"><svg viewBox="0 0 24 24"><path d="M19 20 9 12l10-8v16z"/><path d="M5 19V5"/></svg></button><button class="lfbtn main" id="lisFloatPlay" onclick="yzTogglePlay()"><svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg></button><button class="lfbtn" onclick="nextSong()"><svg viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><path d="M19 5v14"/></svg></button></div>
+<div id="lisFloat"><div class="lfx" onclick="hideLisFloat()">✕</div><div class="lfhead"><div class="lfgrip" id="lisGrip"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M9 6h.01"/><path d="M15 6h.01"/><path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M9 18h.01"/><path d="M15 18h.01"/></svg></div><div class="lfm" id="lisFloatJump" onclick="yzLisFloatJump()"><div class="lft" id="lisFloatT">一起听</div><div class="lfb" id="lisFloatBy"></div></div></div><div class="lflyric" id="lisFloatLyric">歌词</div><div class="lfctrl"><button class="lfmode" id="lisFloatMode" onclick="yzCycleModeQuick()"><svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></button><button class="lfbtn" onclick="prevSong()"><svg viewBox="0 0 24 24"><path d="M19 20 9 12l10-8v16z"/><path d="M5 19V5"/></svg></button><button class="lfbtn main" id="lisFloatPlay" onclick="yzTogglePlay()"><svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg></button><button class="lfbtn" onclick="nextSong()"><svg viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><path d="M19 5v14"/></svg></button></div></div>
   <div class="screen" id="gomoku">
     <div class="statusbar apple" id="gmkBar"><span id="gmkTimeTop">9:41</span><span class="right">100%</span></div>
     <div class="navbar"><div class="back" onclick="gmkLeave()">‹</div><div class="title">五子棋</div><div class="actbtn" onclick="gmkChangeChar()">更换梦角</div><div class="actbtn" style="margin-left:6px;background:#9db2d6" onclick="rstAsk('gmk')">重来一局</div></div>
@@ -4962,13 +4973,10 @@ function pickFromList(i){closeSheet2('lisListSheet');playPlaylistIndex(i);}
 function showLisFloat(){
   var f=document.getElementById('lisFloat');if(!f)return;
   var cur=(D.listenPlaylist&&D.listenPlaylist.length)?D.listenPlaylist[D.listenIdx||0]:null;
-  var t=document.getElementById('lisFloatT'),b=document.getElementById('lisFloatB');
+  var t=document.getElementById('lisFloatT'),b=document.getElementById('lisFloatBy');
   if(t)t.textContent=(cur&&cur.title)?cur.title:(D.listenCur&&D.listenCur.title?D.listenCur.title:'一起听');
-  if(b){
-    var tot=(D.listenPlaylist||[]).length;
-    if(cur&&tot)b.textContent='第 '+((D.listenIdx||0)+1)+'/'+tot+(cur.by?(' · '+cur.by):'');
-    else b.textContent=(D.listenSongs&&D.listenSongs.length?D.listenSongs[D.listenSongs.length-1].title:'');
-  }
+  if(b)b.textContent=(cur&&cur.by)?cur.by:'';
+  yzSyncFloatLyric();
   yzSyncPlayBtn();
   yzRefreshModeUI();
   f.classList.add('show');
@@ -5015,36 +5023,41 @@ function yzBindLisFloatDrag(){
   if(!g)return;
   g._b=true;
   var sx=0,sy=0,ox=0,oy=0,drag=false;
-  function start(e){
-    var t=e.touches?e.touches[0]:e;
-    drag=true;sx=t.clientX;sy=t.clientY;
+  function start(cx,cy){
+    drag=true;sx=cx;sy=cy;
     var r=f.getBoundingClientRect(); ox=r.left; oy=r.top;
     f.style.transition='none';
   }
-  function move(e){
+  function move(cx,cy){
     if(!drag)return;
-    var t=e.touches?e.touches[0]:e;
-    var nx=ox+(t.clientX-sx), ny=oy+(t.clientY-sy);
+    var nx=ox+(cx-sx), ny=oy+(cy-sy);
     var w=f.offsetWidth, h=f.offsetHeight;
     var W=window.innerWidth, H=window.innerHeight;
     nx=Math.max(6,Math.min(W-w-6,nx)); ny=Math.max(6,Math.min(H-h-6,ny));
     f.style.left=nx+'px'; f.style.top=ny+'px'; f.style.right='auto'; f.style.bottom='auto';
-    if(e.cancelable)e.preventDefault();
   }
   function end(){
     if(!drag)return; drag=false;
+    f.style.transition='';
     try{
       var r=f.getBoundingClientRect();
       D.lisFloatPos={x:Math.round(r.left),y:Math.round(r.top)}; save();
     }catch(e){}
   }
-  g.addEventListener('touchstart',start,{passive:true});
-  g.addEventListener('touchmove',move,{passive:false});
-  g.addEventListener('touchend',end);
-  g.addEventListener('mousedown',function(e){start(e);
-    function mm(ev){move(ev);} function mu(){end();document.removeEventListener('mousemove',mm);document.removeEventListener('mouseup',mu);}
-    document.addEventListener('mousemove',mm);document.addEventListener('mouseup',mu);
-  });
+  if(window.PointerEvent){
+    g.addEventListener('pointerdown',function(e){ try{g.setPointerCapture(e.pointerId);}catch(x){} start(e.clientX,e.clientY); e.preventDefault(); });
+    g.addEventListener('pointermove',function(e){ if(e.cancelable)e.preventDefault(); move(e.clientX,e.clientY); },{passive:false});
+    g.addEventListener('pointerup',end);
+    g.addEventListener('pointercancel',end);
+  }else{
+    g.addEventListener('touchstart',function(e){var t=e.touches[0];start(t.clientX,t.clientY);},{passive:true});
+    g.addEventListener('touchmove',function(e){var t=e.touches[0];move(t.clientX,t.clientY);if(e.cancelable)e.preventDefault();},{passive:false});
+    g.addEventListener('touchend',end);
+    g.addEventListener('mousedown',function(e){start(e.clientX,e.clientY);
+      function mm(ev){move(ev.clientX,ev.clientY);} function mu(){end();document.removeEventListener('mousemove',mm);document.removeEventListener('mouseup',mu);}
+      document.addEventListener('mousemove',mm);document.addEventListener('mouseup',mu);
+    });
+  }
 }
 
 function yzRenderLyric(cur){
@@ -5061,31 +5074,73 @@ function yzRenderLyric(cur){
 }
 function yzFetchLyric(title,by){
   if(!title)return;
-  var kw=encodeURIComponent(title+(by?(' '+by):''));
-  var url='https://api.lrc.cx/api/v1/lrc?title='+encodeURIComponent(title)+'&artist='+encodeURIComponent(by||'');
-  var done=false;
-  var to=setTimeout(function(){ if(!done){done=true;yzSetLyricText('');} },8000);
-  fetch(url).then(function(r){return r.text();}).then(function(txt){
-    if(done)return;done=true;clearTimeout(to);
-    yzSetLyricText(txt||'');
-  }).catch(function(){ if(!done){done=true;clearTimeout(to);yzSetLyricText('');} });
+  var T=encodeURIComponent(title), A=encodeURIComponent(by||'');
+  /* 多源依次尝试，任何一个拿到带时间轴的歌词就用 */
+  var urls=[
+    'https://api.lrc.cx/api/v1/lrc?title='+T+'&artist='+A,
+    'https://api.injahow.cn/meting/?type=lrc&id='+T,
+    'https://gege.cool/lrc/?title='+T+'&artist='+A,
+    'https://api.uomg.com/api/lyric?name='+T
+  ];
+  var idx=0, done=false;
+  function next(){
+    if(done)return;
+    if(idx>=urls.length){ done=true; yzSetLyricText(''); return; }
+    var u=urls[idx++];
+    var to=setTimeout(function(){ if(!done) next(); }, 6000);
+    fetch(u).then(function(r){return r.text();}).then(function(txt){
+      if(done)return;
+      clearTimeout(to);
+      if(txt && /\[\d{1,2}:\d{1,2}/.test(txt)){ done=true; yzSetLyricText(txt); }
+      else { next(); }
+    }).catch(function(){ if(!done){ clearTimeout(to); next(); } });
+  }
+  next();
 }
 function yzSetLyricText(txt){
-  var body=document.getElementById('lisLyricBody'); if(!body)return;
-  var lines=[];
+  var body=document.getElementById('lisLyricBody');
+  var parsed=[];
   if(txt){
     txt.split(/\r?\n/).forEach(function(ln){
+      var mm=ln.match(/\[(\d{1,2}):(\d{1,2})(?:[.:](\d{1,3}))?\]/);
       var t=ln.replace(/\[[0-9:.\]]+/g,'').trim();
-      if(t)lines.push(t);
+      if(!t)return;
+      if(mm){ var sec=parseInt(mm[1],10)*60+parseInt(mm[2],10)+(mm[3]?parseFloat('0.'+mm[3]):0); parsed.push({t:sec,text:t}); }
+      else parsed.push({t:null,text:t});
     });
   }
-  if(!lines.length){
-    body.innerHTML='<div class="lyempty" style="margin-top:20px">这首歌暂时没找到歌词<br><span style="font-size:12px">换一首试试</span></div>';
-    return;
+  if(parsed.length && parsed[0].t!==null) parsed.sort(function(a,b){return a.t-b.t;});
+  window.__lisLyric=parsed;
+  if(body){
+    if(!parsed.length){
+      body.innerHTML='<div class="lyempty" style="margin-top:20px">这首歌暂时没找到歌词<br><span style="font-size:12px">换一首试试</span></div>';
+    }else{
+      body.innerHTML=parsed.map(function(o,i){
+        return '<div class="lyline'+(i===0?' cur':'')+'" data-i="'+i+'">'+esc(o.text)+'</div>';
+      }).join('');
+    }
   }
-  body.innerHTML=lines.map(function(t,i){
-    return '<div class="lyline'+(i===0?' cur':'')+'">'+esc(t)+'</div>';
-  }).join('');
+  yzSyncFloatLyric();
+}
+function yzSyncFloatLyric(){
+  var el=document.getElementById('lisFloatLyric'); if(!el)return;
+  var arr=window.__lisLyric||[];
+  if(!arr.length){ el.textContent='歌词'; return; }
+  var au=document.getElementById('lisAudio');
+  var cur=0;
+  if(au && arr[0].t!==null){
+    var ct=au.currentTime||0;
+    for(var i=0;i<arr.length;i++){ if(arr[i].t!==null && arr[i].t<=ct) cur=i; else break; }
+  }
+  el.textContent=arr[cur].text||'';
+  /* 歌词页高亮跟随 */
+  try{
+    var body=document.getElementById('lisLyricBody');
+    if(body){
+      var old=body.querySelector('.lyline.cur'); if(old)old.classList.remove('cur');
+      var nx=body.querySelector('.lyline[data-i="'+cur+'"]'); if(nx)nx.classList.add('cur');
+    }
+  }catch(e){}
 }
 
 function prevSong(){
@@ -5154,6 +5209,7 @@ function renderListenPlayer(cur){
       };
       au.onerror=tryNext;
       au.oncanplay=function(){if(au._to)clearTimeout(au._to);yzSyncPlayBtn();};
+      au.ontimeupdate=function(){ try{ yzSyncFloatLyric(); }catch(e){} };
       au.onplay=function(){setTimeout(yzSyncPlayBtn,40);};
       au.onpause=function(){setTimeout(yzSyncPlayBtn,40);};
       au.onended=function(){ yzOnSongEnded(); };
