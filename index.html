@@ -4906,6 +4906,7 @@ function playPlaylistIndex(i){
     try{yzFavTry('music',D.listenSongs[D.listenSongs.length-1],nowStr(),'favMusicRate');}catch(e){}
     if(D.listenSongs.length>200)D.listenSongs=D.listenSongs.slice(-200);
   }
+  D._lisWantPlay=true;
   save();renderListen();
   try{syncLisFloat();}catch(e){}
   return true;
@@ -4924,7 +4925,11 @@ function yzOnSongEnded(){
   try{
     var mode=_lisMode();
     var au=document.getElementById('lisAudio');
-    if(mode==='single' && au && au.src){ au.currentTime=0; au.play().catch(function(){}); return; }
+    if(mode==='single' && au && au.src){
+      au.currentTime=0;
+      au.play().catch(function(){ try{ toast('点一下播放键继续'); }catch(e){} });
+      return;
+    }
     nextSong();
   }catch(e){}
 }
@@ -5245,13 +5250,14 @@ function renderListenPlayer(cur){
           +'<div style="margin-top:12px"><a href="'+safe+'" target="_blank" style="display:inline-block;padding:9px 18px;border-radius:16px;background:var(--bubble-me);color:var(--bubble-me-text);text-decoration:none">在平台打开</a></div></div>';
       };
       au.onerror=tryNext;
-      au.oncanplay=function(){if(au._to)clearTimeout(au._to);yzSyncPlayBtn();};
+      au.oncanplay=function(){if(au._to)clearTimeout(au._to);yzSyncPlayBtn();if(D._lisWantPlay){try{au.play().catch(function(){});}catch(e){}D._lisWantPlay=false;}};
       au.ontimeupdate=function(){ try{ yzSyncFloatLyric(); }catch(e){} };
       au.onplay=function(){setTimeout(yzSyncPlayBtn,40);};
       au.onpause=function(){setTimeout(yzSyncPlayBtn,40);};
       au.onended=function(){ yzOnSongEnded(); };
       au.src=srcs[0];
       au.load();
+      if(D._lisWantPlay){ try{ au.play().catch(function(){}); }catch(e){} }
       au._to=setTimeout(tryNext,9000);
     }
     return;
