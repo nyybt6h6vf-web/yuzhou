@@ -240,12 +240,12 @@ body{
 .fingersheet .flab{margin-top:10px;font-size:12px;opacity:.7;}
 .fingersheet .fline{width:60px;height:2px;background:linear-gradient(90deg,#7d93c9,#9a7dc9);border-radius:2px;}
 .fingersheet .fstat{margin-top:44px;font-size:14px;opacity:.85;letter-spacing:1px;text-align:center;min-height:20px;}
-.fingersheet .fcd{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:120px;font-weight:200;color:#9fb2d8;opacity:0;pointer-events:none;}
+.fingersheet .fcd{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:120px;font-weight:200;color:#859ecb;opacity:0;pointer-events:none;}
 .fingersheet .fcd.on{opacity:.92;}
 .fingersheet .fhist{margin-top:26px;font-size:12px;opacity:.6;line-height:1.7;text-align:center;max-width:80%;}
 .fingersheet .fhist b{opacity:.9;font-weight:600;}
-.fingersheet .fhistbtn{margin-top:14px;font-size:12.5px;color:#9fb2d8;border:1px solid rgba(159,178,216,.5);border-radius:14px;padding:6px 16px;cursor:pointer;}
-.fingersheet .fcd2{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:20px;color:#9fb2d8;font-weight:600;opacity:0;}
+.fingersheet .fhistbtn{margin-top:14px;font-size:12.5px;color:#859ecb;border:1px solid rgba(133,158,203,.5);border-radius:14px;padding:6px 16px;cursor:pointer;}
+.fingersheet .fcd2{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:20px;color:#859ecb;font-weight:600;opacity:0;}
 .fingersheet .fcd2.on{opacity:1;}
 .fingersheet .frow.approach{gap:6px;transition:gap 1.2s ease;}
 .fingersheet .frow.approach .fline{opacity:0;}
@@ -449,7 +449,7 @@ body{
 .ttt-cell.win{background:rgba(133,158,203,.28);}
 .ttt-cell .ttt-mk{font-size:min(11vw,44px);font-weight:800;line-height:1;}
 .ttt-cell .ttt-mk.x{color:#3b4a63;}
-.ttt-cell .ttt-mk.o{color:#7f9cc4;}
+.ttt-cell .ttt-mk.o{color:#859ecb;}
 .ttt-cell.last .ttt-mk{animation:tttPop .22s ease;}
 @keyframes tttPop{0%{transform:scale(.4);opacity:.3;}100%{transform:scale(1);opacity:1;}}
 
@@ -583,7 +583,7 @@ body{
 #lisListSheet .lli .llidx{width:22px;color:var(--sub);font-size:12px;text-align:center;flex:0 0 22px;}
 #lisListSheet .lli .llnm{flex:1;min-width:0;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 #lisListSheet .lli .llby{font-size:11px;color:var(--sub);}
-#lisListSheet .lli.on .llnm{color:#7f9dd6;font-weight:700;}
+#lisListSheet .lli.on .llnm{color:#859ecb;font-weight:700;}
 /* 一起听：小悬浮卡片（雾蓝） */
 #lisFloat{position:fixed;right:14px;bottom:16px;z-index:95;width:230px;background:linear-gradient(135deg,#a8bcd9,#8ba3c8);color:#fff;border-radius:18px;padding:12px 13px 11px;box-shadow:0 10px 30px rgba(90,110,150,.4);display:none;align-items:center;gap:10px;backdrop-filter:blur(6px);}
 #lisFloat.show{display:flex;}
@@ -629,7 +629,8 @@ body{
 .mo .moact div{cursor:pointer;}
 .mo .moact .on{color:#e0567a;}
 .mo .molike{margin-top:10px;font-size:12.5px;color:var(--sub);line-height:1.5;word-break:break-word;}
-.mo .molike b{color:#e0567a;font-weight:600;}
+.mo .molike b{color:var(--accent,#859ecb);font-weight:600;}
+.mo .molike .molk-heart{color:#e0567a;font-weight:700;}
 .mo .mocm{background:transparent;border-radius:12px;padding:2px 0;font-size:13px;margin-top:6px;color:var(--text);line-height:1.55;word-break:break-word;}
 .mo .mocm b{font-weight:600;color:var(--text);}
 #packSheet{position:absolute;inset:0;z-index:70;display:none;align-items:flex-end;justify-content:center;background:rgba(10,12,25,.45);backdrop-filter:blur(4px);}
@@ -1225,7 +1226,6 @@ body{
             <button class="lc" onclick="nextSong()" aria-label="下一首"><svg viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><path d="M19 5v14"/></svg></button>
           </div>
           <div class="lis-modes" id="lisModes">
-            <div class="lm2" data-mode="loop" onclick="setListenMode('loop')"><svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></div>
             <div class="lm2" data-mode="order" onclick="setListenMode('order')"><svg viewBox="0 0 24 24"><path d="M3 6h13"/><path d="M3 12h13"/><path d="M3 18h9"/><path d="M18 15l3 3-3 3"/></svg></div>
             <div class="lm2" data-mode="single" onclick="setListenMode('single')"><svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/><text x="10" y="15.5" font-size="8" fill="currentColor" stroke="none" font-weight="700">1</text></svg></div>
             <div class="lm2" data-mode="random" onclick="setListenMode('random')"><svg viewBox="0 0 24 24"><path d="M3 6h13"/><path d="M3 12h13"/><path d="M3 18h9"/><path d="M18 15l3 3-3 3"/><circle cx="19" cy="7" r="2"/></svg></div>
@@ -4410,7 +4410,7 @@ function openAskHistory(){
         var m=x.m;var opts=(m.options||[]).map(function(o,k){return String.fromCharCode(65+k)+'. '+o;}).join('  ');
         var who=(x.cv&&x.cv.type==='group')?'群聊':((x.cv&&yzConvTitle)?yzConvTitle(x.cv):'');
         var ans=m.answer?('他选：'+m.answer+(m.reply?('（'+m.reply+'）'):'')):'待作答';
-        box.insertAdjacentHTML('beforeend','<div style="padding:10px 2px;border-bottom:1px solid var(--line)"><div style="font-size:13.5px;font-weight:600">'+esc(m.text||'')+'</div><div style="font-size:12px;color:var(--sub);margin-top:3px">'+esc(opts)+'</div><div style="font-size:12px;margin-top:4px;color:#7f9dd6">'+esc(ans)+'</div><div style="font-size:11px;color:var(--sub);margin-top:2px">'+esc(m._t||'')+(who?(' · '+esc(who)):'')+'</div></div>');
+        box.insertAdjacentHTML('beforeend','<div style="padding:10px 2px;border-bottom:1px solid var(--line)"><div style="font-size:13.5px;font-weight:600">'+esc(m.text||'')+'</div><div style="font-size:12px;color:var(--sub);margin-top:3px">'+esc(opts)+'</div><div style="font-size:12px;margin-top:4px;color:#859ecb">'+esc(ans)+'</div><div style="font-size:11px;color:var(--sub);margin-top:2px">'+esc(m._t||'')+(who?(' · '+esc(who)):'')+'</div></div>');
       });
     }
     openSheet2('askHistSheet');
@@ -4672,7 +4672,7 @@ function renderMoments(){
     let likeHtml='';
     if((m.likedBy||[]).length){
       const names=(m.likedBy||[]).map(w=>w==='me'?(D.myNick||'我'):(D.nick||'他'));
-      likeHtml=`<div class="molike">♡ <b>${esc(names.join('、'))}</b> 觉得很赞</div>`;
+      likeHtml=`<div class="molike"><span class="molk-heart">♡</span> <b>${esc(names.join('、'))}</b></div>`;
     }
     let comments='';
     (m.comments||[]).forEach((c,ci)=>{
@@ -4904,7 +4904,7 @@ function playPlaylistIndex(i){
 function nextSong(){
   const pl=D.listenPlaylist||[];
   if(!pl.length){toast('还没有歌，先点右上角点歌');return;}
-  var mode=D.listenMode||'loop';
+  var mode=_lisMode();
   var i;
   if(mode==='random'){ i=Math.floor(Math.random()*pl.length); }
   else{ i=(D.listenIdx||0)+1; if(i>=pl.length){ if(mode==='order'){ toast('列表已放完'); i=pl.length-1; } else { i=0; } } }
@@ -4913,27 +4913,28 @@ function nextSong(){
 /* 自动连播：一首放完后按模式接下一首 */
 function yzOnSongEnded(){
   try{
-    var mode=D.listenMode||'loop';
+    var mode=_lisMode();
     var au=document.getElementById('lisAudio');
     if(mode==='single' && au && au.src){ au.currentTime=0; au.play().catch(function(){}); return; }
     nextSong();
   }catch(e){}
 }
-function yzModeName(m){ return m==='order'?'顺序播放':(m==='single'?'单曲循环':(m==='random'?'随机播放':'列表循环')); }
+function _lisMode(){ var m=D.listenMode; return (m==='single'||m==='random')?m:'order'; }
+function yzModeName(m){ return m==='single'?'单曲循环':(m==='random'?'随机播放':'顺序播放'); }
 function setListenMode(m){
-  if(['loop','order','single','random'].indexOf(m)===-1)m='loop';
+  if(['order','single','random'].indexOf(m)===-1)m='order';
   D.listenMode=m;save();
   yzRefreshModeUI();
   toast('播放模式：'+yzModeName(m));
 }
 function cycleListenMode(){
-  var order=['loop','order','single','random'];
-  var i=order.indexOf(D.listenMode||'loop');
+  var order=['order','single','random'];
+  var i=order.indexOf(_lisMode());
   setListenMode(order[(i+1)%order.length]);
 }
 function yzCycleModeQuick(){ cycleListenMode(); }
 function yzRefreshModeUI(){
-  var m=D.listenMode||'loop';
+  var m=_lisMode();
   try{
     var ms=document.querySelectorAll('#lisModes .lm2');
     for(var i=0;i<ms.length;i++){ if(ms[i].getAttribute('data-mode')===m)ms[i].classList.add('on');else ms[i].classList.remove('on'); }
