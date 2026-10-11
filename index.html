@@ -782,6 +782,8 @@ body{
 .gimgpick{width:100%;height:80px;border-radius:12px;background:var(--icon-bg,#eee);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--sub);cursor:pointer;margin-bottom:10px;background-size:cover;background-position:center;}
 #goodsSheet textarea{width:100%;box-sizing:border-box;min-height:56px;background:var(--icon-bg,#eee);border:none;border-radius:10px;padding:10px 12px;font-size:14px;color:var(--fg);outline:none;resize:vertical;}
 .bubble.goodsbub,.bubble.dfbub{display:flex;flex-direction:column;gap:8px;min-width:180px;max-width:74%;}
+.bubble.dfbub.tap{cursor:pointer;box-shadow:0 4px 14px rgba(120,140,200,.28);}
+.bubble.dfbub.tap:active{transform:scale(.985);}
 .gbimg{width:48px;height:48px;border-radius:10px;object-fit:cover;}
 .gbimg.ph{display:inline-flex;align-items:center;justify-content:center;background:rgba(127,127,127,.16);font-size:16px;}
 .gbtxt{display:flex;flex-direction:column;gap:2px;}
@@ -1809,6 +1811,16 @@ body{
     </div>
   </div>
 
+  <div class="sheet" id="daifuActSheet">
+    <div class="dlg">
+      <h3 id="daifuActTitle">代付</h3>
+      <p id="daifuActDesc" style="font-size:12.5px;color:var(--sub);text-align:center;line-height:1.6;margin:-4px 0 14px;padding:0 6px"></p>
+      <div class="dbtns" style="display:flex;gap:10px;justify-content:flex-end;align-items:center;margin-top:6px">
+        <div class="b cancel" style="cursor:pointer" onclick="daifuUserAct(false)">拒绝代付</div>
+        <div class="b ok" style="cursor:pointer" onclick="daifuUserAct(true)">帮梦角代付</div>
+      </div>
+    </div>
+  </div>
   <div class="sheet" id="tileSheet">
     <div class="dlg">
       <h3>添加这块</h3>
@@ -2942,7 +2954,9 @@ function bubbleHTML(m,i){
     if(m.st==='paid')st='<div class="dfst ok">他付了</div>';
     else if(m.st==='no')st='<div class="dfst no">他拒绝了</div>';
     else st='<div class="dfst wait">'+(isMine?'等他代付…':'等你代付')+'</div>';
-    return '<div class="bubble dfbub">'+
+    var _canAct=(!isMine && (!m.st||m.st==='wait'));
+    var _click=_canAct?(' onclick="openDaifuAct("+i+")"'):'';
+    return '<div class="bubble dfbub'+(_canAct?' tap':'')+'"'+_click+'>'+
       '<div class="dfcap">'+esc(m.text||'亲爱的，帮我买这个吧～')+'</div>'+
       '<div class="dfgoods">'+gi+'<div class="gbtxt"><div class="gbn">'+esc(m.gname||'')+'</div><div class="gbp">¥'+esc(m.gprice||'')+'</div></div></div>'+
       st+'</div>';
@@ -3995,6 +4009,38 @@ function giveGoods(id){
       push({from:'him',text:pickCard(),_t:clockStr()});
     },Math.max(600,sendGapMs()));
   });
+}
+var _dfActIdx=-1;
+function openDaifuAct(i){
+  _dfActIdx=i;
+  var m=(D.msgs||[])[i]; if(!m||m.type!=='daifu')return;
+  var t=document.getElementById('daifuActTitle'); if(t)t.textContent='代付请求';
+  var d=document.getElementById('daifuActDesc');
+  if(d)d.textContent='梦角想让你帮买「'+(m.gname||'')+'」（¥'+(m.gprice||'')+'）';
+  openSheet2('daifuActSheet');
+}
+function daifuUserAct(accept){
+  closeSheet2('daifuActSheet');
+  var i=_dfActIdx; _dfActIdx=-1;
+  var m=(D.msgs||[])[i];
+  if(!m||m.type!=='daifu'||m.from==='me')return;
+  if(m.st&&m.st!=='wait')return; /* 已处理过 */
+  m.st=accept?'paid':'no';
+  try{save();}catch(e){}
+  if($('#chat')&&$('#chat').classList.contains('active'))renderChat();
+  /* 梦角回应：从字卡抽一句 */
+  try{
+    var _cid=(typeof yzCurKaoCharId==='function')?yzCurKaoCharId():'';
+    var _line;
+    if(accept){ _line='谢谢你帮我付了，「'+(m.gname||'这个')+'」我超喜欢。'+pickCard(); }
+    else { _line='好吧，那我自己想办法。'+pickCard(); }
+    setTyping(true);
+    setTimeout(function(){
+      try{setTyping(false);}catch(e){}
+      try{ push({from:'him',text:_line,_t:clockStr()}); }catch(e){}
+      try{ if(D.typingOn){ /* 收尾 */ } }catch(e){}
+    }, Math.max(500,(typeof sendGapMs==='function'?sendGapMs():1200)));
+  }catch(e){}
 }
 function askHimPay(id){
   const g=findGoods(id);if(!g)return;
