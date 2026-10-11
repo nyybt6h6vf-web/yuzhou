@@ -4048,7 +4048,7 @@ function daifuUserAct(accept){
   if($('#chat')&&$('#chat').classList.contains('active'))renderChat();
   /* 梦角回应：从字卡抽一句 */
   try{
-    var _line=(accept?'谢谢':'好吧')+pickCard();
+    var _line=(accept?'谢谢，':'好吧，')+pickCard();
     setTyping(true);
     setTimeout(function(){
       try{setTyping(false);}catch(e){}
@@ -4076,7 +4076,7 @@ function askHimPay(id){
         setTimeout(function(){
           setTyping(false);
           try{ push({from:'him',type:'daifu',text:'我已经帮你付啦～',gname:g.name,gprice:g.price,gimg:g.img,st:'paid',mine:false,_t:clockStr()}); }catch(e){}
-          push({from:'him',text:'谢谢'+pickCard(),_t:clockStr()});
+          push({from:'him',text:pickCard(),_t:clockStr()});
         },Math.max(500,sendGapMs()));
       }else{
         m2.st='no';save();
@@ -4085,7 +4085,7 @@ function askHimPay(id){
         setTimeout(function(){
           setTyping(false);
           try{ push({from:'him',type:'daifu',text:'我没有帮你付款',gname:g.name,gprice:g.price,gimg:g.img,st:'no',mine:false,_t:clockStr()}); }catch(e){}
-          push({from:'him',text:'好吧'+pickCard(),_t:clockStr()});
+          push({from:'him',text:'好吧，'+pickCard(),_t:clockStr()});
         },Math.max(500,sendGapMs()));
       }
     },ms);
