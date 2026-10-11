@@ -137,7 +137,7 @@ body{
 .msg.me .bubble{background:var(--bubble-me);color:var(--bubble-me-text);border-top-right-radius:6px;}
 .sys{align-self:center;background:rgba(140,145,175,.16);color:var(--sub);font-size:11.5px;border-radius:12px;padding:5px 12px;text-align:center;max-width:80%;}
 .bubble.voice{display:flex;align-items:center;gap:8px;min-width:110px;}
-.vtt{font-size:12.5px;color:var(--sub);margin-top:5px;padding:6px 10px;background:rgba(128,128,128,.12);border-radius:10px;line-height:1.5;white-space:pre-wrap;}
+.vtt{font-size:12.5px;color:inherit;opacity:.85;margin-top:5px;padding:6px 10px;background:rgba(128,128,128,.12);border-radius:10px;line-height:1.5;white-space:pre-wrap;}
 .lb .vtt,.gb .vtt{margin-top:4px;font-size:12px;opacity:.85;}
 .quotebar{max-width:78%;margin:0 0 4px;padding:7px 10px;border-left:3px solid var(--accent);background:rgba(128,128,128,.13);border-radius:8px;font-size:12px;line-height:1.5;opacity:.85;cursor:pointer;overflow:hidden;}
 .msg.me .quotebar{margin-left:auto;border-left:none;border-right:3px solid var(--accent);text-align:right;}
@@ -4018,6 +4018,8 @@ function askHimPay(id){
   });
 }
 function himAskMePay(){
+  /* 代付是独立推送：不进回复句数统计、不触发连发/追包 */
+  try{ if(D.sendHold) return; }catch(e){}
   const g=goodsList()[Math.floor(Math.random()*goodsList().length)];
   if(!g)return;
   push({from:'him',type:'daifu',text:'亲爱的，帮我买这个吧～',gname:g.name,gprice:g.price,gimg:g.img,st:'wait',mine:false,_t:clockStr()});
@@ -4026,11 +4028,15 @@ function himAskMePay(){
 function startShopLoop(){
   if(shopTimer)clearInterval(shopTimer);
   const gap=Math.max(1,(D.daifuGap||20))*60000;
-  shopTimer=setInterval(function(){
+  const first=Math.max(60000, Math.round(gap/4)); /* 首次预热：约 1/4 间隔，最少 1 分钟 */
+  var _tick=function(){
     const r=parseFloat(D.daifuRate);
     if(isNaN(r))return;
     if(Math.random()*100<r)himAskMePay();
-  },gap);
+  };
+  shopTimer=setInterval(_tick,gap);
+  /* 预热一次 */
+  setTimeout(function(){ try{_tick();}catch(e){} }, first);
 }
 /* ===== 日记 ===== */
 let diaryFilter='all';
@@ -5291,7 +5297,7 @@ function yzSyncFloatLyric(){
     var body=document.getElementById('lisLyricBody');
     if(body){
       var old=body.querySelector('.lyline.cur'); if(old)old.classList.remove('cur');
-      var nx=body.querySelector('.lyline[data-i="'+cur+'"]'); if(nx)nx.classList.add('cur');
+      var nx=body.querySelector('.lyline[data-i="'+cur+'"]'); if(nx){ nx.classList.add('cur'); try{ var _rt=body.getBoundingClientRect(),_nt=nx.getBoundingClientRect(); body.scrollTop += (_nt.top-_rt.top) - body.clientHeight/2 + nx.clientHeight/2; }catch(_){} }
     }
   }catch(e){}
 }
@@ -7160,7 +7166,8 @@ function applyCustom(){
   }
   /* 转账卡片：先给基础底色保护（不让 .bubble 背景串进来），再用用户色覆盖 */
   const tc2=(D.tranColor||'').trim();
-  if(tc2){
+  const __hasCss3=!!String(D.bubble||'').trim();
+  if(tc2&&!__hasCss3){
     css+='.bubble.transfer{background:'+tc2+' !important;color:inherit !important;}';
     css+='.bubble.transfer .tt,.bubble.transfer .tamt,.bubble.transfer .td,.bubble.transfer .tstmt,.bubble.transfer .tact span{background:'+tc2+' !important;}';
     css+='.bubble.transfer .tt,.bubble.transfer .td,.bubble.transfer .tstmt,.bubble.transfer .tact{border-color:rgba(128,128,128,0.28) !important;}';
