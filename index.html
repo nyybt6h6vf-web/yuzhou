@@ -585,21 +585,21 @@ body{
 #lisListSheet .lli .llby{font-size:11px;color:var(--sub);}
 #lisListSheet .lli.on .llnm{color:#859ecb;font-weight:700;}
 /* 一起听：小悬浮卡片（雾蓝） */
-#lisFloat{position:fixed;right:14px;bottom:16px;z-index:95;width:min(80vw,300px);background:linear-gradient(135deg,#a8bcd9,#8ba3c8);color:#fff;border-radius:18px;padding:12px 14px 12px;box-shadow:0 10px 30px rgba(90,110,150,.4);display:none;flex-direction:column;gap:8px;backdrop-filter:blur(6px);touch-action:none;}
+#lisFloat{position:fixed;right:14px;bottom:16px;z-index:95;width:min(80vw,300px);background:#111;color:#fff;border-radius:18px;padding:12px 14px 12px;box-shadow:0 10px 30px rgba(0,0,0,.5);display:none;flex-direction:column;gap:8px;border:1px solid rgba(255,255,255,.12);touch-action:none;}
 
 #lisFloat .lfhead{display:flex;align-items:flex-start;gap:8px;width:100%;}
 #lisFloat .lfm{flex:1;min-width:0;}
 #lisFloat .lft{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 #lisFloat .lfb{font-size:11.5px;opacity:.88;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
-#lisFloat .lflyric{font-size:12px;line-height:1.5;opacity:.92;max-height:66px;overflow:hidden;padding:6px 8px;background:rgba(255,255,255,.14);border-radius:10px;width:100%;box-sizing:border-box;text-align:center;}
+#lisFloat .lflyric{font-size:12px;line-height:1.5;color:rgba(255,255,255,.85);max-height:66px;overflow:hidden;padding:6px 8px;background:rgba(255,255,255,.08);border-radius:10px;width:100%;box-sizing:border-box;text-align:center;}
 #lisFloat .lfctrl{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;}
 #lisFloat .lfgrip{cursor:grab;touch-action:none;display:flex;align-items:center;padding-top:2px;color:rgba(255,255,255,.7);flex:0 0 auto;}
 #lisFloat.show{display:flex;}
 #lisFloat .lfm{flex:1;min-width:0;}
 #lisFloat .lft{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 #lisFloat .lfb{font-size:11px;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
-#lisFloat .lfbtn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;flex:0 0 38px;}
-#lisFloat .lfbtn.main{width:46px;height:46px;flex:0 0 46px;background:rgba(255,255,255,.34);}
+#lisFloat .lfbtn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;flex:0 0 38px;}
+#lisFloat .lfbtn.main{width:46px;height:46px;flex:0 0 46px;background:rgba(255,255,255,.24);}
 #lisFloat .lfbtn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 #lisFloat .lfbtn.main svg{width:22px;height:22px;}
 #lisFloat .lfx{position:absolute;top:-7px;right:-4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.4);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
@@ -4980,6 +4980,7 @@ function showLisFloat(){
   yzSyncPlayBtn();
   yzRefreshModeUI();
   f.classList.add('show');
+  try{ yzBindLisFloatDrag(); }catch(e){}
 }
 function yzPlayStateIsPlaying(){
   try{ var au=document.getElementById('lisAudio'); return !!(au&&au.src&&!au.paused&&!au.ended); }catch(e){ return false; }
@@ -5012,15 +5013,24 @@ function yzLisFloatJump(){
 }
 function yzBindLisFloatDrag(){
   var f=document.getElementById('lisFloat'); var g=document.getElementById('lisGrip');
-  if(!f||g&&g._b)return;
+  if(!f)return;
   // 恢复上次位置
   try{
     if(D.lisFloatPos && typeof D.lisFloatPos.x==='number'){
-      f.style.left=D.lisFloatPos.x+'px'; f.style.top=D.lisFloatPos.y+'px';
-      f.style.right='auto'; f.style.bottom='auto';
+      var W0=window.innerWidth,H0=window.innerHeight;
+      if(D.lisFloatPos.x>=0 && D.lisFloatPos.y>=0 && D.lisFloatPos.x<W0-40 && D.lisFloatPos.y<H0-40){
+        f.style.left=D.lisFloatPos.x+'px'; f.style.top=D.lisFloatPos.y+'px';
+        f.style.right='auto'; f.style.bottom='auto';
+      }else{
+        D.lisFloatPos=null;
+        f.style.left=''; f.style.top=''; f.style.right='14px'; f.style.bottom='16px';
+      }
+    }else{
+      f.style.left=''; f.style.top=''; f.style.right='14px'; f.style.bottom='16px';
     }
   }catch(e){}
   if(!g)return;
+  if(g._b) return;
   g._b=true;
   var sx=0,sy=0,ox=0,oy=0,drag=false;
   function start(cx,cy){
@@ -5044,11 +5054,16 @@ function yzBindLisFloatDrag(){
       D.lisFloatPos={x:Math.round(r.left),y:Math.round(r.top)}; save();
     }catch(e){}
   }
+  /* 拖动从握把扩展到整个卡片（按钮/关闭键除外） */
+  var dragZone=f;
+  function inNoDrag(t){ return !!(t&&t.closest&&t.closest('button,.lfx,.lfbtn,.lfmode')); }
   if(window.PointerEvent){
-    g.addEventListener('pointerdown',function(e){ try{g.setPointerCapture(e.pointerId);}catch(x){} start(e.clientX,e.clientY); e.preventDefault(); });
-    g.addEventListener('pointermove',function(e){ if(e.cancelable)e.preventDefault(); move(e.clientX,e.clientY); },{passive:false});
-    g.addEventListener('pointerup',end);
-    g.addEventListener('pointercancel',end);
+    dragZone.addEventListener('pointerdown',function(e){ if(inNoDrag(e.target))return; try{dragZone.setPointerCapture(e.pointerId);}catch(x){} start(e.clientX,e.clientY); });
+    dragZone.addEventListener('pointermove',function(e){ if(!drag)return; if(e.cancelable)e.preventDefault(); move(e.clientX,e.clientY); },{passive:false});
+    dragZone.addEventListener('pointerup',end);
+    dragZone.addEventListener('pointercancel',end);
+    g.addEventListener('pointerdown',function(e){ if(inNoDrag(e.target))return; try{g.setPointerCapture(e.pointerId);}catch(x){} start(e.clientX,e.clientY); });
+    g.addEventListener('pointermove',function(e){ if(!drag)return; if(e.cancelable)e.preventDefault(); move(e.clientX,e.clientY); },{passive:false});
   }else{
     g.addEventListener('touchstart',function(e){var t=e.touches[0];start(t.clientX,t.clientY);},{passive:true});
     g.addEventListener('touchmove',function(e){var t=e.touches[0];move(t.clientX,t.clientY);if(e.cancelable)e.preventDefault();},{passive:false});
@@ -5072,26 +5087,41 @@ function yzRenderLyric(cur){
   box.innerHTML=h;
   yzFetchLyric(title,by);
 }
+function yzExtractLrc(payload){
+  if(!payload)return '';
+  var t=String(payload);
+  /* 直接是 LRC */
+  if(/\[\d{1,2}:\d{1,2}/.test(t))return t;
+  /* JSON 里取常见字段（可能多层转义） */
+  try{
+    var o=JSON.parse(t);
+    var norm=function(x){ return x==null?'':String(x).replace(/\\n/g,'\n'); };
+    var cands=[o.lyric,o.lrc,o.lyrics,o.data&&o.data.lyric,o.data&&o.data.lrc,o.data&&o.data.lrc&&o.data.lrc.lyric,o.data&&o.data.content,o.result&&o.result.lyric,o.result&&o.result.lrc,o.klyric];
+    for(var i=0;i<cands.length;i++){ if(cands[i] && /\[\d{1,2}:\d{1,2}/.test(String(cands[i]))) return norm(cands[i]); }
+    if(norm(t).indexOf('[')===0) return norm(t);
+  }catch(e){}
+  return '';
+}
 function yzFetchLyric(title,by){
   if(!title)return;
   var T=encodeURIComponent(title), A=encodeURIComponent(by||'');
-  /* 多源依次尝试，任何一个拿到带时间轴的歌词就用 */
   var urls=[
+    'https://api.uomg.com/api/lyric?name='+T+'&singer='+A,
     'https://api.lrc.cx/api/v1/lrc?title='+T+'&artist='+A,
-    'https://api.injahow.cn/meting/?type=lrc&id='+T,
     'https://gege.cool/lrc/?title='+T+'&artist='+A,
-    'https://api.uomg.com/api/lyric?name='+T
+    'https://api.injahow.cn/meting/?type=lrc&id='+T
   ];
   var idx=0, done=false;
   function next(){
     if(done)return;
     if(idx>=urls.length){ done=true; yzSetLyricText(''); return; }
     var u=urls[idx++];
-    var to=setTimeout(function(){ if(!done) next(); }, 6000);
-    fetch(u).then(function(r){return r.text();}).then(function(txt){
+    var to=setTimeout(function(){ if(!done) next(); }, 7000);
+    fetch(u,{mode:'cors'}).then(function(r){return r.text();}).then(function(txt){
       if(done)return;
       clearTimeout(to);
-      if(txt && /\[\d{1,2}:\d{1,2}/.test(txt)){ done=true; yzSetLyricText(txt); }
+      var lrc=yzExtractLrc(txt);
+      if(lrc){ done=true; yzSetLyricText(lrc); }
       else { next(); }
     }).catch(function(){ if(!done){ clearTimeout(to); next(); } });
   }
