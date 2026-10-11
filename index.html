@@ -5465,6 +5465,14 @@ function gmkLeave(){
 }
 /* ===== 选梦角 ===== */
 function gmkEnsureCid(){
+  /* 自愈：清理没有任何对话引用的孤儿梦角 */
+  try{
+    var used={};
+    (D.convs||[]).forEach(function(c){ (c.charas||[]).forEach(function(id){ used[id]=1; }); });
+    var before=(D.charas||[]).length;
+    D.charas=(D.charas||[]).filter(function(ch){ return used[ch.id]; });
+    if(D.charas.length!==before){ try{save();}catch(e){} }
+  }catch(e){}
   var list=D.charas||[];
   if(!list.length){ _gmk.cid=''; return; }
   var ok=list.some(function(c){return c.id===_gmk.cid;});
