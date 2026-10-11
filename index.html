@@ -5090,6 +5090,8 @@ function yzRenderLyric(cur){
 function yzExtractLrc(payload){
   if(!payload)return '';
   var t=String(payload);
+  /* 过滤“纯音乐”类无效歌词 */
+  if(/纯音乐|请尽情欣赏|纯音乐呢|no lyric|暂无歌词|无歌词/i.test(t))return '';
   /* 直接是 LRC */
   if(/\[\d{1,2}:\d{1,2}/.test(t))return t;
   /* JSON 里取常见字段（可能多层转义） */
@@ -5104,28 +5106,31 @@ function yzExtractLrc(payload){
 }
 function yzFetchLyric(title,by){
   if(!title)return;
-  var T=encodeURIComponent(title), A=encodeURIComponent(by||'');
-  var urls=[
-    'https://api.uomg.com/api/lyric?name='+T+'&singer='+A,
-    'https://api.lrc.cx/api/v1/lrc?title='+T+'&artist='+A,
-    'https://gege.cool/lrc/?title='+T+'&artist='+A,
-    'https://api.injahow.cn/meting/?type=lrc&id='+T
-  ];
-  var idx=0, done=false;
-  function next(){
-    if(done)return;
-    if(idx>=urls.length){ done=true; yzSetLyricText(''); return; }
-    var u=urls[idx++];
-    var to=setTimeout(function(){ if(!done) next(); }, 7000);
-    fetch(u,{mode:'cors'}).then(function(r){return r.text();}).then(function(txt){
+  var T=encodeURIComponent(title);
+  var API='https://music-api.gdstudio.xyz/api.php';
+  var done=false;
+  var to=setTimeout(function(){ if(!done){done=true;yzSetLyricText('');} },12000);
+  function finish(lrc){ if(done)return; done=true; clearTimeout(to); yzSetLyricText(lrc||''); }
+  /* 1) 先搜索拿歌曲 id */
+  fetch(API+'?types=search&source=netease&name='+T+'&count=5')
+    .then(function(r){return r.json();})
+    .then(function(list){
       if(done)return;
-      clearTimeout(to);
-      var lrc=yzExtractLrc(txt);
-      if(lrc){ done=true; yzSetLyricText(lrc); }
-      else { next(); }
-    }).catch(function(){ if(!done){ clearTimeout(to); next(); } });
-  }
-  next();
+      if(!list||!list.length){ finish(''); return; }
+      /* 优先名字完全匹配的 */
+      var hit=list[0];
+      for(var i=0;i<list.length;i++){ if(list[i].name===title){ hit=list[i]; break; } }
+      var id=hit.id||hit.url_id||hit.lyric_id;
+      if(!id){ finish(''); return; }
+      /* 2) 再用 id 取歌词 */
+      return fetch(API+'?types=lyric&source=netease&id='+id)
+        .then(function(r){return r.json();})
+        .then(function(o){
+          var lrc=(o&&(o.lyric||o.lrc))||'';
+          finish(lrc);
+        });
+    })
+    .catch(function(){ finish(''); });
 }
 function yzSetLyricText(txt){
   var body=document.getElementById('lisLyricBody');
@@ -5140,6 +5145,8 @@ function yzSetLyricText(txt){
     });
   }
   if(parsed.length && parsed[0].t!==null) parsed.sort(function(a,b){return a.t-b.t;});
+  /* 过滤伪歌词（纯音乐提示等） */
+  if(parsed.length && parsed.length<=2 && /纯音乐|请尽情欣赏|纯音乐呢|暂无歌词|无歌词/i.test(parsed.map(function(o){return o.text;}).join(''))) parsed=[];
   window.__lisLyric=parsed;
   if(body){
     if(!parsed.length){
