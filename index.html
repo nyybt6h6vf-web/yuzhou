@@ -221,13 +221,14 @@ body{
 .cdial .cidset{font-size:13px;color:#fff;background:#859ecb;padding:6px 18px;border-radius:10px;cursor:pointer;display:inline-block;font-weight:500;}
 .cdial .ctimes{margin-top:14px;font-size:12px;color:var(--sub);line-height:1.9;text-align:left;background:var(--card);border-radius:14px;padding:12px 14px;}
 
-.fingersheet{position:absolute;inset:0;z-index:80;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(16,20,32,.96);color:#fff;}
+.fingersheet{position:absolute;inset:0;z-index:80;display:none;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,#9db2d6 0%,#8ba3c8 55%,#7f9cc4 100%);color:#fff;}
 .fingersheet.show{display:flex;}
 .fingersheet .fclose{position:absolute;top:14px;right:18px;font-size:20px;color:#fff;opacity:.7;cursor:pointer;}
-.fingersheet .ftitle{font-size:17px;letter-spacing:2px;margin-bottom:40px;opacity:.9;}
+.fingersheet{text-shadow:0 1px 2px rgba(40,60,100,.25);}
+.fingersheet .ftitle{font-size:17px;letter-spacing:2px;margin-bottom:40px;opacity:.95;font-weight:600;}
 .fingersheet .frow{display:flex;align-items:center;gap:26px;}
 .fingersheet .ffp{width:110px;height:110px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;}
-.fingersheet .fring{width:82px;height:82px;border-radius:50%;border:2px solid #7d93c9;display:flex;align-items:center;justify-content:center;font-size:30px;transition:.2s;}
+.fingersheet .fring{width:82px;height:82px;border-radius:50%;border:2.5px solid rgba(60,80,130,.75);background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:30px;transition:.2s;}
 .fingersheet .fring:after{content:"❀";opacity:.85;}
 .fingersheet .ffp.done .fring{border-color:#5fd08a;background:rgba(95,208,138,.2);}
 .fingersheet .flab{margin-top:10px;font-size:12px;opacity:.7;}
@@ -244,11 +245,13 @@ body{
 .fingersheet .frow.approach .fline{opacity:0;}
 .fp-hsheet{position:fixed;inset:0;z-index:99;display:none;align-items:flex-end;justify-content:center;background:rgba(10,12,25,.5);}
 .fp-hsheet.show{display:flex;}
-.fp-hsheet .fph-box{width:100%;max-width:520px;max-height:70dvh;overflow-y:auto;background:#1a1f2e;color:#fff;border-radius:22px 22px 0 0;padding:18px 18px 28px;box-sizing:border-box;}
+.fp-hsheet .fph-box{width:100%;max-width:520px;max-height:70dvh;overflow-y:auto;background:#2b3a55;color:#fff;border-radius:22px 22px 0 0;padding:18px 18px 28px;box-sizing:border-box;}
 .fp-hsheet .fph-t{font-size:15px;font-weight:700;margin-bottom:12px;}
-.fp-hsheet .fph-i{display:flex;justify-content:space-between;padding:9px 4px;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px;}
-.fp-hsheet .fph-i .fph-l{color:#9fb2d8;font-weight:600;}
-.fp-hsheet .fph-i .fph-time{opacity:.55;font-size:11.5px;}
+.fp-hsheet .fph-i{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid rgba(255,255,255,.10);font-size:13px;}
+.fp-hsheet .fph-i .fph-l{color:#eaf1ff;font-weight:600;flex:0 0 auto;}
+.fp-hsheet .fph-i .fph-time{flex:1;text-align:right;opacity:.7;font-size:11.5px;}
+.fp-hsheet .fph-i .fph-del{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-left:4px;}
+.fp-hsheet .fph-i .fph-del:active{background:rgba(255,255,255,.3);}
 .fp-hsheet .fph-empty{opacity:.6;font-size:13px;padding:18px 0;text-align:center;}
 
 
@@ -1065,7 +1068,7 @@ body{
       <div class="fstat" id="fStat">长按右边指纹 3 秒</div>
       <div class="fhist" id="fHist"></div>
       <div class="fhistbtn" onclick="openFpHistory()">查看历史记录</div>
-      <div class="fp-hsheet" id="fpHistSheet" onclick="if(event.target===this)closeFpHistory()"><div class="fph-box"><div class="fph-t">连接深度 · 历史记录</div><div id="fphBody"></div><div style="text-align:center;margin-top:16px"><span class="fhistbtn" onclick="clearFpHistory()">清空历史</span></div></div></div>
+      <div class="fp-hsheet" id="fpHistSheet" onclick="if(event.target===this)closeFpHistory()"><div class="fph-box"><div class="fph-t">连接深度 · 历史记录</div><div id="fphBody"></div><div style="text-align:center;margin-top:16px"><span class="fhistbtn" onclick="clearFpHistory()">清空全部历史</span></div></div></div>
     </div>
   </div>
 
@@ -3033,13 +3036,23 @@ function yzFpDraw(){
   for(var k=0;k<items.length;k++){ acc+=items[k].b.w; if(r<acc) return items[k]; }
   return items[items.length-1];
 }
-function yzFpFmtTime(){
-  var t=new Date();
-  var wd=['日','一','二','三','四','五','六'][t.getDay()];
+function yzFpFmtTime(ts){
+  var t=ts?new Date(ts):new Date();
   var hh=t.getHours(), mm=t.getMinutes();
   var ap=hh<12?'上午':'下午';
   var h12=hh%12; if(h12===0)h12=12;
   return t.getFullYear()+'年'+(t.getMonth()+1)+'月'+t.getDate()+'日 '+ap+h12+':'+(mm<10?'0':'')+mm;
+}
+/* 从记录取时间：优先 ts；否则回退用旧 time 字段 */
+function yzFpRecTime(h){
+  if(h&&typeof h.ts==='number')return yzFpFmtTime(h.ts);
+  var t=(h&&h.time)?String(h.time):'';
+  if(t){
+    /* 旧数据脏格式（如 "00:49 心有灵犀"）-> 剥掉中文标签部分，只留时间 */
+    t=t.replace(/连接不稳|初度连接|连接较稳|连接较深|心有灵犀/g,'').trim();
+    return t;
+  }
+  return '';
 }
 function yzCurCharName(){
   try{
@@ -3065,7 +3078,7 @@ function yzFpRenderHistory(){
     if(!hs.length){box.innerHTML='';return;}
     var html='最近：';
     hs.forEach(function(h,i){
-      html+=(i>0?'<br>':'')+(h.pct!=null?(h.pct+'%'):'')+' '+esc(h.label||'')+' '+esc(h.time||'');
+      html+=(i>0?'<br>':'')+(h.pct!=null?(h.pct+'%'):'')+' '+esc(h.label||'')+' '+esc(yzFpRecTime(h));
     });
     box.innerHTML=html;
   }catch(e){}
@@ -3077,9 +3090,20 @@ function openFpHistory(){
     if(!hs.length){box.innerHTML='<div class="fph-empty">还没有记录，去测一测吧</div>';}
     else{
       box.innerHTML='';
-      hs.forEach(function(h){box.insertAdjacentHTML('beforeend','<div class="fph-i"><span class="fph-l">'+esc(h.label||'')+(h.pct!=null?('　'+h.pct+'%'):'')+'</span><span class="fph-time">'+esc(h.time||'')+'</span></div>');});
+      var total=(D.fpHistory||[]).length;
+      hs.forEach(function(h,k){
+        var realIdx=total-1-k;
+        box.insertAdjacentHTML('beforeend','<div class="fph-i"><span class="fph-l">'+esc(h.label||'')+(h.pct!=null?('　'+h.pct+'%'):'')+'</span><span class="fph-time">'+esc(yzFpRecTime(h))+'</span><span class="fph-del" onclick="delFpHistory('+realIdx+')">×</span></div>');
+      });
     }
     openSheet2('fpHistSheet');
+  }catch(e){}
+}
+function delFpHistory(i){
+  try{
+    if(!D.fpHistory||i<0||i>=D.fpHistory.length)return;
+    D.fpHistory.splice(i,1);
+    save();openFpHistory();yzFpRenderHistory();
   }catch(e){}
 }
 function closeFpHistory(){closeSheet2('fpHistSheet');}
@@ -3184,7 +3208,7 @@ function runFingerResult(){
   var drawn=yzFpDraw();
   var pct=drawn.n, lvl=drawn.b.lvl, label=drawn.b.label, desc=drawn.b.desc;
   D.fpHistory=D.fpHistory||[];
-  D.fpHistory.push({lvl:lvl,label:label,pct:pct,time:yzFpFmtTime()});
+  D.fpHistory.push({lvl:lvl,label:label,pct:pct,ts:Date.now(),time:yzFpFmtTime()});
   if(D.fpHistory.length>60)D.fpHistory=D.fpHistory.slice(-60);
   D.fpLastTs=Date.now();
   save();
