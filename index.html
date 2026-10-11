@@ -2952,10 +2952,11 @@ function bubbleHTML(m,i){
     const gi=m.gimg?('<img class="gbimg" src="'+m.gimg+'">'):'<div class="gbimg ph">礼</div>';
     const isMine=(m.from==='me');
     let st='';
-    if(m.st==='paid')st='<div class="dfst ok">Ta已付</div>';
+    if(m.noSt){st='';} /* 回复卡片：不显示状态条 */
+    else if(m.st==='paid')st='<div class="dfst ok">Ta已付</div>';
     else if(m.st==='no')st='<div class="dfst no">Ta已拒绝</div>';
     else st='<div class="dfst wait">'+(isMine?'等他代付…':'等你代付')+'</div>';
-    var _canAct=(!isMine && (!m.st||m.st==='wait'));
+    var _canAct=(!isMine && !m.noSt && (!m.st||m.st==='wait'));
     var _click=_canAct?(' data-dfi="'+i+'" onclick="openDaifuAct('+i+')"'):'';
     return '<div class="bubble dfbub'+(_canAct?' tap':'')+'"'+_click+'>'+
       '<div class="dfcap">'+esc(m.text||'亲爱的，帮我买这个吧～')+'</div>'+
@@ -4049,14 +4050,18 @@ function daifuUserAct(accept){
   /* 梦角回应：从字卡抽一句 */
   try{
     var _line=(accept?'谢谢，':'好吧，')+pickCard();
-    setTyping(true);
+    /* 第1步：2秒后先追加回复卡片（不显示状态条） */
     setTimeout(function(){
-      try{setTyping(false);}catch(e){}
       try{
-        push({from:'me',type:'daifu',text:(accept?'我已经帮你付啦～':'我没有帮你付款'),gname:m.gname,gprice:m.gprice,gimg:m.gimg,st:(accept?'paid':'no'),mine:true,_t:clockStr()});
+        push({from:'me',type:'daifu',noSt:true,text:(accept?'我已经帮你付啦～':'我没有帮你付款'),gname:m.gname,gprice:m.gprice,gimg:m.gimg,st:(accept?'paid':'no'),mine:true,_t:clockStr()});
       }catch(e){}
-      try{ push({from:'him',text:_line,_t:clockStr()}); }catch(e){}
-    }, Math.max(500,(typeof sendGapMs==='function'?sendGapMs():1200)));
+      /* 第2步：再按“字卡回复间隔”出字卡句子 */
+      setTyping(true);
+      setTimeout(function(){
+        try{setTyping(false);}catch(e){}
+        try{ push({from:'him',text:_line,_t:clockStr()}); }catch(e){}
+      }, Math.max(500,(typeof sendGapMs==='function'?sendGapMs():1200)));
+    }, 2000);
   }catch(e){}
 }
 function askHimPay(id){
@@ -4072,21 +4077,25 @@ function askHimPay(id){
       if(Math.random()<0.8){
         m2.st='paid';save();
         if($('#chat').classList.contains('active'))renderChat();
-        setTyping(true);
         setTimeout(function(){
-          setTyping(false);
-          try{ push({from:'him',type:'daifu',text:'我已经帮你付啦～',gname:g.name,gprice:g.price,gimg:g.img,st:'paid',mine:false,_t:clockStr()}); }catch(e){}
-          push({from:'him',text:pickCard(),_t:clockStr()});
-        },Math.max(500,sendGapMs()));
+          try{ push({from:'him',type:'daifu',noSt:true,text:'我已经帮你付啦～',gname:g.name,gprice:g.price,gimg:g.img,st:'paid',mine:false,_t:clockStr()}); }catch(e){}
+          setTyping(true);
+          setTimeout(function(){
+            setTyping(false);
+            push({from:'him',text:pickCard(),_t:clockStr()});
+          },Math.max(500,sendGapMs()));
+        },2000);
       }else{
         m2.st='no';save();
         if($('#chat').classList.contains('active'))renderChat();
-        setTyping(true);
         setTimeout(function(){
-          setTyping(false);
-          try{ push({from:'him',type:'daifu',text:'我没有帮你付款',gname:g.name,gprice:g.price,gimg:g.img,st:'no',mine:false,_t:clockStr()}); }catch(e){}
-          push({from:'him',text:'好吧，'+pickCard(),_t:clockStr()});
-        },Math.max(500,sendGapMs()));
+          try{ push({from:'him',type:'daifu',noSt:true,text:'我没有帮你付款',gname:g.name,gprice:g.price,gimg:g.img,st:'no',mine:false,_t:clockStr()}); }catch(e){}
+          setTyping(true);
+          setTimeout(function(){
+            setTyping(false);
+            push({from:'him',text:'好吧，'+pickCard(),_t:clockStr()});
+          },Math.max(500,sendGapMs()));
+        },2000);
       }
     },ms);
   });
