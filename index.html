@@ -107,7 +107,7 @@ body{
 .navbar{display:flex;align-items:center;gap:0;}
 
 #chat{background:var(--chat-bg);}
-.chat-body{flex:1;overflow-y:auto;padding:14px 14px 18px;display:flex;flex-direction:column;gap:8px;}
+.chat-body{flex:1;overflow-y:auto;padding:14px 14px 18px;display:flex;flex-direction:column;gap:5px;}
 .chat-body::-webkit-scrollbar{width:0;}
 .msg{display:flex;gap:9px;max-width:100%;}
 .msg.me{flex-direction:row-reverse;}
@@ -121,9 +121,9 @@ body{
 .msgname{font-size:11px;color:var(--sub);margin:2px 0 3px 2px;display:flex;align-items:flex-end;gap:4px;}
 .msgname .ttl{font-weight:600;color:var(--text);font-size:12px;}
 .msgname .feel{font-size:10px;color:var(--sub);opacity:.9;}
-.readtag{font-size:10px;color:var(--sub);margin:2px 3px 0;text-align:right;line-height:1.2;}
-.himstamp{font-size:10px;color:var(--sub);margin:2px 3px 0;text-align:left;line-height:1.2;}
-.mestamp{font-size:10px;color:var(--sub);margin:2px 3px 0;text-align:right;line-height:1.2;}
+.readtag{font-size:10px;color:var(--sub);margin:1px 4px 0;text-align:right;line-height:1.15;}
+.himstamp{font-size:10px;color:var(--sub);margin:1px 4px 0;text-align:left;line-height:1.15;}
+.mestamp{font-size:10px;color:var(--sub);margin:1px 4px 0;text-align:right;line-height:1.15;}
 .meread{display:inline-block;margin-right:6px;}
 .himname{font-size:12px;font-weight:600;color:var(--text);margin:0 0 2px 2px;display:flex;align-items:flex-end;gap:3px;}
 .typing-ind{position:absolute;left:16px;bottom:74px;z-index:7;font-size:12px;color:var(--sub);padding:4px 10px;background:var(--panel);border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;align-items:center;gap:5px;}
@@ -167,6 +167,9 @@ body{
 .inputbar .ib{width:38px;height:38px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:19px;background:var(--card);box-shadow:0 2px 8px rgba(120,130,200,.15);cursor:pointer;flex:0 0 38px;}
 .inputbar input,.inputbar textarea{flex:1;border:none;outline:none;background:var(--card);border-radius:16px;padding:11px 15px;font-size:14.5px;color:var(--text);font-family:inherit;box-shadow:inset 0 0 0 1px var(--line);}
 .inputbar textarea{resize:none;line-height:1.45;max-height:96px;overflow-y:auto;}
+.inputbar .holdbtn{font-size:16px;background:var(--card);color:var(--sub);opacity:.75;transition:.15s;position:relative;box-shadow:0 2px 8px rgba(120,130,200,.12);}
+.inputbar .holdbtn.on{background:var(--accent,#859ecb);color:#fff;opacity:1;box-shadow:0 4px 12px rgba(133,158,203,.5);}
+.inputbar .holdbtn.on::after{content:"连发";position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:9px;background:var(--accent,#859ecb);color:#fff;padding:1px 5px;border-radius:6px;white-space:nowrap;}
 .inputbar .send{padding:0 16px;height:38px;border-radius:14px;background:var(--bubble-me);color:#fff;font-weight:700;font-size:14px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(120,140,255,.35);font-family:inherit;}
 #plusSheet{position:absolute;left:0;right:0;bottom:0;background:var(--panel);backdrop-filter:blur(18px);border-radius:26px 26px 0 0;padding:12px 18px 34px;transform:translateY(110%);transition:transform .28s cubic-bezier(.2,.8,.2,1);z-index:20;box-shadow:0 -10px 34px rgba(0,0,0,.16);}
 #plusSheet .pbar{width:38px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 18px;}
@@ -1140,7 +1143,8 @@ body{
     <div class="chat-body" id="chatBody"></div>
     <div class="inputbar">
       <div class="ib" onclick="togglePlus()">＋</div>
-      <textarea id="msgInput" rows="1" placeholder="说点什么…（换行↵ 可分条发送）"></textarea>
+      <div class="ib holdbtn" id="holdBtn" onclick="toggleSendHold()" title="连发（梦角暂不回复）">🗨</div>
+      <input id="msgInput" type="text" placeholder="说点什么…" onkeydown="if(event.key==='Enter')sendText()">
       <button class="send" onclick="sendText()">发送</button>
     </div>
     <div class="mask" id="mask" onclick="togglePlus()"></div>
@@ -2955,6 +2959,7 @@ function renderChat(){
   }
   bindTranTaps();
   window.__applyBubbleInline&&window.__applyBubbleInline();
+  try{ var _hb=document.getElementById('holdBtn'); if(_hb)_hb.classList.toggle('on',!!D.sendHold); }catch(e){}
 }
 function push(m){D.msgs.push(m);save();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}if($('#chat').classList.contains('active')){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40));}}catch(e){}}
 function jumpMsg(i){
@@ -2969,17 +2974,26 @@ function sys(t){push({type:'sys',text:t});}
 function sendText(){
   const i=$('#msgInput');
   if(!i)return;
-  var raw=String(i.value||'');
-  if(!raw.trim())return;
-  /* 按换行拆成多条，一行一条消息 */
-  var parts=raw.split(/\r?\n/).map(function(x){return x.trim();}).filter(function(x){return x; });
-  if(!parts.length)return;
+  var v=String(i.value||'').trim();
+  if(!v)return;
   i.value='';
-  try{ if(i.tagName==='TEXTAREA'){ i.style.height=''; } }catch(e){}
-  parts.forEach(function(t,k){
-    push({from:'me',text:t,_t:clockStr()});
-  });
+  push({from:'me',text:v,_t:clockStr()});
+  /* 免打扰模式：只发，不回。等关闭按钮时再一起回 */
+  if(D.sendHold){ return; }
   respond();maybeCall();
+}
+/* 免打扰（连发）按钮：开启时发送不触发回复 */
+function toggleSendHold(){
+  D.sendHold=!D.sendHold;
+  try{save();}catch(e){}
+  var el=document.getElementById('holdBtn');
+  if(el)el.classList.toggle('on',!!D.sendHold);
+  toast(D.sendHold?'已开启连发（梦角暂不回复）':'连发已关，梦角这就回你');
+  if(!D.sendHold && D.sendHoldWasOn){
+    D.sendHoldWasOn=false;
+    try{ respond(); maybeCall(); }catch(e){}
+  }
+  if(D.sendHold) D.sendHoldWasOn=true;
 }
 /* textarea 自动增高 */
 (function(){
