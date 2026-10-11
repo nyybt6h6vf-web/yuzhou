@@ -433,7 +433,12 @@ body{
 #ttt .statusbar,#ttt .navbar,#ttt .gmk-tops,#ttt .gmk-modes,#ttt .gmk-status,#ttt .gmk-players,#ttt .gmk-input{flex:0 0 auto;}
 #ttt .gmk-boardwrap{flex:0 0 auto;}
 #ttt .gmk-chat{flex:1 1 auto;min-height:90px;}
-.ttt-boardwrap{display:flex;align-items:center;justify-content:center;padding:6px 12px 8px;}
+.ttt-boardwrap{position:relative;display:flex;align-items:center;justify-content:center;padding:6px 12px 8px;}
+.ttt-startmask{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:19;background:rgba(20,26,40,.42);border-radius:12px;margin:6px 12px 8px;}
+.ttt-startmask.hide{display:none;}
+#ttt .gmk-flip{top:6px;right:12px;bottom:8px;left:12px;border-radius:12px;}
+.ttt-startmask .ttt-startbtn{width:96px;height:96px;border-radius:50%;background:rgba(255,255,255,.95);color:#5b6d8f;font-size:19px;font-weight:700;letter-spacing:2px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.3);animation:gmkPulse 1.6s ease-in-out infinite;}
+@keyframes gmkPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
 .ttt-board{position:relative;display:grid;grid-template-columns:repeat(3,1fr);width:min(62vw,252px);aspect-ratio:1/1;background:#fbfbfb;border-radius:12px;padding:8px;gap:6px;box-shadow:0 4px 14px rgba(80,90,110,.18);border:1px solid #e2e5ec;box-sizing:border-box;}
 .ttt-cell{position:relative;display:flex;align-items:center;justify-content:center;background:#f1f3f8;border-radius:10px;cursor:pointer;user-select:none;transition:background .12s;}
 .ttt-cell:active{background:#e6eaf3;}
@@ -1278,7 +1283,7 @@ body{
     <div class="gmk-status" id="tttStatus">点「开始」来一局</div>
     <div class="gmk-boardwrap">
       <div class="ttt-board" id="tttBoard"></div>
-      <div class="gmk-startmask" id="tttStartMask"><div class="gmk-startbtn" onclick="tttStart()">开始</div></div>
+      <div class="ttt-startmask" id="tttStartMask"><div class="ttt-startbtn" onclick="tttStart()">开始</div></div>
       <div class="gmk-over" id="tttOver"><div class="go-t" id="tttOverT"></div><div class="go-btns"><div class="go-b re" onclick="tttRestart()">再来一局</div><div class="go-b leave" onclick="tttLeave()">离开</div></div></div>
     </div>
     <div class="gmk-players">
@@ -5837,7 +5842,6 @@ function tttRenderPlayers(){
 
 function tttRender(){
   var b=$('#tttBoard'); if(!b)return;
-  var sm=document.getElementById('tttStartMask'); if(sm&&sm.parentNode)b.appendChild(sm);
   var ov=document.getElementById('tttOver'); if(ov&&ov.parentNode&&ov.parentNode!==document.body)b.appendChild(ov);
   b.innerHTML='';
   if(!_ttt.started){
@@ -5899,16 +5903,15 @@ function tttStart(){
   var ov=document.getElementById('tttOver'); if(ov)ov.classList.remove('show');
   tttNewBoard();
   _ttt.over=false;_ttt.busy=false;_ttt.flipping=true;
-  var sm=$('#tttStartMask'); if(sm)sm.classList.remove('hide');
+  var sm=$('#tttStartMask'); if(sm)sm.classList.add('hide');
   tttRender();
-  var b=$('#tttBoard');
-  if(b){
-    b.insertAdjacentHTML('beforeend','<div class="gmk-flip" id="tttFlip"><div class="gmk-coin">TTT</div></div>');
+  var wrap=document.querySelector('#ttt .ttt-boardwrap');
+  var oldf=document.getElementById('tttFlip'); if(oldf)oldf.remove();
+  if(wrap){
+    wrap.insertAdjacentHTML('beforeend','<div class="gmk-flip show" id="tttFlip"><div class="gf-coin"></div><div class="gf-t">掷骰子分先后手…</div></div>');
   }
-  var tick=0;
   var it=setInterval(function(){
-    try{ var y=$('#tttPYouBadge'),m=$('#tttPMeBadge'); if(y){y.textContent='X';} if(m){m.textContent='O';} }catch(e){}
-    tick++;
+    try{ var y=$('#tttPYouBadge'),m=$('#tttPMeBadge'); var rr=Math.random()<0.5; if(y){y.textContent=rr?'X':'O';} if(m){m.textContent=rr?'O':'X';} }catch(e){}
   },120);
   setTimeout(function(){
     clearInterval(it);
@@ -5916,7 +5919,6 @@ function tttStart(){
     var r=Math.random()<0.5;
     _ttt.turn=r?1:2;
     _ttt.flipping=false;_ttt.started=true;
-    var sm2=$('#tttStartMask'); if(sm2)sm2.classList.add('hide');
     tttRenderPlayers(); tttRender();
     tttStatus(r?('你先下（O），'+tttCurName()+'是 X'):(tttCurName()+'先下（X），你是 O'));
     tttResetTimer();
