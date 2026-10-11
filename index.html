@@ -418,7 +418,7 @@ body{
 .gmk-mode{padding:7px 16px;border-radius:16px;font-size:13px;background:var(--card);color:var(--sub);border:1px solid var(--line);cursor:pointer;}
 .gmk-mode.on{background:var(--accent,#859ecb);color:#fff;border-color:transparent;font-weight:600;}
 .gmk-status{text-align:center;font-size:12.5px;color:var(--sub);padding:2px 12px 8px;min-height:16px;}
-.gmk-boardwrap{display:flex;justify-content:center;padding:0 10px 8px;}
+.gmk-boardwrap{display:flex;justify-content:center;padding:0 10px 8px;position:relative;}
 .gmk-board{position:relative;display:grid;grid-template-columns:repeat(15,1fr);width:min(94vw,400px);aspect-ratio:1/1;background:#fbfbfb;border-radius:10px;padding:8px;box-shadow:0 6px 20px rgba(80,90,110,.18);border:1px solid #e2e5ec;box-sizing:border-box;}
 .gmk-cell{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .gmk-cell::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(120,130,150,.45);}
@@ -427,7 +427,7 @@ body{
 .gmk-s.black{background:radial-gradient(circle at 34% 30%,#5a5a5a,#000);box-shadow:0 1px 2px rgba(0,0,0,.4);}
 .gmk-s.white{background:radial-gradient(circle at 34% 30%,#fff,#cfcfcf);box-shadow:0 1px 2px rgba(0,0,0,.28);}
 .gmk-s.last{outline:2px solid #e0574d;outline-offset:1px;}
-.gmk-over{position:absolute;inset:0;background:rgba(20,26,40,.72);border-radius:10px;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:5;}
+.gmk-over{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(20,26,40,.66);display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:500;}
 .gmk-over.show{display:flex;}
 .gmk-over .go-t{color:#fff;font-size:19px;font-weight:700;letter-spacing:1px;}
 .gmk-over .go-btns{display:flex;gap:14px;}
@@ -458,11 +458,11 @@ body{
 .gmk-player .gp-badge{width:16px;height:16px;border-radius:50%;flex:0 0 16px;display:none;}
 .gmk-player .gp-badge.black{display:block;background:radial-gradient(circle at 34% 30%,#5a5a5a,#000);}
 .gmk-player .gp-badge.white{display:block;background:radial-gradient(circle at 34% 30%,#fff,#cfcfcf);box-shadow:0 0 0 1px rgba(0,0,0,.2) inset;}
-.gmk-startmask{position:absolute;inset:0;background:rgba(20,26,40,.55);border-radius:10px;display:flex;align-items:center;justify-content:center;z-index:6;}
+.gmk-startmask{position:absolute;top:8px;right:8px;bottom:8px;left:8px;background:rgba(20,26,40,.55);border-radius:10px;display:flex;align-items:center;justify-content:center;z-index:19;}
 .gmk-startmask.hide{display:none;}
 .gmk-startbtn{width:108px;height:108px;border-radius:50%;background:rgba(255,255,255,.94);color:#5b6d8f;font-size:20px;font-weight:700;letter-spacing:2px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.3);animation:gmkPulse 1.6s ease-in-out infinite;}
 @keyframes gmkPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
-.gmk-flip{position:absolute;inset:0;z-index:7;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:rgba(20,26,40,.6);border-radius:10px;}
+.gmk-flip{position:absolute;top:8px;right:8px;bottom:8px;left:8px;z-index:21;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:rgba(20,26,40,.6);border-radius:10px;}
 .gmk-flip.show{display:flex;}
 .gmk-flip .gf-coin{width:76px;height:76px;border-radius:50%;background:radial-gradient(circle at 34% 30%,#fff,#cfcfcf);box-shadow:0 4px 14px rgba(0,0,0,.4);animation:gmkFlip .5s linear infinite;}
 .gmk-flip .gf-t{color:#fff;font-size:14px;letter-spacing:1px;}
@@ -1227,10 +1227,9 @@ body{
     </div>
     <div class="gmk-status" id="gmkStatus">点「开始」来一局</div>
     <div class="gmk-boardwrap">
-      <div class="gmk-board" id="gmkBoard">
-        <div class="gmk-startmask" id="gmkStartMask"><div class="gmk-startbtn" onclick="gmkStart()">开始</div></div>
-        <div class="gmk-over" id="gmkOver"><div class="go-t" id="gmkOverT"></div><div class="go-btns"><div class="go-b re" onclick="gmkRestart()">再来一局</div><div class="go-b leave" onclick="gmkLeave()">离开</div></div></div>
-      </div>
+      <div class="gmk-board" id="gmkBoard"></div>
+      <div class="gmk-startmask" id="gmkStartMask"><div class="gmk-startbtn" onclick="gmkStart()">开始</div></div>
+      <div class="gmk-over" id="gmkOver"><div class="go-t" id="gmkOverT"></div><div class="go-btns"><div class="go-b re" onclick="gmkRestart()">再来一局</div><div class="go-b leave" onclick="gmkLeave()">离开</div></div></div>
     </div>
     <div class="gmk-players">
       <div class="gmk-player" id="gmkPMe">
@@ -5131,17 +5130,36 @@ function pushListenImg(from,src){
     if(p)pushListenImg('him',p);
   },Math.max(300,(D.delay||1.2)*1000));
 }
+function yzListenOpt(){
+  var cid=(typeof yzCurKaoCharId==='function')?yzCurKaoCharId():'';
+  return { push:function(m){ pushListenMsg(m.from||'him', m.text||'', m.type||'text', m.src||''); },
+           msgs:(D.listenMsgs||[]), cid:cid };
+}
 function sendListen(){
   const i=$('#lisInput'),v=i.value.trim();if(!v)return;
-  i.value='';pushListenMsg('me',v);
-  const delay=replyDelayMs();
-  const n=nextCount();
+  i.value='';
+  pushListenMsg('me',v);
+  try{ yzReadChatSettingsLive(); }catch(e){}
+  var opt=yzListenOpt();
+  var delay=(typeof replyDelayMs==='function')?replyDelayMs():((parseFloat(D.delay)||1.2)*1000);
+  if(!(delay>=0))delay=1200;
+  var maxN=Math.max(1,parseInt(D.sendMax)||1);
+  var n=(typeof nextCount==='function')?nextCount():1; if(n>maxN)n=maxN;
+  var gap=(typeof sendGapMs==='function')?sendGapMs():delay;
   D._ltyping=true;
   if($('#listen').classList.contains('active'))renderListen();
-  setTimeout(()=>{
+  setTimeout(function(){
     D._ltyping=false;
-    pushListenMsg('him',pickMultiCards());
-    for(let k=1;k<n;k++)setTimeout(()=>pushListenMsg('him',pickMultiCards()),delay*k);
+    himSayMain(opt.cid,opt);
+    for(var i=1;i<n;i++){ (function(k){ setTimeout(function(){ himSayMain(opt.cid,opt); },gap*k); })(i); }
+    var left=maxN-n;
+    if(left>0){
+      var idx=0;
+      var hitPack=(parseFloat(D.packRate)||0)>0 && (D.packs||[]).length && Math.random()*100<(parseFloat(D.packRate)||0);
+      var _km=(typeof yzMaybeKaomojiFor==='function')?yzMaybeKaomojiFor(opt.cid):'';
+      if(hitPack){ idx++; var _pp=D.packs[Math.floor(Math.random()*D.packs.length)]; (function(P){setTimeout(function(){ pushListenMsg('him','','img',P); },gap*(n+idx-1));})(_pp); }
+      if(_km && (left-idx)>0){ idx++; (function(K){setTimeout(function(){ pushListenMsg('him',K,'text',''); },gap*(n+idx-1));})(_km); }
+    }
   },delay);
 }
 
@@ -5201,12 +5219,12 @@ function gmkStart(){
   var sm=$('#gmkStartMask'); if(sm)sm.classList.add('hide');
   var ov=$('#gmkOver'); if(ov)ov.classList.remove('show');
   /* 插入骰子遮罩 */
-  var board=$('#gmkBoard');
+  var wrap=document.querySelector('.gmk-boardwrap')||$('#gmkBoard');
   var fc=$('#gmkFlip');
-  if(!fc&&board){
+  if(!fc&&wrap){
     fc=document.createElement('div'); fc.id='gmkFlip'; fc.className='gmk-flip';
     fc.innerHTML='<div class="gf-coin"></div><div class="gf-t">正在抽取黑白...</div>';
-    board.appendChild(fc);
+    wrap.appendChild(fc);
   }
   if(fc)fc.classList.add('show');
   gmkRender();
@@ -5235,22 +5253,18 @@ function gmkStart(){
     if(_gmk.turn===_gmk.youColor){ gmkAISchedule(); }
   },dur);
 }
-function gmkRestart(){ gmkStart(); }
+function gmkRestart(){ var ov=document.getElementById('gmkOver'); if(ov)ov.classList.remove('show'); gmkStart(); }
 /* ============ 渲染棋盘 ============ */
 function gmkRender(){
   var b=$('#gmkBoard'); if(!b)return;
-  var ov=$('#gmkOver'), sm=$('#gmkStartMask'), fc=$('#gmkFlip');
-  /* 先把遮罩类节点从棋盘里摘出来（避免被 innerHTML 清掉）*/
-  if(ov&&ov.parentNode)ov.parentNode.removeChild(ov);
+  var sm=$('#gmkStartMask');
   if(sm&&sm.parentNode)sm.parentNode.removeChild(sm);
-  if(fc&&fc.parentNode)fc.parentNode.removeChild(fc);
   b.innerHTML='';
   if(!_gmk.started){
     for(var yy=0;yy<GMK_N;yy++)for(var xx=0;xx<GMK_N;xx++){
       var cc=document.createElement('div'); cc.className='gmk-cell'; b.appendChild(cc);
     }
     if(sm)b.appendChild(sm);
-    if(fc)b.appendChild(fc);
     return;
   }
   for(var y=0;y<GMK_N;y++){
@@ -5269,8 +5283,6 @@ function gmkRender(){
       b.appendChild(c);
     }
   }
-  if(ov)b.appendChild(ov);
-  if(fc)b.appendChild(fc);
 }
 function gmkHumanClick(x,y){
   if(_gmk.flipping)return;
@@ -5292,25 +5304,32 @@ function gmkAISchedule(){
 }
 function gmkShowOver(txt){
   var ov=$('#gmkOver');
-  if(ov){ ov.classList.add('show'); }
+  if(!ov){
+    ov=document.createElement('div'); ov.id='gmkOver'; ov.className='gmk-over';
+    ov.innerHTML='<div class="go-t" id="gmkOverT"></div><div class="go-btns"><div class="go-b re" onclick="gmkRestart()">再来一局</div><div class="go-b leave" onclick="gmkLeave()">离开</div></div>';
+  }
+  /* 固定挂在 body 上，永远不被棋盘重建清掉 */
+  if(ov.parentNode!==document.body)document.body.appendChild(ov);
   var t=$('#gmkOverT'); if(t)t.textContent=txt;
+  ov.classList.add('show');
+  /* 双保险：下一帧再确保一次（防被其它渲染抹掉）*/
+  setTimeout(function(){ var o2=document.getElementById('gmkOver'); if(o2)o2.classList.add('show'); },60);
 }
 function gmkPlace(x,y,c){
   _gmk.board[y][x]=c;
   _gmk.last={x:x,y:y};
   if(gmkWin(x,y,c)){
     _gmk.over=true;
-    gmkStatus('');
-    gmkRenderPlayers();
-    gmkRender();
     var youWon=(c===_gmk.meColor);
     gmkStatus((youWon?'你':'梦角')+'赢了');
-    setTimeout(function(){ gmkShowOver(youWon?'你赢了':'梦角赢了'); },450);
+    gmkRenderPlayers();
+    gmkRender();
+    gmkShowOver(youWon?'你赢了':'梦角赢了');
     return true;
   }
   var full=true;
   for(var yy=0;yy<GMK_N&&full;yy++){ for(var xx=0;xx<GMK_N;xx++){ if(_gmk.board[yy][xx]===0){full=false;break;} } }
-  if(full){ _gmk.over=true; gmkRenderPlayers(); gmkRender(); gmkStatus('平局'); setTimeout(function(){ gmkShowOver('平局'); },450); return true; }
+  if(full){ _gmk.over=true; gmkRenderPlayers(); gmkRender(); gmkStatus('平局'); gmkShowOver('平局'); return true; }
   return false;
 }
 function gmkInB(x,y){ return x>=0&&x<GMK_N&&y>=0&&y<GMK_N; }
@@ -5561,6 +5580,7 @@ function gmkResetTimer(){
 function gmkStopTimer(){ if(_gmk.chatTimer){clearInterval(_gmk.chatTimer);_gmk.chatTimer=null;} }
 function gmkLeave(){
   gmkStopTimer();
+  var ov=document.getElementById('gmkOver'); if(ov)ov.classList.remove('show');
   go('home');
 }
 /* ===== 选梦角 ===== */
