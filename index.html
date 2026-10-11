@@ -1332,6 +1332,11 @@ body{
     <div class="navbar"><div class="back" onclick="go('letters')">‹</div><div class="title">读信</div></div>
     <div class="letter-reading"><div class="letter-body" id="letterBody"></div></div>
   </div>
+  <div class="screen" id="diaryRead">
+    <div class="statusbar apple"><span id="drTimeTop">9:41</span><span class="right">100%</span></div>
+    <div class="navbar"><div class="back" onclick="diaryReadBack()">‹</div><div class="title">日记</div></div>
+    <div class="letter-reading"><div class="letter-body" id="diaryBody"></div></div>
+  </div>
 
   <div class="screen" id="packs">
     <div class="statusbar apple"><span id="pkTimeTop">9:41</span><span class="right">100%</span></div>
@@ -4065,11 +4070,16 @@ function openDiary(id){
   });
   const head=(d.title?('<div style="font-size:16px;font-weight:600;margin-bottom:6px">'+esc(d.title)+'</div>'):'')+
     '<div style="font-size:12px;color:var(--sub);margin-bottom:14px;font-style:italic">'+esc(who)+' · '+(d.mood?(esc(d.mood)+' · '):'')+esc(d.date||'')+'</div>';
-  $('#letterBody').innerHTML=head+
+  var body=$('#diaryBody'); if(!body)body=$('#letterBody');
+  if(body)body.innerHTML=head+
     '<div class="lettertxt">'+esc(d.text).replace(/\n/g,'<br>')+'</div>'+
     (cmts?('<div class="dcmtbox">'+cmts+'</div>'):'');
-  go('letterRead');
+  /* 记住来源：从梦角主页进的就回主页，否则回日记主页 */
+  var cur=document.querySelector('.screen.active');
+  window._diaryFrom=(cur&&cur.id==='himprofile')?'himprofile':'diary';
+  go('diaryRead');
 }
+function diaryReadBack(){ go(window._diaryFrom||'diary'); }
 function addDiaryComment(id){
   const d=(D.diaries||[]).find(function(x){return x.id===id;});if(!d)return;
   askInput('评论','',function(t){
