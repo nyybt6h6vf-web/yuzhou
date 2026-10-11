@@ -429,6 +429,20 @@ body{
 .gmk-s.black{background:radial-gradient(circle at 34% 30%,#5a5a5a,#000);box-shadow:0 1px 2px rgba(0,0,0,.4);}
 .gmk-s.white{background:radial-gradient(circle at 34% 30%,#fff,#cfcfcf);box-shadow:0 1px 2px rgba(0,0,0,.28);}
 .gmk-s.last{outline:2px solid #e0574d;outline-offset:1px;}
+#ttt{background:var(--chat-bg);}
+#ttt .statusbar,#ttt .navbar,#ttt .gmk-tops,#ttt .gmk-modes,#ttt .gmk-status,#ttt .gmk-players,#ttt .gmk-input{flex:0 0 auto;}
+#ttt .gmk-boardwrap{flex:0 0 auto;}
+#ttt .gmk-chat{flex:1 1 auto;min-height:90px;}
+.ttt-boardwrap{display:flex;align-items:center;justify-content:center;padding:6px 12px 8px;}
+.ttt-board{position:relative;display:grid;grid-template-columns:repeat(3,1fr);width:min(62vw,252px);aspect-ratio:1/1;background:#fbfbfb;border-radius:12px;padding:8px;gap:6px;box-shadow:0 4px 14px rgba(80,90,110,.18);border:1px solid #e2e5ec;box-sizing:border-box;}
+.ttt-cell{position:relative;display:flex;align-items:center;justify-content:center;background:#f1f3f8;border-radius:10px;cursor:pointer;user-select:none;transition:background .12s;}
+.ttt-cell:active{background:#e6eaf3;}
+.ttt-cell.win{background:rgba(133,158,203,.28);}
+.ttt-cell .ttt-mk{font-size:min(11vw,44px);font-weight:800;line-height:1;}
+.ttt-cell .ttt-mk.x{color:#3b4a63;}
+.ttt-cell .ttt-mk.o{color:#7f9cc4;}
+.ttt-cell.last .ttt-mk{animation:tttPop .22s ease;}
+@keyframes tttPop{0%{transform:scale(.4);opacity:.3;}100%{transform:scale(1);opacity:1;}}
 .gmk-over{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(20,26,40,.66);display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:500;}
 .gmk-over.show{display:flex;}
 .gmk-over .go-t{color:#fff;font-size:19px;font-weight:700;letter-spacing:1px;}
@@ -1247,6 +1261,40 @@ body{
     </div>
   </div>
   <div class="sheet" id="gmkPickSheet" onclick="if(event.target===this)closeSheet2('gmkPickSheet')"><div class="gmk-pickbox"><div class="gmk-picktitle">选择梦角</div><div class="gmk-picklist" id="gmkPickList"></div><div class="gmk-pickcancel" onclick="closeSheet2('gmkPickSheet')">取消</div></div></div>
+  <div class="screen" id="ttt">
+    <div class="statusbar apple" id="tttBar"><span id="tttTimeTop">9:41</span><span class="right">100%</span></div>
+    <div class="navbar"><div class="back" onclick="tttLeave()">‹</div><div class="title">井字棋</div><div class="actbtn" onclick="tttChangeChar()">更换梦角</div></div>
+    <div class="gmk-tops">
+      <div class="gmk-player" id="tttPYou">
+        <div class="gp-av" id="tttPYouAv">TA</div>
+        <div class="gp-info"><div class="gp-nm" id="tttPYouNm">梦角</div><div class="gp-badge" id="tttPYouBadge"></div></div>
+      </div>
+    </div>
+    <div class="gmk-modes" id="tttModes">
+      <div class="gmk-mode" data-m="easy" onclick="tttSetMode('easy')">简单</div>
+      <div class="gmk-mode" data-m="random" onclick="tttSetMode('random')">随机</div>
+      <div class="gmk-mode" data-m="hard" onclick="tttSetMode('hard')">困难</div>
+    </div>
+    <div class="gmk-status" id="tttStatus">点「开始」来一局</div>
+    <div class="gmk-boardwrap">
+      <div class="ttt-board" id="tttBoard"></div>
+      <div class="gmk-startmask" id="tttStartMask"><div class="gmk-startbtn" onclick="tttStart()">开始</div></div>
+      <div class="gmk-over" id="tttOver"><div class="go-t" id="tttOverT"></div><div class="go-btns"><div class="go-b re" onclick="tttRestart()">再来一局</div><div class="go-b leave" onclick="tttLeave()">离开</div></div></div>
+    </div>
+    <div class="gmk-players">
+      <div class="gmk-player" id="tttPMe">
+        <div class="gp-av" id="tttPMeAv">我</div>
+        <div class="gp-info"><div class="gp-nm" id="tttPMeNm">我</div><div class="gp-badge" id="tttPMeBadge"></div></div>
+      </div>
+    </div>
+    <div class="gmk-chat" id="tttChat"></div>
+    <div class="gmk-input">
+      <div class="upbtn" onclick="openPackPickerFor('ttt')">表情包</div>
+      <input id="tttInput" type="text" placeholder="和梦角说点什么…" onkeydown="if(event.key==='Enter')tttSend()">
+      <button class="send" onclick="tttSend()">发送</button>
+    </div>
+  </div>
+  <div class="sheet" id="tttPickSheet" onclick="if(event.target===this)closeSheet2('tttPickSheet')"><div class="gmk-pickbox"><div class="gmk-picktitle">选择梦角</div><div class="gmk-picklist" id="tttPickList"></div><div class="gmk-pickcancel" onclick="closeSheet2('tttPickSheet')">取消</div></div></div>
   <div class="screen" id="letters">
     <div class="statusbar apple" id="letterBar"><span id="letTimeTop">9:41</span><span class="right">100%</span></div>
     <div class="navbar"><div class="back" onclick="go('home')">‹</div><div class="title">来信</div><div class="act" onclick="writeLetter()">＋ 写信</div></div>
@@ -1763,6 +1811,7 @@ const ICONS={
  pat:'<svg viewBox="0 0 24 24"><path d="M12 20.5C7 16.5 3.5 13.4 3.5 9.8 3.5 7.2 5.5 5.5 7.8 5.5c1.6 0 3.1.9 4.2 2.4 1.1-1.5 2.6-2.4 4.2-2.4 2.3 0 4.3 1.7 4.3 4.3 0 3.6-3.5 6.7-8.5 10.7z"/></svg>',
  listen:'<svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>',
  gomoku:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/><path d="M3 9h18"/><path d="M3 15h18"/><circle cx="9" cy="9" r="2.1" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="2.1" fill="currentColor" stroke="none"/></svg>',
+ ttt:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M7.4 7.4l3.2 3.2M10.6 7.4l-3.2 3.2" stroke-width="1.6"/><circle cx="15" cy="15" r="2.4" fill="none"/></svg>',
  letter:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 7l9 6 9-6"/></svg>',
  album:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-6 6-3-3-4 4"/></svg>',
  poke:'<svg viewBox="0 0 24 24"><path d="M12 21s-7-4.5-9.3-8.5A5 5 0 0 1 12 6a5 5 0 0 1 9.3 6.5C19 16.5 12 21 12 21z"/><path d="M12 9.5v4.5"/><path d="M9.8 11.5h4.4"/></svg>',
@@ -1783,6 +1832,7 @@ const HOME_APPS=[
  {act:'period',ic:'period',name:'经期'},
  {act:'shop',ic:'shop',name:'商城'},
  {act:'gomoku',ic:'gomoku',name:'五子棋'},
+ {act:'ttt',ic:'ttt',name:'井字棋'},
  {act:'phony',ic:'phone',name:'小手机'},
  {act:'settings',ic:'tree',name:'设置'}
 ];
@@ -2329,6 +2379,7 @@ function go(id){
   if(id==='shop')renderShop();
   if(id==='phony'){try{yzPhInit();yzPhRender();}catch(e){}}
   if(id==='gomoku'){try{renderGomoku();}catch(e){}}
+  if(id==='ttt'){try{renderTtt();}catch(e){}}
   try{yzPhStatusIcon();}catch(e){}
   if(id==='himprofile')renderHimProfile();
   if(id==='letterWrite'){const to=$('#lwTo');if(to)to.textContent=letterTo(D.nick);}
@@ -3532,6 +3583,7 @@ function usePackFrom(i){
   if(packUse==='mo'){const el=$('#moImg');if(el){el.value=p;const n=$('#moImgName');if(n)n.textContent='已选表情包';}}
   else if(packUse==='listen'){pushListenImg('me',p);}
   else if(packUse==='gomoku'){gmkSendImg(p);}
+  else if(packUse==='ttt'){tttSendImg(p);}
   else{sendPackFromChat(i);}
 }
 function closePackSheet(){$('#packSheet').classList.remove('show');}
@@ -5663,6 +5715,344 @@ function renderGomoku(){
     if(!_gmk.over)gmkStatus('点「开始」来一局');
   }
   if(_gmk.over){ var ov=$('#gmkOver');if(ov)ov.classList.add('show'); }
+}
+
+/* ===== 井字棋 ===== */
+var _ttt={board:[],turn:0,mode:'easy',over:false,busy:false,started:false,flipping:false,cid:'',last:-1,meMark:'O',youMark:'X',winLine:null,chatTimer:null};
+var TTT_LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+function tttInit(){ if(!D.tttMsgs)D.tttMsgs=[]; }
+function tttNewBoard(){ _ttt.board=[0,0,0,0,0,0,0,0,0]; _ttt.winLine=null; _ttt.last=-1; }
+function tttCurChar(){ try{ return (D.charas||[]).find(function(c){return c.id===_ttt.cid;})||null; }catch(e){ return null; } }
+function tttCurName(){ var c=tttCurChar(); return (c&&c.nick)?c.nick:(D.nick||'梦角'); }
+function tttCurAvatar(){ var c=tttCurChar(); return (c&&c.avatar)?c.avatar:(D.avatarHim||''); }
+function tttCard(){ return (typeof pickCardFor==='function')?pickCardFor(_ttt.cid):''; }
+function tttStatus(t){ var el=$('#tttStatus'); if(el)el.textContent=t||''; }
+function tttSetMode(m){ _ttt.mode=m; tttRefreshModeUI(); try{save();}catch(e){} }
+function tttRefreshModeUI(){ try{ var ms=document.querySelectorAll('#tttModes .gmk-mode'); for(var i=0;i<ms.length;i++) ms[i].classList.toggle('on', ms[i].getAttribute('data-m')===_ttt.mode); }catch(e){} }
+
+/* 胜负判定，返回 {who,line} 或 null。who: 1=梦角(X), 2=玩家(O) （1=first? 用 mark 区分）*/
+function tttWinner(bd){
+  /* bd 里存的是 'X' / 'O' / 0 */
+  for(var i=0;i<TTT_LINES.length;i++){ var L=TTT_LINES[i]; if(bd[L[0]] && bd[L[0]]===bd[L[1]] && bd[L[1]]===bd[L[2]]) return {who:bd[L[0]],line:L}; }
+  return null;
+}
+function tttFull(bd){ for(var i=0;i<9;i++){ if(!bd[i])return false; } return true; }
+
+/* minimax：返回分数。AI=youMark, 玩家=meMark */
+function tttMinimax(bd, turnIsAI, depth, alpha, beta){
+  var w=tttWinner(bd);
+  if(w){ return w.who===_ttt.youMark ? (10-depth) : (depth-10); }
+  if(tttFull(bd)) return 0;
+  var best;
+  if(turnIsAI){
+    best=-999;
+    for(var i=0;i<9;i++){
+      if(bd[i])continue;
+      bd[i]=_ttt.youMark;
+      var sc=tttMinimax(bd,false,depth+1,alpha,beta);
+      bd[i]=0;
+      if(sc>best)best=sc;
+      if(best>alpha)alpha=best;
+      if(alpha>=beta)break; /* alpha-beta 剪枝 */
+    }
+    return best;
+  } else {
+    best=999;
+    for(var j=0;j<9;j++){
+      if(bd[j])continue;
+      bd[j]=_ttt.meMark;
+      var sc2=tttMinimax(bd,true,depth+1,alpha,beta);
+      bd[j]=0;
+      if(sc2<best)best=sc2;
+      if(best<beta)beta=best;
+      if(beta<=alpha)break; /* alpha-beta 剪枝 */
+    }
+    return best;
+  }
+}
+/* 困难：全深度 minimax，但若多个最优等同，随机选一个（像人，会变招） */
+function tttHardMove(bd){
+  var best=-999, bestSet=[];
+  for(var i=0;i<9;i++){
+    if(bd[i])continue;
+    bd[i]=_ttt.youMark;
+    var sc=tttMinimax(bd,false,0,-9999,9999);
+    bd[i]=0;
+    if(sc>best){best=sc;bestSet=[i];}
+    else if(sc===best)bestSet.push(i);
+  }
+  return bestSet[Math.floor(Math.random()*bestSet.length)];
+}
+/* 找一步能成线（谁） */
+function tttFindWin(bd, mark){
+  for(var i=0;i<TTT_LINES.length;i++){
+    var L=TTT_LINES[i];
+    var a=bd[L[0]],b=bd[L[1]],c=bd[L[2]];
+    var cnt=0, empty=-1;
+    if(a===mark)cnt++; else if(!a)empty=L[0];
+    if(b===mark)cnt++; else if(!b)empty=L[1];
+    if(c===mark)cnt++; else if(!c)empty=L[2];
+    if(cnt===2 && empty>=0) return empty;
+  }
+  return -1;
+}
+function tttEmptyCells(bd){ var r=[]; for(var i=0;i<9;i++){ if(!bd[i])r.push(i);} return r; }
+
+/* 简单：能赢就赢；否则挡你；否则 60% 占中/角，干扰 */
+function tttEasyMove(bd){
+  var w=tttFindWin(bd,_ttt.youMark); if(w>=0)return w;
+  var d=tttFindWin(bd,_ttt.meMark); if(d>=0)return d;
+  var emp=tttEmptyCells(bd);
+  if(!emp.length)return -1;
+  if(Math.random()<0.65){ if(!bd[4])return 4; var corners=[0,2,6,8].filter(function(i){return !bd[i];}); if(corners.length)return corners[Math.floor(Math.random()*corners.length)]; }
+  return emp[Math.floor(Math.random()*emp.length)];
+}
+function tttAIMove(){
+  if(_ttt.over||_ttt.turn!==2){ _ttt.busy=false; return; }
+  var bd=_ttt.board.slice();
+  var pick=-1;
+  if(_ttt.mode==='random'){ var emp=tttEmptyCells(bd); pick=emp[Math.floor(Math.random()*emp.length)]; }
+  else if(_ttt.mode==='hard'){ pick=tttHardMove(bd); }
+  else { pick=tttEasyMove(bd); }
+  if(pick<0){ _ttt.busy=false; return; }
+  tttPlace(pick, 'X');
+  _ttt.busy=false;
+}
+function tttAISchedule(){ var d=3000+Math.floor(Math.random()*3000); setTimeout(tttAIMove,d); }
+
+function tttRenderPlayers(){
+  var nYou=$('#tttPYouNm'); if(nYou)nYou.textContent=tttCurName();
+  var nMe=$('#tttPMeNm'); if(nMe)nMe.textContent=(D.myNick||'我');
+  var avY=$('#tttPYouAv'); if(avY){ var a=tttCurAvatar(); avY.innerHTML=a?('<img src="'+a+'">'):(((tttCurName()||'')[0])||''); }
+  var avM=$('#tttPMeAv'); if(avM){ var am=D.avatarMe; avM.innerHTML=am?('<img src="'+am+'">'):(((D.myNick||'我')[0])||''); }
+  var by=$('#tttPYouBadge'); if(by){ by.textContent='X'; by.className='gp-badge tttbadge x'; }
+  var bm=$('#tttPMeBadge'); if(bm){ bm.textContent='O'; bm.className='gp-badge tttbadge o'; }
+  try{
+    var py=$('#tttPYou'), pm=$('#tttPMe');
+    var act=!_ttt.over&&_ttt.started;
+    if(py)py.classList.toggle('acting', act&&_ttt.turn===2);
+    if(pm)pm.classList.toggle('acting', act&&_ttt.turn===1);
+  }catch(e){}
+}
+
+function tttRender(){
+  var b=$('#tttBoard'); if(!b)return;
+  var sm=document.getElementById('tttStartMask'); if(sm&&sm.parentNode)b.appendChild(sm);
+  var ov=document.getElementById('tttOver'); if(ov&&ov.parentNode&&ov.parentNode!==document.body)b.appendChild(ov);
+  b.innerHTML='';
+  if(!_ttt.started){
+    for(var i=0;i<9;i++){ b.insertAdjacentHTML('beforeend','<div class="ttt-cell"></div>'); }
+    return;
+  }
+  for(var k=0;k<9;k++){
+    var v=_ttt.board[k];
+    var cls='ttt-cell';
+    if(_ttt.winLine&&_ttt.winLine.indexOf(k)>=0)cls+=' win';
+    if(k===_ttt.last)cls+=' last';
+    var mk=v?('<div class="ttt-mk '+(v==='X'?'x':'o')+'">'+v+'</div>'):'';
+    b.insertAdjacentHTML('beforeend','<div class="'+cls+'" onclick="tttHumanClick('+k+')">'+mk+'</div>');
+  }
+}
+function tttHumanClick(i){
+  if(_ttt.flipping)return;
+  if(!_ttt.started||_ttt.over||_ttt.busy)return;
+  if(_ttt.turn!==1){ tttStatus('现在不是你的回合'); return; }
+  if(_ttt.board[i])return;
+  tttPlace(i,'O');
+  if(_ttt.over)return;
+  _ttt.turn=2; tttRenderPlayers();
+  _ttt.busy=true;
+  tttAISchedule();
+  tttStatus(tttCurName()+'在想…');
+}
+function tttShowOver(txt){
+  var ov=$('#tttOver');
+  if(!ov){
+    ov=document.createElement('div'); ov.id='tttOver'; ov.className='gmk-over';
+    ov.innerHTML='<div class="go-t" id="tttOverT"></div><div class="go-btns"><div class="go-b re" onclick="tttRestart()">再来一局</div><div class="go-b leave" onclick="tttLeave()">离开</div></div>';
+  }
+  if(ov.parentNode!==document.body)document.body.appendChild(ov);
+  var t=$('#tttOverT'); if(t)t.textContent=txt;
+  ov.classList.add('show');
+  setTimeout(function(){ var o2=document.getElementById('tttOver'); if(o2)o2.classList.add('show'); },60);
+}
+function tttPlace(i, mark){
+  _ttt.board[i]=mark;
+  _ttt.last=i;
+  var w=tttWinner(_ttt.board);
+  if(w){
+    _ttt.over=true; _ttt.winLine=w.line;
+    var youWin=(w.who==='X');
+    tttStatus(youWin?(tttCurName()+'赢了'):'你赢了');
+    tttRenderPlayers(); tttRender();
+    tttShowOver(youWin?('梦角赢了'):'你赢了');
+    return true;
+  }
+  if(tttFull(_ttt.board)){
+    _ttt.over=true; tttRenderPlayers(); tttRender(); tttStatus('平局'); tttShowOver('平局'); return true;
+  }
+  tttRender();
+  return false;
+}
+function tttStart(){
+  tttStopTimer();
+  var ov=document.getElementById('tttOver'); if(ov)ov.classList.remove('show');
+  tttNewBoard();
+  _ttt.over=false;_ttt.busy=false;_ttt.flipping=true;
+  var sm=$('#tttStartMask'); if(sm)sm.classList.remove('hide');
+  tttRender();
+  var b=$('#tttBoard');
+  if(b){
+    b.insertAdjacentHTML('beforeend','<div class="gmk-flip" id="tttFlip"><div class="gmk-coin">TTT</div></div>');
+  }
+  var tick=0;
+  var it=setInterval(function(){
+    try{ var y=$('#tttPYouBadge'),m=$('#tttPMeBadge'); if(y){y.textContent='X';} if(m){m.textContent='O';} }catch(e){}
+    tick++;
+  },120);
+  setTimeout(function(){
+    clearInterval(it);
+    var f=document.getElementById('tttFlip'); if(f)f.remove();
+    var r=Math.random()<0.5;
+    _ttt.turn=r?1:2;
+    _ttt.flipping=false;_ttt.started=true;
+    var sm2=$('#tttStartMask'); if(sm2)sm2.classList.add('hide');
+    tttRenderPlayers(); tttRender();
+    tttStatus(r?('你先下（O），'+tttCurName()+'是 X'):(tttCurName()+'先下（X），你是 O'));
+    tttResetTimer();
+    if(_ttt.turn===2){ _ttt.busy=true; tttAISchedule(); }
+  },3000);
+}
+function tttRestart(){ var ov=document.getElementById('tttOver'); if(ov)ov.classList.remove('show'); tttStart(); }
+function tttLeave(){
+  tttStopTimer();
+  var ov=document.getElementById('tttOver'); if(ov)ov.classList.remove('show');
+  go('home');
+}
+/* ===== 井字棋聊天 ===== */
+function tttChatRender(){
+  var c=$('#tttChat'); if(!c)return;
+  c.innerHTML='';
+  (D.tttMsgs||[]).forEach(function(m){
+    var isMe=m.from==='me';
+    var av=isMe?D.avatarMe:tttCurAvatar();
+    var nm=isMe?(D.myNick||'我'):tttCurName();
+    var avh=av?('<img src="'+av+'">'):(((nm||'')[0])||'');
+    var inner=(m.type==='img')?('<div class="gb gimg"><img src="'+String(m.src||'').replace(/"/g,'%22')+'"></div>'):('<div class="gb">'+esc(m.text||'')+'</div>');
+    c.insertAdjacentHTML('beforeend','<div class="gm '+(isMe?'me':'')+'"><div class="gav">'+avh+'</div><div>'+inner+'</div></div>');
+  });
+  c.scrollTop=c.scrollHeight;
+}
+function tttPush(from,text,type,src){
+  D.tttMsgs=D.tttMsgs||[];
+  D.tttMsgs.push({from:from,text:text||'',type:type||'text',src:src||''});
+  if(D.tttMsgs.length>300)D.tttMsgs=D.tttMsgs.slice(-300);
+  try{save();}catch(e){}
+  if($('#ttt')&&$('#ttt').classList.contains('active'))tttChatRender();
+}
+function tttOpt(){ return { push:function(m){ tttPush(m.from||'him', m.text||'', m.type||'text', m.src||''); }, msgs:(D.tttMsgs||[]), cid:_ttt.cid }; }
+function tttReplyLater(){
+  /* 完全按设置里的聊天参数走（与主聊天/五子棋一致） */
+  try{ yzReadChatSettingsLive(); }catch(e){}
+  var opt=tttOpt();
+  var delay=(typeof replyDelayMs==='function')?replyDelayMs():((parseFloat(D.delay)||1.2)*1000);
+  if(!(delay>=0))delay=1200;
+  var maxN=Math.max(1,parseInt(D.sendMax)||1);
+  var n=(typeof nextCount==='function')?nextCount():1;
+  if(n>maxN)n=maxN;
+  var gap=(typeof sendGapMs==='function')?sendGapMs():delay;
+  setTimeout(function(){
+    himSayMain(_ttt.cid,opt);
+    for(var i=1;i<n;i++){ (function(k){ setTimeout(function(){ himSayMain(_ttt.cid,opt); },gap*k); })(i); }
+    var left=maxN-n;
+    if(left>0){
+      var idx=0;
+      var hitPack=(parseFloat(D.packRate)||0)>0 && (D.packs||[]).length && Math.random()*100<(parseFloat(D.packRate)||0);
+      var _km=(typeof yzMaybeKaomojiFor==='function')?yzMaybeKaomojiFor(_ttt.cid):'';
+      var hitKm=!!_km;
+      if(hitPack){ idx++; var _pp=D.packs[Math.floor(Math.random()*D.packs.length)]; (function(P){setTimeout(function(){ tttPush('him','','img',P); },gap*(n+idx-1));})(_pp); }
+      if(hitKm && (left-idx)>0){ idx++; (function(K){setTimeout(function(){ tttPush('him',K,'text',''); },gap*(n+idx-1));})(_km); }
+    }
+  },delay);
+}
+function tttSend(){
+  var i=$('#tttInput'); if(!i)return;
+  var v=(i.value||'').trim(); if(!v)return;
+  i.value='';
+  tttPush('me',v);
+  tttResetTimer();
+  tttReplyLater();
+}
+function tttSendImg(src){ if(!src)return; tttPush('me','','img',src); tttResetTimer(); tttReplyLater(); }
+function tttAutoSpeak(){ try{ var t=tttCard(); if(!t){try{t=pickCard();}catch(e){}} if(!t)t='（还在下吗）'; tttPush('him',t); }catch(e){} }
+function tttResetTimer(){
+  if(_ttt.chatTimer){clearInterval(_ttt.chatTimer);_ttt.chatTimer=null;}
+  _ttt.chatTimer=setInterval(function(){ if($('#ttt')&&$('#ttt').classList.contains('active'))tttAutoSpeak(); },20000);
+}
+function tttStopTimer(){ if(_ttt.chatTimer){clearInterval(_ttt.chatTimer);_ttt.chatTimer=null;} }
+/* ===== 选梦角 ===== */
+function tttEnsureCid(){
+  var list=D.charas||[];
+  if(!list.length){ _ttt.cid=''; return; }
+  var ok=list.some(function(c){return c.id===_ttt.cid;});
+  if(!ok)_ttt.cid=list[0].id;
+}
+function tttOpenPick(){
+  var list=D.charas||[];
+  var box=$('#tttPickList'); if(!box)return;
+  if(!list.length){ box.innerHTML='<div style="padding:16px 6px;color:var(--sub);font-size:13px">还没有梦角，先去聊天列表添加</div>'; }
+  else{
+    box.innerHTML='';
+    list.forEach(function(c){
+      var av=c.avatar?('<img src="'+c.avatar+'">'):(((c.nick||'')[0])||'');
+      var on=(c.id===_ttt.cid)?'<span class="gp-ck">✓</span>':'';
+      box.insertAdjacentHTML('beforeend','<div class="gmk-pickitem" onclick="tttChooseChar(\''+c.id+'\')"><div class="gp-av">'+av+'</div><div class="gp-nm">'+esc(c.nick||'梦角')+'</div>'+on+'</div>');
+    });
+  }
+  openSheet2('tttPickSheet');
+}
+function tttChooseChar(id){
+  _ttt.cid=id;
+  closeSheet2('tttPickSheet');
+  tttRenderPlayers();
+  tttChatRender();
+  _ttt.started=false;_ttt.over=false;_ttt.busy=false;_ttt.last=-1;
+  tttNewBoard();
+  var sm=$('#tttStartMask'); if(sm)sm.classList.remove('hide');
+  tttRender();
+  tttStatus('已选择「'+tttCurName()+'」，点「开始」来一局');
+  toast('对手：'+tttCurName());
+}
+function tttChangeChar(){
+  if((D.charas||[]).length<=1){ toast('只有一个梦角'); }
+  tttOpenPick();
+}
+/* ===== 进入页面 ===== */
+function renderTtt(){
+  tttInit();
+  tttEnsureCid();
+  if((D.charas||[]).length>1 && !_ttt._picked){
+    _ttt._picked=true;
+    _ttt.started=false;_ttt.over=false;_ttt.busy=false;
+    tttNewBoard();
+    var sm=$('#tttStartMask'); if(sm)sm.classList.remove('hide');
+    tttRender(); tttRefreshModeUI(); tttRenderPlayers(); tttChatRender(); tttResetTimer();
+    tttOpenPick();
+    tttStatus('先选一个梦角吧');
+    return;
+  }
+  tttRefreshModeUI();
+  tttRenderPlayers();
+  tttChatRender();
+  tttResetTimer();
+  if(_ttt.started){ tttRender(); }
+  else{
+    tttNewBoard();
+    var sm2=$('#tttStartMask'); if(sm2)sm2.classList.remove('hide');
+    tttRender();
+    if(!_ttt.over)tttStatus('点「开始」来一局');
+  }
+  if(_ttt.over){ var ov=$('#tttOver');if(ov)ov.classList.add('show'); }
 }
 
 /* ===== 表情包 ===== */
