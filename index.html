@@ -602,6 +602,8 @@ body{
 #lisFloat .lfprog{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:3px;background:rgba(255,255,255,.22);outline:none;margin:2px 0 2px;cursor:pointer;}
 #lisFloat .lfprog::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:12px;height:12px;border-radius:50%;background:#fff;cursor:pointer;border:none;}
 #lisFloat .lfprog::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:#fff;cursor:pointer;border:none;}
+.lis-onelyric{width:88%;margin:4px auto 0;text-align:center;font-size:12.5px;color:var(--sub);min-height:18px;line-height:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lis-onelyric.act{color:var(--accent);font-weight:600;}
 .lis-progwrap{display:flex;align-items:center;gap:8px;width:88%;margin:2px auto 0;}
 .lis-prog{-webkit-appearance:none;appearance:none;flex:1;height:4px;border-radius:3px;background:rgba(120,140,180,.3);outline:none;cursor:pointer;}
 .lis-prog::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:13px;height:13px;border-radius:50%;background:var(--accent);cursor:pointer;border:none;}
@@ -1243,6 +1245,7 @@ body{
             <div class="listen-person"><div class="lav" id="lisAvMe">我</div><div class="lnm" id="lisNmMe">我</div></div>
           </div>
           <div class="listen-now"><div class="snm" id="lisSong">还没有一起听的歌</div><div class="sby" id="lisBy">点右上角，贴一首歌的链接</div></div>
+          <div class="lis-onelyric" id="lisOneLyric"></div>
           <div class="lis-progwrap"><span class="lpgt" id="lisCurTime">0:00</span><input class="lis-prog" id="lisProg" type="range" min="0" max="1000" value="0" step="1"><span class="lpgt" id="lisDur">0:00</span></div>
           <div class="lis-ctrl">
             <button class="lc" onclick="prevSong()" aria-label="上一首"><svg viewBox="0 0 24 24"><path d="M19 20 9 12l10-8v16z"/><path d="M5 19V5"/></svg></button>
@@ -2419,7 +2422,8 @@ function go(id){
   if(id==='together')renderTiles();
   if(id==='settings')fillSettings();
   if(id==='moments')renderMoments();
-  if(id==='listen')renderListen();
+  if(id==='listen'){ hideLisFloat(); try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
+  if(id!=='listen'){ try{ setTimeout(yzMaybeShowFloat,60); }catch(e){} }
   if(id==='letters')renderLetters();
   if(id==='packs')renderPacks();
   if(id==='diary')renderDiary();
@@ -4837,7 +4841,7 @@ function renderListen(){
   renderListenPlayer(cur);
   try{yzRefreshModeUI();}catch(e){}
   try{yzRenderLyric(cur);}catch(e){}
-  try{if((D.listenPlaylist||[]).length){showLisFloat();}}catch(e){}
+  try{ yzSyncOneLyric(); }catch(e){} /* 一起听页不显示悬浮卡片 */
   const c=$('#listenChat');if(!c)return;c.innerHTML='';
   D.listenMsgs.forEach(m=>{
     const isMe=m.from==='me';
@@ -4989,6 +4993,18 @@ function renderListenList(){
 function openListenList(){renderListenList();openSheet2('lisListSheet');}
 function pickFromList(i){closeSheet2('lisListSheet');playPlaylistIndex(i);}
 function yzFmtTime(x){x=x||0;x=Math.max(0,Math.floor(x));var m=Math.floor(x/60),sec=x%60;return m+':'+(sec<10?'0':'')+sec;}
+function yzSyncOneLyric(){
+  try{
+    var el=document.getElementById('lisOneLyric');if(!el)return;
+    var au=document.getElementById('lisAudio');
+    var arr=window.__lisLyric;
+    if(!arr||!arr.length||!au||!au.src){ el.textContent=''; el.classList.remove('act'); return; }
+    var ct=au.currentTime||0, cur=0;
+    for(var i=0;i<arr.length;i++){ if(arr[i].t!==null && arr[i].t<=ct) cur=i; else break; }
+    var line=(arr[cur]&&arr[cur].text)?arr[cur].text:'';
+    if(line){ el.textContent=line; el.classList.add('act'); } else { el.textContent=''; el.classList.remove('act'); }
+  }catch(e){}
+}
 function yzSyncProgress(){
   try{
     var au=document.getElementById('lisAudio');if(!au)return;
@@ -5071,8 +5087,22 @@ function yzTogglePlay(){
 }
 function hideLisFloat(){var f=document.getElementById('lisFloat');if(f)f.classList.remove('show');}
 function yzLisFloatJump(){
-  // 点卡片主体：回到一起听页
+  var f=document.getElementById('lisFloat');if(!f)return;
+  // 沾边状态：点一下先弹回完整卡片，不跳转
+  if(f.classList.contains('small')){ yzLisFloatPin(); return; }
+  // 完整卡片：点歌名区回一起听页
   try{ go('listen'); }catch(e){}
+}
+function yzMaybeShowFloat(){
+  try{
+    var act=document.getElementById('listen');
+    var onListen=act&&act.classList.contains('active');
+    if(onListen){ hideLisFloat(); return; }
+    var au=document.getElementById('lisAudio');
+    var playing=!!(au&&au.src&&!au.paused&&!au.ended);
+    if(playing && (D.listenPlaylist||[]).length){ showLisFloat(); }
+    else { hideLisFloat(); }
+  }catch(e){}
 }
 function yzBindLisFloatDrag(){
   var f=document.getElementById('lisFloat'); var g=document.getElementById('lisGrip');
@@ -5119,7 +5149,7 @@ function yzBindLisFloatDrag(){
   }
   /* 拖动从握把扩展到整个卡片（按钮/关闭键除外） */
   var dragZone=f;
-  function inNoDrag(t){ return !!(t&&t.closest&&t.closest('button,.lfx,.lfbtn,.lfmode')); }
+  function inNoDrag(t){ return !!(t&&t.closest&&t.closest('button,.lfx,.lfbtn,.lfmode,.lfprog,input,canvas')); }
   if(window.PointerEvent){
     dragZone.addEventListener('pointerdown',function(e){ if(inNoDrag(e.target))return; try{dragZone.setPointerCapture(e.pointerId);}catch(x){} start(e.clientX,e.clientY); });
     dragZone.addEventListener('pointermove',function(e){ if(!drag)return; if(e.cancelable)e.preventDefault(); move(e.clientX,e.clientY); },{passive:false});
@@ -5310,9 +5340,9 @@ function renderListenPlayer(cur){
       };
       au.onerror=tryNext;
       au.oncanplay=function(){if(au._to)clearTimeout(au._to);yzSyncPlayBtn();if(D._lisWantPlay){try{au.play().catch(function(){});}catch(e){}D._lisWantPlay=false;}};
-      au.ontimeupdate=function(){ try{ yzSyncFloatLyric(); }catch(e){} try{ yzSyncProgress(); }catch(e){} };
-      au.onplay=function(){ if(au._to){clearTimeout(au._to);au._to=null;} au._playStarted=true; setTimeout(yzSyncPlayBtn,40); };
-      au.onpause=function(){setTimeout(yzSyncPlayBtn,40);};
+      au.ontimeupdate=function(){ try{ yzSyncFloatLyric(); }catch(e){} try{ yzSyncProgress(); }catch(e){} try{ yzSyncOneLyric(); }catch(e){} };
+      au.onplay=function(){ if(au._to){clearTimeout(au._to);au._to=null;} au._playStarted=true; setTimeout(yzSyncPlayBtn,40); setTimeout(function(){try{yzMaybeShowFloat();}catch(e){}},120); };
+      au.onpause=function(){setTimeout(yzSyncPlayBtn,40); setTimeout(function(){try{yzMaybeShowFloat();}catch(e){}},120);};
       au.onended=function(){ yzOnSongEnded(); };
       au._playStarted=false;timedOut=false;
       au.src=srcs[0];
