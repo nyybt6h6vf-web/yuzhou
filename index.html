@@ -7052,6 +7052,7 @@ function getChatBg(){
   return v;
 }
 function applyCustom(){
+  try{
   const pb=(D.pageBg||'').trim(),pg=$('#phone');
   const scrAll=document.querySelectorAll('.screen');
   if(pb&&(pb.startsWith('http')||pb.startsWith('data:'))){
@@ -7139,6 +7140,7 @@ function applyCustom(){
   if(!st){st=document.createElement('style');st.id='customStyle';document.head.appendChild(st);}
   if(st.textContent!==css)st.textContent=css;
   window.__applyBubbleInline&&window.__applyBubbleInline();
+  }catch(e){ try{console.warn('applyCustom',e);}catch(_){} }
 }
 
 window.__tranTap=function(i){try{tranAct(i);}catch(e){}};
@@ -7155,7 +7157,7 @@ function forceImportant(cssText){
       if(/!important/i.test(t)){sb.push(t);return;}
       if(/@|\{|\}/.test(t)){
         /* 含大括号的片段（选择器或 @ 行）：只给尾部最后一对声明补 */
-        t=t.replace(/([^;{}]+?:[^;{}]+?)\s*$/g,function(m){return /!important/i.test(m)?m:m+' !important';});
+        if(t.length<4000) t=t.replace(/([^;{}]+?:[^;{}]+?)\s*$/g,function(m){return /!important/i.test(m)?m:m+' !important';});
         sb.push(t);
       }else{
         sb.push(t.replace(/\s*$/,'')+' !important');
@@ -7167,6 +7169,7 @@ function forceImportant(cssText){
 window.forceImportant=forceImportant;
 /* 气泡CSS预览：把用户CSS映射+important后，注入到预览盒子 */
 function yzPreviewBubble(){
+  try{
   var box=document.getElementById('bubblePreview');
   if(!box)return;
   var raw=String((D&&D.bubble)||'').trim().replace(/：/g,':');
@@ -7183,7 +7186,7 @@ function yzPreviewBubble(){
   }
   /* 给预览盒子加更高优先级的 scope：#bubblePreview 自身也带上 .bubblePreviewScope */
   box.classList.add('bubblePreviewScope');
-  cssText=cssText.replace(/(^|\})\s*([^@}][^{]*)\{/g,function(mm,pre,sel){
+  if(cssText.length<8000) cssText=cssText.replace(/(^|\})\s*([^@}][^{]*)\{/g,function(mm,pre,sel){
     var s2=sel.split(',').map(function(x){
       var t=x.trim();
       if(!t)return t;
@@ -7192,6 +7195,7 @@ function yzPreviewBubble(){
     return pre+s2+'{';
   });
   st.textContent=cssText;
+  }catch(e){ try{var st2=document.getElementById('bubblePreviewStyle');if(st2)st2.textContent='';}catch(_){} }
 }
 window.yzPreviewBubble=yzPreviewBubble;
 
