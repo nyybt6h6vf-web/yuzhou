@@ -2536,10 +2536,11 @@ function yzFavReread(){
 function yzFavCatLabel(t){ return t==='msg'?'收藏消息':(t==='music'?'收藏音乐':(t==='moment'?'收藏动态':'收藏日记')); }
 function yzPhHtml(){
   yzFavInit();
+  D.phFavOpen=true; save();
   var body=$('#phBody'); if(!body)return;
   var cats=[['msg','\u{1F4AC}'],['music','\u{1F3B5}'],['moment','\u{1F4F7}'],['diary','\u{1F4D6}']];
   var h='<div class="favwrap">';
-  h+='<div class="favback" onclick="go(\'home\')">\u2039 \u8fd4\u56de</div>';
+  h+='<div class="favback" onclick="D.phFavOpen=false;save();go(\'home\')">\u2039 \u8fd4\u56de</div>';
   h+='<div class="favtitle" style="margin:6px 0 12px;">\u68a6\u89d2\u7684\u6536\u85cf</div>';
   cats.forEach(function(c){
     var t=c[0]; var arr=D.favs[t]||[];
