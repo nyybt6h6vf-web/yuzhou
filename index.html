@@ -1492,7 +1492,9 @@ body{
 <div class="row"><div class="lab">页面背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPageBg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('pageBg')">上传图</div><div class="chip" onclick="setColor('pageBg','')">清</div></div></div>
 <div class="row"><div class="lab">第二页背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPage2Bg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('page2Bg')">上传图</div><div class="chip" onclick="setColor('page2Bg','')">清</div></div></div>
 <div class="row"><div class="lab">聊天背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setChatBg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('chatBg')">上传图</div><div class="chip" onclick="setColor('chatBg','')">清</div></div></div>
-<div class="row"><div class="lab">聊天字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('fontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('fontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setFontColorColor" oninput="setColor('fontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fontColor','')">清</div></div></div>
+<div class="row"><div class="lab">转账字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('fontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('fontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setFontColorColor" oninput="setColor('fontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fontColor','')">清</div></div>
+<div class="row"><div class="lab">梦角消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('himFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('himFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setHimFontColorColor" oninput="setColor('himFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('himFontColor','')">清</div></div></div>
+<div class="row"><div class="lab">我的消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('meFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('meFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setMeFontColorColor" oninput="setColor('meFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('meFontColor','')">清</div></div></div></div>
 <div class="row"><div class="lab">梦角气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleHim','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleHim','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleHimColor" oninput="setColor('bubbleHim',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleHim','')">清</div></div></div>
 <div class="row"><div class="lab">我方气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleMe','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleMe','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleMeColor" oninput="setColor('bubbleMe',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleMe','')">清</div></div></div>
 <div class="row"><div class="lab">转账卡片色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setTranColor" oninput="setColor('tranColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('tranColor','')">清</div></div></div>
@@ -2325,7 +2327,7 @@ if(o.daifuGap===undefined)o.daifuGap=20;
     return o;
   }}catch(e){try{console.error('LOAD_PARSE_FAIL',e);}catch(_){}}
   return {theme:'light',nick:'他',myNick:'我',avatarHim:'',avatarMe:'',
-    pageBg:'',chatBg:'',momBg:'',lockBg:'',lockFg:'',fontColor:'',bubble:'',bubbleHim:'',bubbleMe:'',heroImg:'',
+    pageBg:'',chatBg:'',momBg:'',lockBg:'',lockFg:'',fontColor:'',himFontColor:'',meFontColor:'',bubble:'',bubbleHim:'',bubbleMe:'',heroImg:'',
     readOn:true,typingOn:true,
     lockName:'Yu·Zhou',slogan:'',pass:'',
     delay:1.2,double:35,tran:50,tranTo:10,packRate:25,callRate:12,momGap:1,
@@ -6847,7 +6849,7 @@ function fillSettings(){
   if($('#setSlogan'))$('#setSlogan').value=D.slogan||'';
   $('#setPageBg').value=D.pageBg||'';if($('#setPage2Bg'))$('#setPage2Bg').value=D.page2Bg||'';$('#setChatBg').value=D.chatBg||'';
   if($('#setMomBg'))$('#setMomBg').value=D.momBg||'';
-  ['lockFg','fontColor','bubbleHim','bubbleMe','tranColor'].forEach(function(k){
+  ['lockFg','fontColor','himFontColor','meFontColor','bubbleHim','bubbleMe','tranColor'].forEach(function(k){
     var c=$('#set'+k.charAt(0).toUpperCase()+k.slice(1)+'Color');
     var v=(D[k]||'').trim();
     if(c&&/^#[0-9a-fA-F]{6}$/.test(v))c.value=v;
@@ -6914,7 +6916,7 @@ function fillSettings(){
 function setColor(k,v){
   D[k]=v||'';
   if(k==='lockBg'){setTimeout(()=>$,0);}
-  const cid={lockFg:'setLockFgColor',fontColor:'setFontColorColor',bubbleHim:'setBubbleHimColor',bubbleMe:'setBubbleMeColor',tranColor:'setTranColor',pageBg:null,chatBg:null,momBg:null,lockBg:null}[k];
+  const cid={lockFg:'setLockFgColor',fontColor:'setFontColorColor',himFontColor:'setHimFontColorColor',meFontColor:'setMeFontColorColor',bubbleHim:'setBubbleHimColor',bubbleMe:'setBubbleMeColor',tranColor:'setTranColor',pageBg:null,chatBg:null,momBg:null,lockBg:null}[k];
   if(cid){const inp=$('#'+cid);if(inp)inp.value=v||'#000000';}
   save();
   scheduleApply();
@@ -7079,7 +7081,11 @@ function applyCustom(){
   if(lf){document.documentElement.style.setProperty('--lock-fg-color',lf);}
   else{document.documentElement.style.removeProperty('--lock-fg-color');}
   let css='';
-  if(fc){css+='.msg .bubble,.msg .bubble .quotebar,.msg .bubble.transfer .tt,.msg .bubble.transfer .td,.msg .bubble.transfer .tstmt,.msg .bubble.transfer .tamt,.msg .bubble.transfer .tact span{color:'+fc+';}';}
+  if(fc){css+='.msg .bubble.transfer .tt,.msg .bubble.transfer .td,.msg .bubble.transfer .tstmt,.msg .bubble.transfer .tamt,.msg .bubble.transfer .tact span{color:'+fc+' !important;}';}
+  var hfc=(D.himFontColor||'').trim();
+  if(hfc){css+='.msg.him .bubble,.msg.him .bubble .quotebar,.msg.him .bubble.voice,.msg.him .bubble.patb{color:'+hfc+' !important;}';}
+  var mfc=(D.meFontColor||'').trim();
+  if(mfc){css+='.msg.me .bubble,.msg.me .bubble .quotebar,.msg.me .bubble.voice{color:'+mfc+' !important;}';}
   if(lf){css+='#lock{color:'+lf+' !important;}';css+='#lock .h,#lock .d,#lock .name,#lock .hint,#lock .statusbar span{color:'+lf+' !important;}';}
   /* 转账卡片色 */
   const tc=(D.tranColor||'').trim();
