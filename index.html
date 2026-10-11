@@ -565,7 +565,9 @@ body{
 /* 歌词页 */
 .lis-lyr{flex:1;overflow-y:auto;padding:26px 24px 40px;text-align:center;}
 .lis-lyr .lyline{font-size:15px;line-height:2.1;color:var(--sub);transition:color .2s,font-size .2s;}
-.lis-lyr .lyline.cur{color:var(--text);font-weight:700;font-size:16.5px;}
+.lis-lyr .lyline.cur{color:var(--accent);font-weight:700;font-size:16.5px;}
+.lis-lyr .lyline{transition:color .25s,font-size .25s,opacity .25s;}
+.lis-lyr .lyline.near{color:var(--text);opacity:.75;}
 .lis-lyr .lyempty{color:var(--sub);font-size:13.5px;margin-top:40px;line-height:1.9;}
 /* 悬浮卡片（可拖动，加大） */
 #lisFloat{width:268px;padding:14px 15px 13px;border-radius:20px;}
@@ -2505,6 +2507,7 @@ function yzPhTick(){
         if(D.ph.him<=0){ D.ph.him=0; D.ph.himPower=false; D.ph.himCharging=false; break; }
       }
     }
+    try{ yzDaifuTick(dt); }catch(e){} /* 代付累计计时 */
     save();
     try{ yzPhStatusIcon(); }catch(e){}
     if($('#phony') && $('#phony').classList.contains('active') && !D.phFavOpen){ try{ yzPhRender(); }catch(e){} }
@@ -4027,16 +4030,22 @@ function himAskMePay(){
 }
 function startShopLoop(){
   if(shopTimer)clearInterval(shopTimer);
-  const gap=Math.max(1,(D.daifuGap||20))*60000;
-  const first=Math.max(60000, Math.round(gap/4)); /* 首次预热：约 1/4 间隔，最少 1 分钟 */
-  var _tick=function(){
-    const r=parseFloat(D.daifuRate);
-    if(isNaN(r))return;
-    if(Math.random()*100<r)himAskMePay();
-  };
-  shopTimer=setInterval(_tick,gap);
-  /* 预热一次 */
-  setTimeout(function(){ try{_tick();}catch(e){} }, first);
+  if(D.daifuLastTs===undefined)D.daifuLastTs=Date.now();
+  /* 代付：改为“累计式计时”（与电量一致）：进网站才累加，不在线不计；
+     由 yzPhTick 每秒把 dt 累加到 D.daifuAcc，够 daifuGap 就检查一次概率 */
+}
+function yzDaifuTick(dt){
+  try{
+    if(document.hidden)return;
+    if(dt<0)dt=0; if(dt>300000)dt=300000;
+    D.daifuAcc=(D.daifuAcc||0)+dt;
+    const gap=Math.max(1,parseFloat(D.daifuGap)||20)*60000;
+    while(D.daifuAcc>=gap){
+      D.daifuAcc-=gap;
+      const r=parseFloat(D.daifuRate);
+      if(!isNaN(r) && Math.random()*100<r){ try{ himAskMePay(); }catch(e){} }
+    }
+  }catch(e){}
 }
 /* ===== 日记 ===== */
 let diaryFilter='all';
@@ -5207,6 +5216,7 @@ function yzRenderLyric(cur){
   // 第三方歌词接口（lrc 文本）
   h+='<div id="lisLyricBody"><div class="lyempty" style="margin-top:20px">歌词加载中…</div></div>';
   box.innerHTML=h;
+  try{ yzBindLyricScroll(); }catch(e){}
   yzFetchLyric(title,by);
 }
 function yzExtractLrc(payload){
@@ -5281,6 +5291,25 @@ function yzSetLyricText(txt){
   }
   yzSyncFloatLyric();
 }
+var _yzLyrHoldUntil=0, _yzLyrProg=false, _yzLyrProgT=null;
+function yzBindLyricScroll(){
+  var box=document.getElementById('lisLyric'); if(!box||box._lyrBound)return; box._lyrBound=true;
+  box.addEventListener('scroll',function(){
+    if(_yzLyrProg)return; /* 程序滚动不算用户滚动 */
+    _yzLyrHoldUntil=Date.now()+3000;
+  },{passive:true});
+}
+function yzScrollLyricTo(nx){
+  try{
+    var box=document.getElementById('lisLyric'); if(!box||!nx)return;
+    if(Date.now()<_yzLyrHoldUntil)return; /* 用户刚滚过，等满 3 秒 */
+    var target = nx.offsetTop - (box.clientHeight/2) + (nx.clientHeight/2);
+    _yzLyrProg=true;
+    box.scrollTo({top:target,behavior:'smooth'});
+    if(_yzLyrProgT)clearTimeout(_yzLyrProgT);
+    _yzLyrProgT=setTimeout(function(){_yzLyrProg=false;},700);
+  }catch(e){}
+}
 function yzSyncFloatLyric(){
   var el=document.getElementById('lisFloatLyric'); if(!el)return;
   var arr=window.__lisLyric||[];
@@ -5297,7 +5326,7 @@ function yzSyncFloatLyric(){
     var body=document.getElementById('lisLyricBody');
     if(body){
       var old=body.querySelector('.lyline.cur'); if(old)old.classList.remove('cur');
-      var nx=body.querySelector('.lyline[data-i="'+cur+'"]'); if(nx){ nx.classList.add('cur'); try{ var _rt=body.getBoundingClientRect(),_nt=nx.getBoundingClientRect(); body.scrollTop += (_nt.top-_rt.top) - body.clientHeight/2 + nx.clientHeight/2; }catch(_){} }
+      var nx=body.querySelector('.lyline[data-i="'+cur+'"]'); if(nx){ nx.classList.add('cur'); try{ yzScrollLyricTo(nx); }catch(_){} }
     }
   }catch(e){}
 }
