@@ -2904,6 +2904,18 @@ function setTyping(on){
 function markRead(){
   D.msgs.forEach(m=>{if(m.from==='me'&&m._t)m._read=true;});
 }
+function yzReadChatSettingsLive(){
+  try{
+    function rd(id,key,min,max){ var el=document.getElementById(id); if(!el)return; var v=String(el.value).trim(); if(v==='')return; var n=parseFloat(v); if(!isFinite(n))return; if(min!=null)n=Math.max(min,n); if(max!=null)n=Math.min(max,n); D[key]=n; }
+    rd('setDelay','delay',0);
+    rd('setSendGap','sendGap',0);
+    rd('setMin','sendMin',1);
+    rd('setMax','sendMax',1);
+    rd('setQuoteRate','quoteRate',0,100);
+    rd('setPackRate','packRate',0,100);
+    rd('setAskDelay','askDelay',0);
+  }catch(e){}
+}
 function replyDelayMs(){const d=parseFloat(D.delay);return (isFinite(d)&&d>=0?d:1.2)*1000;}
 function sendGapMs(){const d=parseFloat(D.sendGap!=null?D.sendGap:D.delay);return (isFinite(d)&&d>=0?d:(parseFloat(D.delay)||1.2))*1000;}
 function nextCount(){
@@ -2995,6 +3007,7 @@ function pickMultiCards(){
 }
 function respond(){
   // 实时读设置框，避免 D.delay 被 fillSettings 旧值覆盖导致时长不符
+  try{ yzReadChatSettingsLive(); }catch(e){}
   var el=$('#setDelay');
   if(el&&String(el.value).trim()!==''){D.delay=parseFloat(el.value);}
   var gas=$('#setSendGap');
@@ -3091,36 +3104,54 @@ function quoteBrief(m){
   return String(m.text||'').slice(0,60);
 }
 function himSay(){ himSayFor(null); }
-function himSayMain(who){
+function himSayMain(who,opt){
   /* 只发主字卡（含连发、引用、拼字卡），不追发表情包/颜文字 */
+  /* opt: {push:fn, msgs:arr, cid:str} —— 不传时走主聊天 */
+  var _p=(opt&&opt.push)?opt.push:push;
+  var _msgs=(opt&&opt.msgs)?opt.msgs:D.msgs;
+  var _cid=(opt&&opt.cid)?opt.cid:(who||null);
   var _txt;
-  if(who){ _txt=pickMultiCardsFor(who); }
+  if(_cid){ _txt=pickMultiCardsFor(_cid); }
   else { _txt=pickMultiCards(); }
   var msg={from:'him',text:_txt,type:'text',_t:clockStr()};
   var qr=parseFloat(D.quoteRate);
   if(!isNaN(qr)&&qr>0&&Math.random()*100<qr){
-    var qi=pickQuoteRef();
-    if(qi!==null&&D.msgs[qi]){
-      msg.quote={i:qi,brief:quoteBrief(D.msgs[qi]),type:D.msgs[qi].type||'text',src:D.msgs[qi].type==='img'?(D.msgs[qi].src||''):''};
+    var qi=(opt?pickQuoteRefFrom(_msgs):pickQuoteRef());
+    if(qi!==null&&_msgs[qi]){
+      msg.quote={i:qi,brief:quoteBrief(_msgs[qi]),type:_msgs[qi].type||'text',src:_msgs[qi].type==='img'?(_msgs[qi].src||''):''};
     }
   }
   if(who)msg.who=who;
-  push(msg);
+  _p(msg);
 }
-function himSayFor(who){
+function pickQuoteRefFrom(arr){
+  var N=10; var start=Math.max(0,(arr||[]).length-N); var pool=[];
+  for(var i=start;i<(arr||[]).length;i++){
+    var m=arr[i]; if(!m)continue;
+    if(m.type==='sys')continue;
+    if(m.from!=='me')continue;
+    if(m.type==='img'||m.type==='pat'||m.type==='ask'||m.type==='transfer'){pool.push(i);continue;}
+    if(m.type==='text'&&m.text&&String(m.text).trim()){pool.push(i);continue;}
+  }
+  if(!pool.length)return null;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function himSayFor(who,opt){
   /* 其他场景（主动消息/群聊等）：先主字卡，再最多追一条表情包或颜文字 */
-  himSayMain(who);
+  himSayMain(who,opt);
+  var _p=(opt&&opt.push)?opt.push:push;
+  var _cid=(opt&&opt.cid)?opt.cid:(who||null);
   var picked=false;
   var pr=parseFloat(D.packRate)||0;
   if(pr>0&&(D.packs||[]).length&&Math.random()*100<pr){
     var p=D.packs[Math.floor(Math.random()*D.packs.length)];
-    (function(P){setTimeout(function(){var m={from:'him',type:'img',src:P,_t:clockStr()};if(who)m.who=who;push(m);},700+Math.random()*600);})(p);
+    (function(P){setTimeout(function(){var m={from:'him',type:'img',src:P,_t:clockStr()};if(who)m.who=who;_p(m);},700+Math.random()*600);})(p);
     picked=true;
   }
   if(!picked){
-    var id=who||(typeof yzCurKaoCharId==='function'?yzCurKaoCharId():'');
+    var id=_cid||(typeof yzCurKaoCharId==='function'?yzCurKaoCharId():'');
     var km=(typeof yzMaybeKaomojiFor==='function')?yzMaybeKaomojiFor(id):'';
-    if(km){ setTimeout(function(){ var m={from:'him',text:km,type:'text',_t:clockStr()}; if(who)m.who=who; push(m); },600+Math.random()*500); }
+    if(km){ setTimeout(function(){ var m={from:'him',text:km,type:'text',_t:clockStr()}; if(who)m.who=who; _p(m); },600+Math.random()*500); }
   }
 }
 
@@ -5468,16 +5499,38 @@ function gmkPush(from,text,type,src){
   try{save();}catch(e){}
   if($('#gomoku')&&$('#gomoku').classList.contains('active'))gmkChatRender();
 }
-function gmkReplyLater(){
-  /* 延迟完全按设置里的「字卡回复间隔」D.delay（秒），与主聊天一致 */
-  var dms=1200;
-  try{ dms=(typeof replyDelayMs==='function')?replyDelayMs():((parseFloat(D.delay)||1.2)*1000); }catch(e){ dms=(parseFloat(D.delay)||1.2)*1000; }
-  if(!(dms>=0))dms=1200;
-  setTimeout(function(){
-    var t=gmkCard(); if(!t){try{t=pickCard();}catch(e){}} if(!t)t='（继续下棋吧）';
-    gmkPush('him',t);
-  },dms);
+function gmkOpt(){
+  return { push:function(m){ gmkPush(m.from||'him', m.text||'', m.type||'text', m.src||''); },
+           msgs:(D.gmkMsgs||[]), cid:_gmk.cid };
 }
+function gmkReplyLater(){
+  /* 五子棋聊天：完全按设置里的聊天参数走（间隔/连发/拼字卡/引用/表情包/颜文字） */
+  try{ yzReadChatSettingsLive(); }catch(e){}
+  var opt=gmkOpt();
+  var delay=(typeof replyDelayMs==='function')?replyDelayMs():((parseFloat(D.delay)||1.2)*1000);
+  if(!(delay>=0))delay=1200;
+  var maxN=Math.max(1,parseInt(D.sendMax)||1);
+  var n=(typeof nextCount==='function')?nextCount():1;
+  if(n>maxN)n=maxN;
+  var gap=(typeof sendGapMs==='function')?sendGapMs():delay;
+  setTimeout(function(){
+    himSayMain(_gmk.cid,opt);
+    for(var i=1;i<n;i++){
+      (function(k){ setTimeout(function(){ himSayMain(_gmk.cid,opt); },gap*k); })(i);
+    }
+    /* 剩余坑：最多再给 1 条表情包、1 条颜文字 */
+    var left=maxN-n;
+    if(left>0){
+      var idx=0;
+      var hitPack=(parseFloat(D.packRate)||0)>0 && (D.packs||[]).length && Math.random()*100<(parseFloat(D.packRate)||0);
+      var _km=(typeof yzMaybeKaomojiFor==='function')?yzMaybeKaomojiFor(_gmk.cid):'';
+      var hitKm=!!_km;
+      if(hitPack){ idx++; var _pp=D.packs[Math.floor(Math.random()*D.packs.length)]; (function(P){setTimeout(function(){ gmkPush('him','','img',P); },gap*(n+idx-1));})(_pp); }
+      if(hitKm && (left-idx)>0){ idx++; (function(K){setTimeout(function(){ gmkPush('him',K,'text',''); },gap*(n+idx-1));})(_km); }
+    }
+  },delay);
+}
+
 function gmkSend(){
   var i=$('#gmkInput'); if(!i)return;
   var v=(i.value||'').trim(); if(!v)return;
