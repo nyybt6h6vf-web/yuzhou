@@ -448,6 +448,17 @@ body{
 .ttt-cell .ttt-mk.o{color:#7f9cc4;}
 .ttt-cell.last .ttt-mk{animation:tttPop .22s ease;}
 @keyframes tttPop{0%{transform:scale(.4);opacity:.3;}100%{transform:scale(1);opacity:1;}}
+
+/* 重来一局请求卡片 */
+.rst-card{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.94);background:#fff;border-radius:20px;padding:22px 24px 20px;box-shadow:0 16px 48px rgba(20,26,40,.3);z-index:12000;width:min(78vw,320px);text-align:center;opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;}
+[data-theme="dark"] .rst-card{background:#26262a;}
+.rst-card.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1);}
+.rst-card .rst-x{position:absolute;top:10px;right:14px;font-size:20px;color:#9aa0ad;cursor:pointer;line-height:1;display:none;}
+.rst-card .rst-x.show{display:block;}
+.rst-card .rst-t{font-size:15px;font-weight:600;color:var(--text);line-height:1.5;}
+.rst-card .rst-spin{margin:14px auto 2px;width:26px;height:26px;border-radius:50%;border:3px solid rgba(133,158,203,.25);border-top-color:var(--accent,#859ecb);animation:rstSpin .8s linear infinite;}
+@keyframes rstSpin{to{transform:rotate(360deg);}}
+.rst-card .rst-res{font-size:17px;font-weight:700;color:var(--accent,#859ecb);margin-top:6px;}
 .gmk-over{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(20,26,40,.66);display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:500;}
 .gmk-over.show{display:flex;}
 .gmk-over .go-t{color:#fff;font-size:19px;font-weight:700;letter-spacing:1px;}
@@ -1234,7 +1245,7 @@ body{
 <div id="lisFloat"><div class="lfx" onclick="hideLisFloat()">✕</div><div class="lfgrip" id="lisGrip"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M9 6h.01"/><path d="M15 6h.01"/><path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M9 18h.01"/><path d="M15 18h.01"/></svg></div><div class="lfm" id="lisFloatJump" onclick="yzLisFloatJump()"><div class="lft" id="lisFloatT">一起听</div><div class="lfb" id="lisFloatB"></div></div><button class="lfmode" id="lisFloatMode" onclick="yzCycleModeQuick()"><svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></button><button class="lfbtn" onclick="prevSong()"><svg viewBox="0 0 24 24"><path d="M19 20 9 12l10-8v16z"/><path d="M5 19V5"/></svg></button><button class="lfbtn main" id="lisFloatPlay" onclick="yzTogglePlay()"><svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg></button><button class="lfbtn" onclick="nextSong()"><svg viewBox="0 0 24 24"><path d="M5 4l10 8-10 8V4z"/><path d="M19 5v14"/></svg></button></div>
   <div class="screen" id="gomoku">
     <div class="statusbar apple" id="gmkBar"><span id="gmkTimeTop">9:41</span><span class="right">100%</span></div>
-    <div class="navbar"><div class="back" onclick="gmkLeave()">‹</div><div class="title">五子棋</div><div class="actbtn" onclick="gmkChangeChar()">更换梦角</div></div>
+    <div class="navbar"><div class="back" onclick="gmkLeave()">‹</div><div class="title">五子棋</div><div class="actbtn" onclick="gmkChangeChar()">更换梦角</div><div class="actbtn" style="margin-left:6px;background:#9db2d6" onclick="rstAsk('gmk')">重来一局</div></div>
     <div class="gmk-tops">
       <div class="gmk-player" id="gmkPYou">
         <div class="gp-av" id="gmkPYouAv">TA</div>
@@ -1268,7 +1279,7 @@ body{
   <div class="sheet" id="gmkPickSheet" onclick="if(event.target===this)closeSheet2('gmkPickSheet')"><div class="gmk-pickbox"><div class="gmk-picktitle">选择梦角</div><div class="gmk-picklist" id="gmkPickList"></div><div class="gmk-pickcancel" onclick="closeSheet2('gmkPickSheet')">取消</div></div></div>
   <div class="screen" id="ttt">
     <div class="statusbar apple" id="tttBar"><span id="tttTimeTop">9:41</span><span class="right">100%</span></div>
-    <div class="navbar"><div class="back" onclick="tttLeave()">‹</div><div class="title">井字棋</div><div class="actbtn" onclick="tttChangeChar()">更换梦角</div></div>
+    <div class="navbar"><div class="back" onclick="tttLeave()">‹</div><div class="title">井字棋</div><div class="actbtn" onclick="tttChangeChar()">更换梦角</div><div class="actbtn" style="margin-left:6px;background:#9db2d6" onclick="rstAsk('ttt')">重来一局</div></div>
     <div class="gmk-tops">
       <div class="gmk-player" id="tttPYou">
         <div class="gp-av" id="tttPYouAv">TA</div>
@@ -5722,6 +5733,52 @@ function renderGomoku(){
   if(_gmk.over){ var ov=$('#gmkOver');if(ov)ov.classList.add('show'); }
 }
 
+/* ===== 重来一局请求（五子棋/井字棋共用） ===== */
+var _rstRole='';
+function rstEnsure(){
+  var el=document.getElementById('rstCard');
+  if(!el){
+    el=document.createElement('div'); el.id='rstCard'; el.className='rst-card';
+    el.innerHTML='<div class="rst-x" id="rstX" onclick="rstClose()">×</div><div class="rst-t" id="rstT"></div><div class="rst-spin" id="rstSpin"></div><div class="rst-res" id="rstRes" style="display:none"></div>';
+    document.body.appendChild(el);
+  }
+  return el;
+}
+function rstShow(){
+  var el=rstEnsure();
+  el.classList.add('show');
+  setTimeout(function(){ var o=document.getElementById('rstCard'); if(o)o.classList.add('show'); },40);
+}
+function rstClose(){
+  var el=document.getElementById('rstCard'); if(el)el.classList.remove('show');
+}
+function rstAsk(role){
+  _rstRole=role||'gmk';
+  try{ clearTimeout(window.__rstT1); clearTimeout(window.__rstT2); }catch(e){}
+  var el=rstEnsure();
+  var t=document.getElementById('rstT'), sp=document.getElementById('rstSpin'), res=document.getElementById('rstRes'), x=document.getElementById('rstX');
+  if(t)t.textContent='正在向梦角发起“重来一局”请求';
+  if(sp)sp.style.display='block';
+  if(res){res.style.display='none';res.textContent='';}
+  if(x)x.classList.remove('show');
+  rstShow();
+  window.__rstT1=setTimeout(function(){
+    var ok=Math.random()<0.5;
+    var sp2=document.getElementById('rstSpin'); if(sp2)sp2.style.display='none';
+    var res2=document.getElementById('rstRes');
+    if(ok){
+      if(res2){ res2.style.display='block'; res2.style.color='var(--accent,#859ecb)'; res2.textContent='梦角已同意'; }
+      window.__rstT2=setTimeout(function(){
+        rstClose();
+        try{ if(_rstRole==='ttt'){ tttRestart(); } else { gmkRestart(); } }catch(e){}
+      },800);
+    } else {
+      if(res2){ res2.style.display='block'; res2.style.color='#c07070'; res2.textContent='梦角不同意'; }
+      var x2=document.getElementById('rstX'); if(x2)x2.classList.add('show');
+    }
+  },1500+Math.floor(Math.random()*1500));
+}
+
 /* ===== 井字棋 ===== */
 var _ttt={board:[],turn:0,mode:'easy',over:false,busy:false,started:false,flipping:false,cid:'',last:-1,meMark:'O',youMark:'X',winLine:null,chatTimer:null};
 var TTT_LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
@@ -5820,8 +5877,9 @@ function tttAIMove(){
   else if(_ttt.mode==='hard'){ pick=tttHardMove(bd); }
   else { pick=tttEasyMove(bd); }
   if(pick<0){ _ttt.busy=false; return; }
-  tttPlace(pick, 'X');
+  var ended=tttPlace(pick, 'X');
   _ttt.busy=false;
+  if(!ended){ _ttt.turn=1; tttRenderPlayers(); tttStatus('轮到你了'); }
 }
 function tttAISchedule(){ var d=3000+Math.floor(Math.random()*3000); setTimeout(tttAIMove,d); }
 
