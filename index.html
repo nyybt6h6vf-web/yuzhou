@@ -3218,6 +3218,8 @@ function quoteBrief(m){
 }
 function himSay(){ himSayFor(null); }
 function himSayMain(who,opt){
+  /* 连发（免打扰）模式：梦角一条也不发 */
+  try{ if(D.sendHold) return; }catch(e){}
   /* 只发主字卡（含连发、引用、拼字卡），不追发表情包/颜文字 */
   /* opt: {push:fn, msgs:arr, cid:str} —— 不传时走主聊天 */
   var _p=(opt&&opt.push)?opt.push:push;
@@ -3250,6 +3252,8 @@ function pickQuoteRefFrom(arr){
   return pool[Math.floor(Math.random()*pool.length)];
 }
 function himSayFor(who,opt){
+  /* 连发（免打扰）模式：梦角一条也不发 */
+  try{ if(D.sendHold) return; }catch(e){}
   /* 其他场景（主动消息/群聊等）：先主字卡，再最多追一条表情包或颜文字 */
   himSayMain(who,opt);
   var _p=(opt&&opt.push)?opt.push:push;
@@ -3269,6 +3273,7 @@ function himSayFor(who,opt){
 }
 
 function himPat(){
+  try{ if(D.sendHold) return; }catch(e){}
   const ps=(D.pats||[]);
   if(!ps.length){himSay();return;}
   const t=ps[Math.floor(Math.random()*ps.length)];
@@ -3651,7 +3656,8 @@ function sendPackFromChat(i){
   const p=(D.packs||[])[i];if(!p)return;
   closePackSheet();
   push({from:'me',type:'img',src:p});
-  setTimeout(himSay,Math.max(300,(D.delay||1.2)*1000));
+  if(D.sendHold) return;
+  setTimeout(function(){ if(!D.sendHold) himSay(); },Math.max(300,(D.delay||1.2)*1000));
 }
 function openSheet2(id){const s=$('#'+id);if(s)s.classList.add('show');}
 function closeSheet2(id){const s=$('#'+id);if(s)s.classList.remove('show');}
