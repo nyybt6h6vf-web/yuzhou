@@ -5304,7 +5304,15 @@ function toEmbed(url){
 function renderListenPlayer(cur){
   const au=$('#lisAudio'),fb=$('#lisFrameBox');
   const url=cur&&cur.url?cur.url:'';
-  if(au){au.style.display='none';au.removeAttribute('src');}
+  /* 若这首歌已经在播/正当前，不重载（避免暂停+归零） */
+  try{
+    if(au && au.src && url && au._curUrl===url && !au.ended){
+      au.style.display='';
+      if(fb){fb.style.display='none';fb.innerHTML='';}
+      return;
+    }
+  }catch(e){}
+  if(au){au._curUrl=url;au.style.display='none';au.removeAttribute('src');}
   if(!fb){return;}
   if(!url){fb.style.display='none';fb.innerHTML='';return;}
   const emb=toEmbed(url);
