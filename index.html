@@ -5469,13 +5469,14 @@ function gmkPush(from,text,type,src){
   if($('#gomoku')&&$('#gomoku').classList.contains('active'))gmkChatRender();
 }
 function gmkReplyLater(){
-  var r=(D.replyRate===undefined?100:D.replyRate);
-  if(Math.random()*100<r){
-    setTimeout(function(){
-      var t=gmkCard(); if(!t){try{t=pickCard();}catch(e){}} if(!t)t='（继续下棋吧）';
-      gmkPush('him',t);
-    },700+Math.random()*900);
-  }
+  /* 延迟完全按设置里的「字卡回复间隔」D.delay（秒），与主聊天一致 */
+  var dms=1200;
+  try{ dms=(typeof replyDelayMs==='function')?replyDelayMs():((parseFloat(D.delay)||1.2)*1000); }catch(e){ dms=(parseFloat(D.delay)||1.2)*1000; }
+  if(!(dms>=0))dms=1200;
+  setTimeout(function(){
+    var t=gmkCard(); if(!t){try{t=pickCard();}catch(e){}} if(!t)t='（继续下棋吧）';
+    gmkPush('him',t);
+  },dms);
 }
 function gmkSend(){
   var i=$('#gmkInput'); if(!i)return;
