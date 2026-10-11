@@ -3017,10 +3017,29 @@ function pickCard(){
 
 
 /* ============ 测一测（连接深度） ============ */
-var _fpTimer=null,_fpPress=null,_fpMine=false,_fpYours=false,_fpCdTimer=null,_fpCd2Timer=null,_fpApproached=false;
-function yzFpHistoryLabel(lvl,label){
-  var t=new Date();var hh=t.getHours();var mm=t.getMinutes();
-  return (hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm+'  '+label;
+var _fpTimer=null,_fpPress=null,_fpMine=false,_fpYours=false,_fpCdTimer=null,_fpCd2Timer=null,_fpApproached=false,_fpCoolTimer=null,_fpWaitTimer=null;
+/* 加权档位：1-30每数2%，31-50每数5%，51-70每数10%，71-85每数20%，86-100每数35% */
+function yzFpDraw(){
+  var bands=[
+    {lo:1,hi:30,w:2,lvl:1,label:'连接不稳',desc:'此时你们的连接不稳，请稍后再试，多多增进感情吧～'},
+    {lo:31,hi:50,w:5,lvl:2,label:'初度连接',desc:'你们还在慢慢靠近彼此，多聊聊就好了。'},
+    {lo:51,hi:70,w:10,lvl:3,label:'连接较稳',desc:'你们的连接较稳，继续加油哦。'},
+    {lo:71,hi:85,w:20,lvl:4,label:'连接较深',desc:'你们的连接较深哦。'},
+    {lo:86,hi:100,w:35,lvl:5,label:'心有灵犀',desc:'你们真是心有灵犀的一对！'}
+  ];
+  var total=0,items=[];
+  bands.forEach(function(b){ for(var n=b.lo;n<=b.hi;n++){ items.push({n:n,b:b}); total+=b.w; } });
+  var r=Math.random()*total,acc=0;
+  for(var k=0;k<items.length;k++){ acc+=items[k].b.w; if(r<acc) return items[k]; }
+  return items[items.length-1];
+}
+function yzFpFmtTime(){
+  var t=new Date();
+  var wd=['日','一','二','三','四','五','六'][t.getDay()];
+  var hh=t.getHours(), mm=t.getMinutes();
+  var ap=hh<12?'上午':'下午';
+  var h12=hh%12; if(h12===0)h12=12;
+  return t.getFullYear()+'年'+(t.getMonth()+1)+'月'+t.getDate()+'日 '+ap+h12+':'+(mm<10?'0':'')+mm;
 }
 function yzCurCharName(){
   try{
@@ -3042,10 +3061,12 @@ function yzCurCharId(){
 function yzFpRenderHistory(){
   try{
     var box=document.getElementById('fHist');if(!box)return;
-    var hs=(D.fpHistory||[]).slice(-4).reverse();
+    var hs=(D.fpHistory||[]).slice(-2).reverse();
     if(!hs.length){box.innerHTML='';return;}
     var html='最近：';
-    hs.forEach(function(h,i){html+=(i>0?' · ':'')+'<b>'+esc(h.label||'')+'</b> '+esc(h.time||'');});
+    hs.forEach(function(h,i){
+      html+=(i>0?'<br>':'')+(h.pct!=null?(h.pct+'%'):'')+' '+esc(h.label||'')+' '+esc(h.time||'');
+    });
     box.innerHTML=html;
   }catch(e){}
 }
@@ -3073,9 +3094,25 @@ function yzFpCd(el,sec,prefix){
   }
   step();
 }
+function yzFpCooldownLeft(){
+  try{var last=D.fpLastTs||0;var left=120000-(Date.now()-last);return left>0?left:0;}catch(e){return 0;}
+}
+function yzFpShowCooldown(){
+  var left=yzFpCooldownLeft();
+  var st=$('#fStat');
+  if(left>0){
+    st.textContent='冷却中，请等待 '+Math.ceil(left/1000)+' 秒后再试';
+    if(!_fpCoolTimer){ _fpCoolTimer=setInterval(function(){
+      var l=yzFpCooldownLeft();
+      if(l<=0){ clearInterval(_fpCoolTimer);_fpCoolTimer=null; var st2=$('#fStat');if(st2)st2.textContent='长按右边指纹 3 秒'; }
+      else{ var st3=$('#fStat');if(st3)st3.textContent='冷却中，请等待 '+Math.ceil(l/1000)+' 秒后再试'; }
+    },1000); }
+  }
+}
 function openFingerTest(){
   _fpMine=false;_fpYours=false;_fpApproached=false;
   var s=$('#fingerSheet');if(!s)return;
+  if(_fpWaitTimer){clearTimeout(_fpWaitTimer);_fpWaitTimer=null;}
   var youName=yzCurCharName();
   if($('#fpYouName'))$('#fpYouName').textContent=youName;
   if($('#fpMeName'))$('#fpMeName').textContent=(D.myNick||'我');
@@ -3084,57 +3121,71 @@ function openFingerTest(){
   if(eu){eu.textContent='';eu.classList.remove('on');}
   if(em){em.textContent='';em.classList.remove('on');}
   var rd=document.getElementById('fpRow');if(rd)rd.classList.remove('approach');
-  /* 冷却检测 */
-  var cdLeft=yzFpCooldownLeft();
-  if(cdLeft>0){
-    $('#fStat').textContent='冷却中，请等待 '+Math.ceil(cdLeft/1000)+' 秒后再试';
-    yzFpRenderHistory();
-    s.classList.add('show');
-    return;
-  }
-  $('#fStat').textContent='长按右边指纹 3 秒';
   yzFpRenderHistory();
   s.classList.add('show');
+  /* 冷却检测：冷却中不挂长按监听，冷却完后自动挂上 */
+  if(yzFpCooldownLeft()>0){ yzFpShowCooldown(); yzFpAutoBindAfterCooldown(); return; }
+  yzFpBind();
+}
+function yzFpAutoBindAfterCooldown(){
+  if(_fpCoolTimer)return;
+  _fpCoolTimer=setInterval(function(){
+    var l=yzFpCooldownLeft();
+    var s=document.getElementById('fingerSheet');
+    if(l<=0){ clearInterval(_fpCoolTimer);_fpCoolTimer=null;
+      if(s&&s.classList.contains('show')){ var st=$('#fStat');if(st)st.textContent='长按右边指纹 3 秒'; yzFpBind(); }
+    }
+  },1000);
+}
+function yzFpBind(){
+  if(_fpMine)return;
+  $('#fStat').textContent='长按右边指纹 3 秒';
+  var em=$('#fcdMe');
   var me=$('#fpMe');
-  function start(){ if(_fpMine)return; _fpPress=Date.now(); if(_fpCdTimer)clearTimeout(_fpCdTimer);
+  function start(e){ if(_fpMine)return; if(yzFpCooldownLeft()>0){ yzFpShowCooldown(); return; }
+    _fpPress=Date.now(); if(_fpCdTimer)clearTimeout(_fpCdTimer);
     yzFpCd(em,3,'');
     $('#fStat').textContent='按住中…不要松手'; }
   function cancelCd(){ if(_fpCdTimer){clearTimeout(_fpCdTimer);_fpCdTimer=null;} if(em){em.textContent='';em.classList.remove('on');} }
-  function end(){ if(_fpMine)return; if(!_fpPress)return; var d=Date.now()-_fpPress; _fpPress=null;
-    if(d>=2800){ _fpMine=true; cancelCd(); $('#fpMe').classList.add('done'); $('#fStat').textContent='等待 '+youName+' 按指纹……';
-      setTimeout(function(){ yzFpCd(eu,3,'');
-        setTimeout(function(){ _fpYours=true; if(eu){eu.textContent='';eu.classList.remove('on');} $('#fpYou').classList.add('done');
-          /* 靠近动画 + 计算中 */
+  function end(e){ if(_fpMine)return; if(!_fpPress)return; var d=Date.now()-_fpPress; _fpPress=null;
+    if(d>=2800){ _fpMine=true; cancelCd(); $('#fpMe').classList.add('done');
+      $('#fStat').textContent='等待梦角按指纹中……';
+      /* 梦角按指纹，固定 5 秒，不可自定义 */
+      var eu2=$('#fcdYou');
+      yzFpCd(eu2,5,'');
+      _fpWaitTimer=setTimeout(function(){
+        _fpYours=true; if(eu2){eu2.textContent='';eu2.classList.remove('on');}
+        $('#fpYou').classList.add('done');
+        $('#fStat').textContent='TA已经按好指纹啦～';
+        setTimeout(function(){
+          $('#fStat').textContent='现在进行连接深度测试';
           var rd2=document.getElementById('fpRow');if(rd2)rd2.classList.add('approach');
-          $('#fStat').textContent='提示：连接深度正在计算中……';
-          setTimeout(runFingerResult,1800); },3200); },1200);
+          setTimeout(function(){
+            $('#fStat').textContent='提示：连接深度正在计算中……';
+            setTimeout(runFingerResult,1800);
+          },1400);
+        },900);
+      },5000);
     } else { cancelCd(); $('#fStat').textContent='要按满 3 秒哦，再试一次'; }
   }
-  me.onmousedown=start; me.ontouchstart=function(e){e.preventDefault();start();};
-  me.onmouseup=end; me.ontouchend=function(e){e.preventDefault();end();};
-  me.onmouseleave=function(){ if(!_fpMine)end(); };
+  me.onmousedown=start; me.ontouchstart=function(e){e.preventDefault();start(e);};
+  me.onmouseup=end; me.ontouchend=function(e){e.preventDefault();end(e);};
+  me.onmouseleave=function(e){ if(!_fpMine)end(e); };
 }
-function yzFpCooldownLeft(){
-  try{var last=D.fpLastTs||0;var left=120000-(Date.now()-last);return left>0?left:0;}catch(e){return 0;}
-}
+function closeFingerTest(){ var s=$('#fingerSheet');if(s)s.classList.remove('show'); _fpPress=null;
+  if(_fpCdTimer){clearTimeout(_fpCdTimer);_fpCdTimer=null;}
+  if(_fpCoolTimer){clearInterval(_fpCoolTimer);_fpCoolTimer=null;}
+  if(_fpWaitTimer){clearTimeout(_fpWaitTimer);_fpWaitTimer=null;}
+  var eu=$('#fcdYou'),em=$('#fcdMe');if(eu){eu.textContent='';eu.classList.remove('on');}if(em){em.textContent='';em.classList.remove('on');}
+  var rd=document.getElementById('fpRow');if(rd)rd.classList.remove('approach'); }
 function closeFingerTest(){ var s=$('#fingerSheet');if(s)s.classList.remove('show'); _fpPress=null; if(_fpCdTimer){clearTimeout(_fpCdTimer);_fpCdTimer=null;} var eu=$('#fcdYou'),em=$('#fcdMe');if(eu){eu.textContent='';eu.classList.remove('on');}if(em){em.textContent='';em.classList.remove('on');} var rd=document.getElementById('fpRow');if(rd)rd.classList.remove('approach'); }
 function runFingerResult(){
   var youName=yzCurCharName();
-  var meName=(D.myNick||'我');
-  var hs=(D.fpHistory||[]);
-  var base=50;
-  if(hs.length){var sum=0;hs.slice(-5).forEach(function(h){sum+=(h.lvl||3);});base=(sum/hs.slice(-5).length)*18;}
-  var r=Math.max(0,Math.min(99,base+(Math.random()*60-30)));
-  var lvl,label,desc;
-  if(r<8){lvl=1;label='连接不稳';desc='此时你们的连接不稳，请稍后再试，多多增进感情吧～';}
-  else if(r<24){lvl=2;label='初度连接';desc='你们还在慢慢靠近彼此，多聊聊就好了。';}
-  else if(r<46){lvl=3;label='连接较稳';desc='你们的连接较稳，继续加油哦。';}
-  else if(r<72){lvl=4;label='连接较深';desc='你们的连接较深哦。';}
-  else {lvl=5;label='心有灵犀';desc='你们真是心有灵犀的一对！';}
-  var pct=Math.round(r);
+  var drawn=yzFpDraw();
+  var pct=drawn.n, lvl=drawn.b.lvl, label=drawn.b.label, desc=drawn.b.desc;
   D.fpHistory=D.fpHistory||[];
-  D.fpHistory.push({lvl:lvl,label:label,pct:pct,time:yzFpHistoryLabel(lvl,label)});
-  if(D.fpHistory.length>30)D.fpHistory=D.fpHistory.slice(-30);
+  D.fpHistory.push({lvl:lvl,label:label,pct:pct,time:yzFpFmtTime()});
+  if(D.fpHistory.length>60)D.fpHistory=D.fpHistory.slice(-60);
   D.fpLastTs=Date.now();
   save();
   $('#fStat').textContent='提示：你和「'+youName+'」的连接深度为：'+pct+'%。'+desc;
