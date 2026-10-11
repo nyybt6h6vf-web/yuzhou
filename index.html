@@ -137,6 +137,8 @@ body{
 .msg.me .bubble{background:var(--bubble-me);color:var(--bubble-me-text);border-top-right-radius:6px;}
 .sys{align-self:center;background:rgba(140,145,175,.16);color:var(--sub);font-size:11.5px;border-radius:12px;padding:5px 12px;text-align:center;max-width:80%;}
 .bubble.voice{display:flex;align-items:center;gap:8px;min-width:110px;}
+.vtt{font-size:12.5px;color:var(--sub);margin-top:5px;padding:6px 10px;background:rgba(128,128,128,.12);border-radius:10px;line-height:1.5;white-space:pre-wrap;}
+.lb .vtt,.gb .vtt{margin-top:4px;font-size:12px;opacity:.85;}
 .quotebar{max-width:78%;margin:0 0 4px;padding:7px 10px;border-left:3px solid var(--accent);background:rgba(128,128,128,.13);border-radius:8px;font-size:12px;line-height:1.5;opacity:.85;cursor:pointer;overflow:hidden;}
 .msg.me .quotebar{margin-left:auto;border-left:none;border-right:3px solid var(--accent);text-align:right;}
 .quotebar .qwho{font-weight:600;opacity:.8;margin-right:4px;}
@@ -1549,6 +1551,7 @@ body{
            <textarea id="setTranNotes" placeholder="给你的&#10;拿去买奶茶" oninput="saveTrans()"></textarea>
          </div>
          <div class="row"><div class="lab">发表情包概率（%）（通用）</div><input type="number" id="setPackRate" oninput="saveProfile()" style="max-width:80px"></div>
+         <div class="row"><div class="lab">梦角发语音概率（%）</div><input type="number" id="setVoiceRate" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">主动来电概率（%）</div><input type="number" id="setCall" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">开启消息通知</div><div class="chip" onclick="yzAskNotify()">开启 / 检查</div></div>
         <div class="row"><div class="lab">测试通知</div><div class="chip" onclick="yzTestNotify()">发一条试试</div></div>
@@ -2296,6 +2299,7 @@ if(o.daifuGap===undefined)o.daifuGap=20;
     if(o.packRate===undefined)o.packRate=25;
     o.packRateLis=o.packRate;o.packRateMom=o.packRate;
     if(o.patRate===undefined)o.patRate=15;
+    if(o.voiceRate===undefined)o.voiceRate=0;
     if(o.listenGap===undefined)o.listenGap=2;
     if(o.bubble===undefined)o.bubble='';
     if(o.readOn===undefined)o.readOn=true;
@@ -2336,7 +2340,7 @@ if(o.daifuGap===undefined)o.daifuGap=20;
     pageBg:'',chatBg:'',momBg:'',lockBg:'',lockFg:'',fontColor:'',himFontColor:'',meFontColor:'',bubble:'',bubbleHim:'',bubbleMe:'',heroImg:'',
     readOn:true,typingOn:true,
     lockName:'Yu·Zhou',slogan:'',pass:'',
-    delay:1.2,double:35,tran:50,tranTo:10,packRate:25,callRate:12,patRate:15,momGap:1,
+    delay:1.2,double:35,tran:50,tranTo:10,packRate:25,callRate:12,patRate:15,voiceRate:0,momGap:1,
     noteMe:'',noteHim:'',
     sendMin:1,sendMax:2,
     comboRate:20,comboMin:2,comboMax:3,quoteRate:30,askDelay:15,
@@ -2897,7 +2901,7 @@ function avHTML(who,chId){
   return `<div class="avatarbox"><div class="avatar" style="background:${bg}">${inner}</div></div>`;
 }
 function bubbleHTML(m,i){
-  if(m.type==='voice')return `<div class="bubble voice">${ICONS.mic}<span>${m.sec}″</span></div>`;
+  if(m.type==='voice'){var _vt=m.text?('<div class="vtt">'+esc(m.text)+'</div>'):'';return `<div class="bubble voice">${ICONS.mic}<span>${m.sec}″</span></div>`+_vt;}
   if(m.type==='img')return `<div class="bubble packimg"><img src="${m.src}"></div>`;
   if(m.type==='transfer'){
     const mine=(m.from==='me');
@@ -3262,6 +3266,17 @@ function himSayMain(who,opt){
   var _txt;
   if(_cid){ _txt=pickMultiCardsFor(_cid); }
   else { _txt=pickMultiCards(); }
+  /* 语音消息：按概率把这条文字转成语音（带转文字） */
+  try{
+    var _vr=parseFloat(D.voiceRate)||0;
+    if(_vr>0 && _txt && Math.random()*100<_vr){
+      var _sec=1+Math.floor(Math.random()*15); /* 1~15 秒 */
+      var vmsg={from:'him',type:'voice',sec:_sec,text:_txt,_t:clockStr()};
+      if(who)vmsg.who=who;
+      _p(vmsg);
+      return;
+    }
+  }catch(e){}
   var msg={from:'him',text:_txt,type:'text',_t:clockStr()};
   var qr=parseFloat(D.quoteRate);
   if(!isNaN(qr)&&qr>0&&Math.random()*100<qr){
@@ -4856,7 +4871,7 @@ function renderListen(){
     const av=isMe?D.avatarMe:D.avatarHim;
     const nm=isMe?(D.myNick||'我'):(D.nick||'他');
     const avh=av?`<img src="${av}">`:esc(nm[0]||'');
-    const inner=(m.type==='img')?`<div class="lb lbimg"><img src="${esc(m.src||'')}"></div>`:`<div class="lb">${esc(m.text)}</div>`;
+    const inner=(m.type==='img')?`<div class="lb lbimg"><img src="${esc(m.src||'')}"></div>`:((m.type==='voice')?`<div class="lb voice">🎤 <span>${esc(m.sec||'')}″</span></div>${m.text?('<div class="vtt">'+esc(m.text)+'</div>'):''}`:`<div class="lb">${esc(m.text)}</div>`);
     c.insertAdjacentHTML('beforeend',`<div class="lm ${isMe?'me':''}"><div class="lav">${avh}</div><div>${inner}<div class="lts ${isMe?'ltsme':''}">${esc(m.time||'')}</div></div></div>`);
   });
   if(D.typingOn&&D._ltyping){
@@ -5840,7 +5855,7 @@ function gmkChatRender(){
     var av=isMe?D.avatarMe:gmkCurAvatar();
     var nm=isMe?(D.myNick||'我'):gmkCurName();
     var avh=av?('<img src="'+av+'">'):(((nm||'')[0])||'');
-    var inner=(m.type==='img')?('<div class="gb gimg"><img src="'+String(m.src||'').replace(/"/g,'%22')+'"></div>'):('<div class="gb">'+esc(m.text||'')+'</div>');
+    var inner=(m.type==='img')?('<div class="gb gimg"><img src="'+String(m.src||'').replace(/"/g,'%22')+'"></div>'):((m.type==='voice')?('<div class="gb voice">🎤 <span>'+(m.sec||'')+'″</span></div>'+(m.text?('<div class="vtt">'+esc(m.text)+'</div>'):'')):('<div class="gb">'+esc(m.text||'')+'</div>'));
     c.insertAdjacentHTML('beforeend','<div class="gm '+(isMe?'me':'')+'"><div class="gav">'+avh+'</div><div>'+inner+'</div></div>');
   });
   if(D.typingOn&&_gmk.typing){
@@ -6267,7 +6282,7 @@ function tttChatRender(){
     var av=isMe?D.avatarMe:tttCurAvatar();
     var nm=isMe?(D.myNick||'我'):tttCurName();
     var avh=av?('<img src="'+av+'">'):(((nm||'')[0])||'');
-    var inner=(m.type==='img')?('<div class="gb gimg"><img src="'+String(m.src||'').replace(/"/g,'%22')+'"></div>'):('<div class="gb">'+esc(m.text||'')+'</div>');
+    var inner=(m.type==='img')?('<div class="gb gimg"><img src="'+String(m.src||'').replace(/"/g,'%22')+'"></div>'):((m.type==='voice')?('<div class="gb voice">🎤 <span>'+(m.sec||'')+'″</span></div>'+(m.text?('<div class="vtt">'+esc(m.text)+'</div>'):'')):('<div class="gb">'+esc(m.text||'')+'</div>'));
     c.insertAdjacentHTML('beforeend','<div class="gm '+(isMe?'me':'')+'"><div class="gav">'+avh+'</div><div>'+inner+'</div></div>');
   });
   if(D.typingOn&&_ttt.typing){
@@ -6888,7 +6903,7 @@ function fillSettings(){
   try{yzPreviewBubble();}catch(e){}
   if($('#setDelay'))$('#setDelay').value=D.delay;
   if($('#setSendGap'))$('#setSendGap').value=(D.sendGap!==undefined?D.sendGap:D.delay);
-  $('#setTran').value=D.tran;$('#setCall').value=D.callRate;try{if($('#setPatRate'))$('#setPatRate').value=(D.patRate!==undefined?D.patRate:15);}catch(e){}
+  $('#setTran').value=D.tran;$('#setCall').value=D.callRate;try{if($('#setPatRate'))$('#setPatRate').value=(D.patRate!==undefined?D.patRate:15);}catch(e){}try{if($('#setVoiceRate'))$('#setVoiceRate').value=(D.voiceRate!==undefined?D.voiceRate:0);}catch(e){}
   if($('#setTranTo'))$('#setTranTo').value=D.tranTo;
   if($('#setPackRate'))$('#setPackRate').value=(D.packRate===undefined?25:D.packRate);
   if($('#setFavMsg'))$('#setFavMsg').value=(D.favMsgRate===undefined?30:D.favMsgRate);
@@ -7010,6 +7025,7 @@ function saveProfile(){
   D.delay=parseFloat($('#setDelay').value)||1.2;
   if($('#setSendGap'))D.sendGap=parseFloat($('#setSendGap').value)||1.2;
   D.tran=parseFloat($('#setTran').value)||0;D.callRate=parseFloat($('#setCall').value)||0;
+  if($('#setVoiceRate')&&String($('#setVoiceRate').value).trim()!=='')D.voiceRate=Math.max(0,Math.min(100,parseFloat($('#setVoiceRate').value)||0));
   if($('#setTranTo'))D.tranTo=parseFloat($('#setTranTo').value)||0;
   if($('#setPackRate')){D.packRate=parseFloat($('#setPackRate').value)||0;D.packRateLis=D.packRate;D.packRateMom=D.packRate;}
   if($('#setFavMsg'))D.favMsgRate=parseFloat($('#setFavMsg').value)||0;
