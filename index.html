@@ -1489,148 +1489,141 @@ body{
       <div class="group">
         <h4>美化</h4>
         <div class="row"><div class="lab">网站图标</div><div class="chip" onclick="pickFavicon()">选择图片</div></div>
-        <div class="row"><div class="lab">主题模式</div><div class="seg" id="themeSeg"><div class="segb" data-t="light" onclick="setTheme('light')">浅色</div><div class="segb" data-t="dark" onclick="setTheme('dark')">深色</div></div></div>
-        <div class="row"><div class="lab">主页签名</div><input type="text" id="setSignature" oninput="saveProfile()"></div>
-        <div class="row"><div class="lab">聊天背景</div><div class="chip" onclick="pickChatBg()">选择图片</div></div>
-        <div class="row"><div class="lab">主页照片墙</div><div class="chip" onclick="pickHero()">选择图片</div></div>
-        <div class="row" style="flex-direction:column;align-items:stretch">
-          <div class="lab" style="margin-bottom:8px">气泡CSS（高级）</div>
-          <textarea id="setBubbleCss" placeholder=".bubble{...}" oninput="saveProfile()"></textarea>
+        <div class="row"><div class="lab">主题模式</div>
+          <div class="seg">
+            <div class="chip" id="thLight" onclick="setTheme('light')">浅色</div>
+            <div class="chip" id="thDark" onclick="setTheme('dark')">深色</div>
+          </div>
         </div>
-        <div class="row"><div class="lab">气泡大小（px）</div><input type="number" id="setBubbleSize" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">梦角气泡色</div><div class="chip" data-cid="bubbleHim" onclick="pickColor(this)">选择</div></div>
-        <div class="row"><div class="lab">我方气泡色</div><div class="chip" data-cid="bubbleMe" onclick="pickColor(this)">选择</div></div>
-        <div class="row"><div class="lab">转账卡片色</div><div class="chip" data-cid="transCard" onclick="pickColor(this)">选择</div></div>
-        <div class="row"><div class="lab">转账字色</div><div class="chip" data-cid="fontColor" onclick="pickColor(this)">选择</div></div>
-        <div class="row"><div class="lab">梦角消息字色</div><div class="chip" data-cid="himFontColor" onclick="pickColor(this)">选择</div></div>
-        <div class="row"><div class="lab">我的消息字色</div><div class="chip" data-cid="meFontColor" onclick="pickColor(this)">选择</div></div>
+        <div class="row"><div class="lab">锁屏名称</div><input type="text" id="setLockName" oninput="saveBeauty()" placeholder="留空则不显示"></div>
+<div class="row"><div class="lab">锁屏背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('lockBg')">上传图</div><div class="chip" onclick="setColor('lockBg','')">清</div></div></div>
+<div class="row"><div class="lab">锁屏字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('lockFg','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('lockFg','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setLockFgColor" oninput="setColor('lockFg',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('lockFg','')">清</div></div></div>
+<div class="row"><div class="lab">主页签名</div><input type="text" id="setSlogan" oninput="saveBeauty()" placeholder="头像右侧那行字，留空则不显示"></div>
+<div class="row"><div class="lab">页面背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPageBg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('pageBg')">上传图</div><div class="chip" onclick="setColor('pageBg','')">清</div></div></div>
+<div class="row"><div class="lab">第二页背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPage2Bg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('page2Bg')">上传图</div><div class="chip" onclick="setColor('page2Bg','')">清</div></div></div>
+<div class="row"><div class="lab">聊天背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setChatBg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('chatBg')">上传图</div><div class="chip" onclick="setColor('chatBg','')">清</div></div></div>
+<div class="row"><div class="lab">转账字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('fontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('fontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setFontColorColor" oninput="setColor('fontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fontColor','')">清</div></div></div>
+<div class="row"><div class="lab">梦角气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleHim','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleHim','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleHimColor" oninput="setColor('bubbleHim',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleHim','')">清</div></div></div>
+<div class="row"><div class="lab">我方气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleMe','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleMe','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleMeColor" oninput="setColor('bubbleMe',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleMe','')">清</div></div></div>
+<div class="row"><div class="lab">转账卡片色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setTranColor" oninput="setColor('tranColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('tranColor','')">清</div></div></div>
+<div class="row"><div class="lab">梦角消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('himFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('himFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setHimFontColorColor" oninput="setColor('himFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('himFontColor','')">清</div></div></div>
+<div class="row"><div class="lab">我的消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('meFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('meFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setMeFontColorColor" oninput="setColor('meFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('meFontColor','')">清</div></div></div>
+<div class="row"><div class="lab">气泡大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setBubbleSize" min="80" max="140" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="bubbleSizeVal" style="min-width:38px;text-align:right">100%</span></div></div>
+<div class="row"><div class="lab">聊天字体大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setChatFontSize" min="11" max="22" step="1" value="14" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="chatFontSizeVal" style="min-width:38px;text-align:right">14px</span></div></div>
+<div class="row"><div class="lab">转账卡片大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setTranSize" min="80" max="150" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="tranSizeVal" style="min-width:38px;text-align:right">100%</span></div></div>
+<div class="row"><div class="lab">动态背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setMomBg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('momBg')">上传图</div><div class="chip" onclick="setColor('momBg','')">清</div></div></div>
+        <div class="row" style="flex-direction:column;align-items:stretch">
+          <div class="lab" style="margin-bottom:8px">气泡 CSS（.msg .bubble 通用，写一条两边都生效）</div>
+          <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty();yzPreviewBubble();"></textarea>
+          <div class="lab" style="margin-top:12px;margin-bottom:6px">预览</div>
+          <div id="bubblePreview" style="background:var(--card);border:1px solid var(--sub);border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;gap:10px">
+            <div class="msg him" style="display:flex"><div class="bubble">梦角消息示例</div></div>
+            <div class="msg me" style="display:flex"><div class="bubble">我的消息示例</div></div>
+          </div>
+        </div>
       </div>
-<div class="group">
-        <h4>梦角回复 · 概率</h4>
-        <div class="row"><div class="lab">字卡回复概率（%）</div><input type="number" id="setMainRate" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">发表情包概率（%）</div><input type="number" id="setPackRate" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">梦角发语音概率（%）</div><input type="number" id="setVoiceRate" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">emoji混入主字卡</div><select id="setEmojiMix" onchange="saveProfile()" style="max-width:100px"><option value="0">关</option><option value="1">开</option></select></div>
-        <div class="row"><div class="lab">emoji混入概率（%）</div><input type="number" id="setEmojiMixRate" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">拼字卡触发概率（%）</div><input type="number" id="setComboRate" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">拼字卡最少张数</div><input type="number" id="setComboMin" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">拼字卡最多张数</div><input type="number" id="setComboMax" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">引用回复概率（%）</div><input type="number" id="setQuoteRate" oninput="saveProfile()" style="max-width:80px"></div>
+      <div class="group">
+        <h4>互动概率</h4>
         <div class="row"><div class="lab">字卡回复间隔（秒）</div><input type="number" id="setDelay" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">连发间隔（秒）</div><input type="number" id="setSendGap" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">最少连发条数</div><input type="number" id="setMin" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">最多连发条数</div><input type="number" id="setMax" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">拼字卡触发概率（%）</div><input type="number" id="setComboRate" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">拼字卡最少张数</div><input type="number" id="setComboMin" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">拼字卡最多张数</div><input type="number" id="setComboMax" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">引用回复概率（%）</div><input type="number" id="setQuoteRate" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">回复问卷时长（秒）</div><input type="number" id="setAskDelay" oninput="saveProfile()" style="max-width:80px"></div>
-      </div>
-<div class="group">
-        <h4>互动 · 拍一拍</h4>
-        <div class="row"><div class="lab">梦角主动拍你概率（%）</div><input type="number" id="setPatRate" min="0" max="100" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row" style="flex-direction:column;align-items:stretch">
-          <div class="lab" style="margin-bottom:8px">拍一拍文案（每行一条）</div>
-          <textarea id="setPats" placeholder="揉了揉你的头&#10;捏了捏你的脸" oninput="savePats()"></textarea>
-        </div>
-      </div>
-<div class="group">
-        <h4>互动 · 来信</h4>
-        <div class="row"><div class="lab">梦角回信间隔（分钟）</div><input type="number" id="setReplyGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">回信/来信最少句数</div><input type="number" id="setLetterMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">回信/来信最多句数</div><input type="number" id="setLetterMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">梦角主动来信间隔（分钟）</div><input type="number" id="setLetterGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-      </div>
-<div class="group">
-        <h4>互动 · 动态</h4>
-        <div class="row"><div class="lab">梦角发动态间隔（分钟）</div><input type="number" id="setMomGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">动态最少句数</div><input type="number" id="setMomMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">动态最多句数</div><input type="number" id="setMomMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">梦角点赞我动态概率（%）</div><input type="number" id="setMomLikeRate" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">梦角评论我动态概率（%）</div><input type="number" id="setMomCmtRate" oninput="saveProfile()" style="max-width:80px"></div>
-      </div>
-<div class="group">
-        <h4>互动 · 代付</h4>
-        <div class="row"><div class="lab">梦角找你代付概率（%）</div><input type="number" id="setDaifuRate" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">代付检查间隔（分钟）</div><input type="number" id="setDaifuGap" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">梦角代付处理时长（秒）</div><input type="number" id="setDaifuDelay" oninput="saveProfile()" style="max-width:80px"></div>
-      </div>
-<div class="group">
-        <h4>互动 · 转账</h4>
-        <div class="row"><div class="lab">转账收款概率（%）</div><input type="number" id="setTran" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">梦角主动转账概率（%）</div><input type="number" id="setTranTo" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row" style="flex-direction:column;align-items:stretch">
-          <div class="lab" style="margin-bottom:8px">转账金额（每行一个）</div>
-          <textarea id="setTranAmts" placeholder="13.14&#10;52&#10;520" oninput="saveTrans()"></textarea>
-        </div>
-        <div class="row" style="flex-direction:column;align-items:stretch">
-          <div class="lab" style="margin-bottom:8px">转账文案（每行一条）</div>
-          <textarea id="setTranNotes" placeholder="给你的&#10;拿去买奶茶" oninput="saveTrans()"></textarea>
-        </div>
-      </div>
-<div class="group">
-        <h4>互动 · 来电与主动消息</h4>
-        <div class="row"><div class="lab">主动来电概率（%）</div><input type="number" id="setCall" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">主动发消息间隔（分钟）</div><input type="number" id="setProactiveGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">主动找我（开关）</div><div class="chip" onclick="toggleProactive()" id="proactiveBtn">关闭</div></div>
-      </div>
-<div class="group">
-        <h4>互动 · 日记</h4>
         <div class="row"><div class="lab">日记间隔（分钟）</div><input type="number" id="setDiaryGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">日记最少句数</div><input type="number" id="setDiaryMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">日记最多句数</div><input type="number" id="setDiaryMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-      </div>
-<div class="group">
-        <h4>互动 · 心情库</h4>
+        <div class="row"><div class="lab">梦角找你代付概率（%）</div><input type="number" id="setDaifuRate" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">代付检查间隔（分钟）</div><input type="number" id="setDaifuGap" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角代付处理时长（秒）</div><input type="number" id="setDaifuDelay" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">转账收款概率（%）</div><input type="number" id="setTran" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角主动转账概率（%）</div><input type="number" id="setTranTo" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row" style="flex-direction:column;align-items:stretch">
+           <div class="lab" style="margin-bottom:8px">转账金额（每行一个，随机抽一个）</div>
+           <textarea id="setTranAmts" placeholder="13.14&#10;52&#10;520" oninput="saveTrans()"></textarea>
+         </div>
+         <div class="row" style="flex-direction:column;align-items:stretch">
+           <div class="lab" style="margin-bottom:8px">转账文案（每行一条，随机抽一条）</div>
+           <textarea id="setTranNotes" placeholder="给你的&#10;拿去买奶茶" oninput="saveTrans()"></textarea>
+         </div>
+         <div class="row"><div class="lab">字卡回复概率（%）</div><input type="number" id="setMainRate" oninput="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">emoji混入主字卡</div><select id="setEmojiMix" onchange="saveProfile()" style="max-width:100px"><option value="0">关</option><option value="1">开</option></select></div><div class="row"><div class="lab">emoji混入概率（%）</div><input type="number" id="setEmojiMixRate" oninput="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">发表情包概率（%）（通用）</div><input type="number" id="setPackRate" oninput="saveProfile()" style="max-width:80px"></div>
+         <div class="row"><div class="lab">梦角发语音概率（%）</div><input type="number" id="setVoiceRate" oninput="saveProfile()" style="max-width:80px"></div>
+         <div class="row"><div class="lab">主动来电概率（%）</div><input type="number" id="setCall" oninput="saveProfile()" style="max-width:80px"></div>
+         <div class="row"><div class="lab">开启消息通知</div><div class="chip" onclick="yzAskNotify()">开启 / 检查</div></div>
+        <div class="row"><div class="lab">测试通知</div><div class="chip" onclick="yzTestNotify()">发一条试试</div></div>
+        <div class="row"><div class="lab">后台保活</div><div class="chip" id="keepAliveBtn" onclick="yzToggleKeepAlive()">关闭</div></div>
+        <div class="row"><div class="lab">主动发消息间隔（分钟）</div><input type="number" id="setProactiveGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">主动找我（开关）</div><div class="chip" onclick="toggleProactive()" id="proactiveBtn">关闭</div></div>
+        <div class="row"><div class="lab">梦角发动态间隔（分钟）</div><input type="number" id="setMomGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+         <div class="row"><div class="lab">动态最少句数</div><input type="number" id="setMomMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+         <div class="row"><div class="lab">动态最多句数</div><input type="number" id="setMomMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+       </div>
+       <div class="group">
+         <h4>心情库</h4>
         <div class="row"><div class="lab">显示状态</div><div class="chip" id="feelToggle" onclick="toggleFeel()">开启</div></div>
         <div class="row"><div class="lab">更换间隔（分钟）</div><input type="number" id="setFeelGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row" style="flex-direction:column;align-items:stretch">
           <div class="lab" style="margin-bottom:8px">心情词（每行一条）</div>
-          <textarea id="setFeelList" placeholder="开心&#10;想你了" oninput="saveFeel()"></textarea>
+          <textarea id="setFeelList" placeholder="开心&#10;想你了&#10;有点吃醋" oninput="saveFeel()"></textarea>
         </div>
       </div>
-<div class="group">
-        <h4>互动 · 梦角收藏我（概率 %）</h4>
+      <div class="group">
+        <h4>拍一拍</h4>
+        <div class="row" style="flex-direction:column;align-items:stretch">
+          <div class="lab" style="margin-bottom:8px">梦角（）（每行一条，梦角拍你时随机抽一条；互动和人物都你自己填，如「揉了揉我的头」）</div>
+          <textarea id="setPats" placeholder="揉了揉你的头&#10;捏了捏你的脸&#10;从背后抱住你" oninput="savePats()"></textarea>
+        </div>
+        <div class="row"><div class="lab">梦角主动拍你概率（%）</div><input type="number" id="setPatRate" min="0" max="100" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+      </div>
+      <div class="group">
+        <h4>来信</h4>
+        <div class="row"><div class="lab">梦角回信间隔（分钟）</div><input type="number" id="setReplyGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">回信/来信最少句数</div><input type="number" id="setLetterMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">回信/来信最多句数</div><input type="number" id="setLetterMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角主动来信间隔（分钟）</div><input type="number" id="setLetterGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+      </div>
+      <div class="group">
+        <h4>聊天显示</h4>
+        <div class="row"><div class="lab">显示已读状态</div><div class="chip" id="readToggle" onclick="toggleRead()">关闭</div></div>
+        <div class="row"><div class="lab">显示"对方正在输入"</div><div class="chip" id="typingToggle" onclick="toggleTyping()">关闭</div></div>
+      </div>
+      <div class="group">
+        <h4>梦角收藏（概率 %）</h4>
         <div class="row"><div class="lab">收藏我的消息</div><input type="number" id="setFavMsg" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">收藏我的音乐</div><input type="number" id="setFavMusic" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">收藏我的动态</div><input type="number" id="setFavMoment" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">收藏我加的音乐</div><input type="number" id="setFavMusic" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">收藏我发的动态</div><input type="number" id="setFavMoment" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">收藏我的日记</div><input type="number" id="setFavDiary" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">收藏我写的信</div><input type="number" id="setFavLetter" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">回看（翻旧内容）</div><input type="number" id="setFavReread" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">回看后收藏</div><input type="number" id="setFavRereadFav" oninput="saveProfile()" style="max-width:80px"></div>
       </div>
-<div class="group">
-        <h4>其他 · 存储</h4>
+      <div class="group">
+        <h4>存储</h4>
         <div class="row"><div class="lab">本网站已占</div><div class="val" id="memUsed">--</div></div>
         <div class="row"><div class="lab">浏览器可用余额</div><div class="val" id="memQuota">--</div></div>
         <div class="row"><div class="lab">存储方式</div><div class="val" id="memEngine">--</div></div>
       </div>
-<div class="group">
-        <h4>其他 · 身份</h4>
+      <div class="group">
+        <h4>身份</h4>
         <div class="row"><div class="lab">主页展示梦角</div><div class="chip" id="homeCharaChip" onclick="yzPickHomeChara()">选择</div></div>
         <div class="row"><div class="lab">我的昵称</div><input type="text" id="setMyNick" oninput="saveProfile()"></div>
         <div class="row"><div class="lab">我的头像</div><div class="chip" onclick="pickAvatar('me')">选择图片</div></div>
       </div>
-<div class="group">
-        <h4>其他 · 进入密码</h4>
+      <div class="group">
+        <h4>进入密码</h4>
         <div class="row"><div class="lab">密码</div><input type="text" id="setPass" placeholder="留空则不需要密码" oninput="saveProfile()"></div>
         <div class="row" style="font-size:12px;color:var(--sub)">首次进入不用输，设了之后每次进网站都要输对才能进。</div>
       </div>
-<div class="group">
-        <h4>其他 · 聊天显示</h4>
-        <div class="row"><div class="lab">显示已读状态</div><div class="chip" id="readToggle" onclick="toggleRead()">关闭</div></div>
-        <div class="row"><div class="lab">显示"对方正在输入"</div><div class="chip" id="typingToggle" onclick="toggleTyping()">关闭</div></div>
-        <div class="row"><div class="lab">开启消息通知</div><div class="chip" onclick="yzAskNotify()">开启 / 检查</div></div>
-        <div class="row"><div class="lab">测试通知</div><div class="chip" onclick="yzTestNotify()">发一条试试</div></div>
-        <div class="row"><div class="lab">后台保活</div><div class="chip" id="keepAliveBtn" onclick="yzToggleKeepAlive()">关闭</div></div>
-      </div>
-<div class="group">
-        <h4>其他 · 备份</h4>
+      <div class="group">
+        <h4>备份</h4>
         <div class="row"><div class="lab">导出备份</div><div class="chip" onclick="exportData()">导出</div></div>
         <div class="row"><div class="lab">导入备份</div><div class="chip" onclick="importData()">导入</div></div>
       </div>
-<div class="group">
-        <h4>其他 · 数据</h4>
+      <div class="group">
+        <h4>数据</h4>
         <div class="row"><div class="lab">清空聊天记录</div><div class="chip" onclick="clearChat()">清空</div></div>
         <div class="row"><div class="lab">恢复默认字卡</div><div class="chip" onclick="resetCards()">恢复</div></div>
-      </div>
-</div>
       </div>
     </div>
   </div>
