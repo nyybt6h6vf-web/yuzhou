@@ -1921,56 +1921,58 @@ body{
   </div>
 </div>
 
-<script>/* ===== 崩溃现场记录器 v2：现场直接显示在页面上 ===== */
+<script>/* ===== 崩溃现场记录器 v2（自动弹屏显示，跨设备可见）===== */
 (function(){
   try{
     var KEY='_yzCrashLog';
     var buf=[];
+    var prev='';
+    try{ prev=localStorage.getItem(KEY+'_prev')||''; }catch(e){}
+    try{ localStorage.removeItem(KEY+'_prev'); }catch(e){}
+
+    function flush(){
+      try{ localStorage.setItem(KEY+'_prev', buf.slice(-12).join('\n')); }catch(e){}
+    }
     function push(tag,data){
-      try{ buf.push('['+String(Date.now()).slice(-6)+'] '+tag+' :: '+String(data).slice(0,200)); }catch(e){}
-      try{ localStorage.setItem(KEY, buf.slice(-10).join('\n')); }catch(e){}
+      try{ buf.push('['+new Date().toTimeString().slice(0,8)+'] '+tag+' :: '+String(data).slice(0,240)); }catch(e){}
+      flush();
     }
-    /* 把上一次的现场画在页面上 */
-    function drawPrev(){
-      try{
-        var prev='';
-        try{ prev=localStorage.getItem(KEY)||''; }catch(e){}
-        if(!prev)return;
-        var d=document.createElement('div');
-        d.id='yzCrashView';
-        d.style.cssText='position:fixed;left:0;top:0;right:0;z-index:9999999;background:#fff3cd;color:#8a2b2b;font:11px/1.5 monospace;padding:8px;white-space:pre-wrap;max-height:40vh;overflow:auto;border-bottom:2px solid #c00;';
-        d.textContent='【上次崩溃现场】\n'+prev+'\n(点我关闭)';
-        d.onclick=function(){
-          try{ localStorage.removeItem(KEY); }catch(e){}
-          d.remove();
-        };
-        (document.body||document.documentElement).appendChild(d);
-      }catch(e){}
-    }
+    window.__yzPush=push;
+
     window.addEventListener('error',function(e){
-      push('ERROR', (e&&e.message)+' @line'+(e&&e.lineno));
+      push('ERROR',(e&&e.message)+' @'+(e&&e.lineno)+':'+(e&&e.colno));
     },true);
     window.addEventListener('unhandledrejection',function(e){
-      push('REJECT', (e&&e.reason&&(e.reason.message||e.reason))||'?');
+      push('REJECT',(e&&e.reason&&(e.reason.message||e.reason))||'unknown');
     });
-    /* 拦截重载 */
+
     try{
-      var _reload=location.reload.bind(location);
-      var _replace=location.replace.bind(location);
-      var _assign=location.assign.bind(location);
-      try{ Object.defineProperty(location,'reload',{configurable:true,value:function(){push('RELOAD','reload 被调用\n'+new Error().stack.slice(0,180));return _reload();}}); }catch(e){}
-      try{ Object.defineProperty(location,'replace',{configurable:true,value:function(u){push('REPLACE','-> '+u+'\n'+new Error().stack.slice(0,180));return _replace(u);}}); }catch(e){}
-      try{ Object.defineProperty(location,'assign',{configurable:true,value:function(u){push('ASSIGN','-> '+u);return _assign(u);}}); }catch(e){}
+      var _r=location.reload.bind(location);
+      var _p=location.replace.bind(location);
+      var _a=location.assign.bind(location);
+      try{ Object.defineProperty(location,'reload',{configurable:true,value:function(){push('RELOAD',new Error().stack||'');return _r();}}); }catch(e){}
+      try{ Object.defineProperty(location,'replace',{configurable:true,value:function(u){push('REPLACE->'+u,new Error().stack||'');return _p(u);}}); }catch(e){}
+      try{ Object.defineProperty(location,'assign',{configurable:true,value:function(u){push('ASSIGN->'+u,new Error().stack||'');return _a(u);}}); }catch(e){}
     }catch(e){}
-    window.addEventListener('beforeunload',function(){
-      try{ localStorage.setItem(KEY, buf.slice(-10).join('\n')); }catch(e){}
-    });
-    /* DOM 就绪后画现场 */
-    if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',drawPrev); }
-    else{ drawPrev(); }
+
+    window.addEventListener('beforeunload',function(){ flush(); });
+    window.addEventListener('pagehide',function(){ flush(); });
+
+    function showPrev(){
+      if(!prev)return;
+      try{
+        var d=document.createElement('div');
+        d.id='_yzCrashBox';
+        d.style.cssText='position:fixed;left:0;right:0;top:0;z-index:2147483647;background:#111;color:#0f0;font:11px/1.4 monospace;padding:10px 12px;max-height:60%;overflow:auto;white-space:pre-wrap;word-break:break-all;';
+        d.textContent='▲ 上次崩溃现场（长按可复制）\n'+prev+'\n\n【点这里关闭】';
+        d.onclick=function(){ try{d.remove();}catch(e){} };
+        document.body.appendChild(d);
+      }catch(e){}
+    }
+    if(document.body){ showPrev(); }
+    else{ document.addEventListener('DOMContentLoaded',showPrev); }
   }catch(e){}
-})();
-</script>
+})();</script>
 <script id="appjs">
 const DKEY='yuzhou_data_v4';
 const ICONS={
