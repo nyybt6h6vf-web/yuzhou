@@ -128,10 +128,11 @@ body{
 .himname{font-size:12px;font-weight:600;color:var(--text);margin:0 0 2px 2px;display:flex;align-items:flex-end;gap:3px;}
 .typing-ind{position:absolute;left:16px;bottom:74px;z-index:7;font-size:12px;color:var(--sub);padding:4px 10px;background:var(--panel);border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;align-items:center;gap:5px;}
 .typing-ind .dot{width:5px;height:5px;border-radius:50%;background:var(--sub);display:inline-block;animation:tp 1.1s infinite;}
-.typing-ind .dot:nth-child(2){animation-delay:0s;}
-.typing-ind .dot:nth-child(3){animation-delay:.15s;}
-.typing-ind .dot:nth-child(4){animation-delay:.3s;}
 @keyframes tp{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px);}}
+/* typing dots: 统一用 class 控延时，严格左→中→右 */
+.dot.d1{animation-delay:0s !important;}
+.dot.d2{animation-delay:.15s !important;}
+.dot.d3{animation-delay:.3s !important;}
 .msg.me .msgname{justify-content:flex-end;margin:2px 2px 3px 0;}
 .bubble{padding:10px 14px;border-radius:20px;font-size:14.5px;line-height:1.5;word-break:break-word;white-space:pre-wrap;box-shadow:0 4px 12px rgba(120,130,200,.14);background:var(--bubble-him);color:var(--bubble-him-text);}
 .msg.him .bubble{background:var(--bubble-him);color:var(--bubble-him-text);border-top-left-radius:6px;}
@@ -540,14 +541,8 @@ body{
 .listen-chat .ltsme{text-align:right;padding-right:3px;}
 .lb.ltyping{display:inline-flex;align-items:center;gap:4px;}
 .lb.ltyping .dot{width:5px;height:5px;border-radius:50%;background:var(--sub);display:inline-block;animation:tp 1.1s infinite;}
-.lb.ltyping .dot:nth-child(2){animation-delay:0s;}
-.lb.ltyping .dot:nth-child(3){animation-delay:.15s;}
-.lb.ltyping .dot:nth-child(4){animation-delay:.3s;}
 .gb.ltyping{display:inline-flex;align-items:center;gap:4px;}
 .gb.ltyping .dot{width:5px;height:5px;border-radius:50%;background:var(--sub);display:inline-block;animation:tp 1.1s infinite;}
-.gb.ltyping .dot:nth-child(2){animation-delay:0s;}
-.gb.ltyping .dot:nth-child(3){animation-delay:.15s;}
-.gb.ltyping .dot:nth-child(4){animation-delay:.3s;}
 .listen-input{display:flex;gap:8px;padding:8px 12px 14px;align-items:center;}
 .listen-input input{flex:1;border:none;outline:none;background:var(--card);border-radius:20px;padding:11px 15px;font-size:14px;color:var(--text);font-family:inherit;}
 .listen-input .send{height:40px;padding:0 18px;border:none;border-radius:20px;background:var(--bubble-me);color:var(--bubble-me-text);font-size:14px;font-weight:600;cursor:pointer;}
@@ -3137,7 +3132,7 @@ function renderChat(){
     b.insertAdjacentHTML('beforeend',`<div class="msg ${me?'me':'him'}" data-mi="${i}">${avHTML(me?'me':'him',m.who)}<div class="bubwrap">${nameHtml}${quoteHtml}${bubbleHTML(m,i)}${readHtml}${himStamp}${meStamp}</div></div>`);
   });
   if(D.typingOn&&D._typing&&$('#chat').classList.contains('active')){
-    b.insertAdjacentHTML('beforeend',`<div class="typing-ind"><span>对方正在输入中</span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`);
+    b.insertAdjacentHTML('beforeend',`<div class="typing-ind"><span>对方正在输入中</span><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div>`);
   }
   bindTranTaps();
   window.__applyBubbleInline&&window.__applyBubbleInline();
@@ -5385,7 +5380,7 @@ function renderListen(){
     c.insertAdjacentHTML('beforeend',`<div class="lm ${isMe?'me':''}"><div class="lav">${avh}</div><div>${inner}<div class="lts ${isMe?'ltsme':''}">${esc(m.time||'')}</div></div></div>`);
   });
   if(D.typingOn&&D._ltyping){
-    c.insertAdjacentHTML('beforeend',`<div class="lm"><div class="lav">${D.avatarHim?('<img src="'+esc(D.avatarHim)+'">'):esc((D.nick||'他')[0])}</div><div class="lb ltyping">对方正在输入中<span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>`);
+    c.insertAdjacentHTML('beforeend',`<div class="lm"><div class="lav">${D.avatarHim?('<img src="'+esc(D.avatarHim)+'">'):esc((D.nick||'他')[0])}</div><div class="lb ltyping">对方正在输入中<span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div></div>`);
   }
   c.scrollTop=c.scrollHeight;
 }
@@ -6455,7 +6450,7 @@ function gmkChatRender(){
   });
   if(D.typingOn&&_gmk.typing){
     var _gav=gmkCurAvatar();
-    c.insertAdjacentHTML('beforeend','<div class="gm"><div class="gav">'+(_gav?('<img src="'+String(_gav).replace(/"/g,'%22')+'">'):esc((gmkCurName()||'梦角')[0]))+'</div><div><div class="gb ltyping">对方正在输入中<span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div></div>');
+    c.insertAdjacentHTML('beforeend','<div class="gm"><div class="gav">'+(_gav?('<img src="'+String(_gav).replace(/"/g,'%22')+'">'):esc((gmkCurName()||'梦角')[0]))+'</div><div><div class="gb ltyping">对方正在输入中<span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div></div></div>');
   }
   c.scrollTop=c.scrollHeight;
 }
@@ -6882,7 +6877,7 @@ function tttChatRender(){
   });
   if(D.typingOn&&_ttt.typing){
     var _tav=tttCurAvatar();
-    c.insertAdjacentHTML('beforeend','<div class="gm"><div class="gav">'+(_tav?('<img src="'+String(_tav).replace(/"/g,'%22')+'">'):esc((tttCurName()||'梦角')[0]))+'</div><div><div class="gb ltyping">对方正在输入中<span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div></div>');
+    c.insertAdjacentHTML('beforeend','<div class="gm"><div class="gav">'+(_tav?('<img src="'+String(_tav).replace(/"/g,'%22')+'">'):esc((tttCurName()||'梦角')[0]))+'</div><div><div class="gb ltyping">对方正在输入中<span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div></div></div>');
   }
   c.scrollTop=c.scrollHeight;
 }
