@@ -1554,7 +1554,7 @@ body{
            <div class="lab" style="margin-bottom:8px">转账文案（每行一条，随机抽一条）</div>
            <textarea id="setTranNotes" placeholder="给你的&#10;拿去买奶茶" oninput="saveTrans()"></textarea>
          </div>
-         <div class="row"><div class="lab">发表情包概率（%）（通用）</div><input type="number" id="setPackRate" oninput="saveProfile()" style="max-width:80px"></div>
+         <div class="row"><div class="lab">字卡回复概率（%）</div><input type="number" id="setMainRate" oninput="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">emoji混入主字卡</div><select id="setEmojiMix" onchange="saveProfile()" style="max-width:100px"><option value="0">关</option><option value="1">开</option></select></div><div class="row"><div class="lab">emoji混入概率（%）</div><input type="number" id="setEmojiMixRate" oninput="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">发表情包概率（%）（通用）</div><input type="number" id="setPackRate" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">梦角发语音概率（%）</div><input type="number" id="setVoiceRate" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">主动来电概率（%）</div><input type="number" id="setCall" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">开启消息通知</div><div class="chip" onclick="yzAskNotify()">开启 / 检查</div></div>
@@ -2355,7 +2355,7 @@ if(o.daifuGap===undefined)o.daifuGap=20;
     pageBg:'',chatBg:'',momBg:'',lockBg:'',lockFg:'',fontColor:'',himFontColor:'',meFontColor:'',bubble:'',bubbleHim:'',bubbleMe:'',heroImg:'',
     readOn:true,typingOn:true,
     lockName:'Yu·Zhou',slogan:'',pass:'',
-    delay:1.2,double:35,tran:50,tranTo:10,packRate:25,callRate:12,patRate:15,voiceRate:0,momGap:1,
+    delay:1.2,double:35,tran:50,tranTo:10,packRate:25,mainRate:100,emojiMix:0,emojiMixRate:30,callRate:12,patRate:15,voiceRate:0,momGap:1,
     noteMe:'',noteHim:'',
     sendMin:1,sendMax:2,
     comboRate:20,comboMin:2,comboMax:3,quoteRate:30,askDelay:15,
@@ -3083,6 +3083,9 @@ function yzReadChatSettingsLive(){
     rd('setMax','sendMax',1);
     rd('setQuoteRate','quoteRate',0,100);
     rd('setPackRate','packRate',0,100);
+    rd('setMainRate','mainRate',0,100);
+    rd('setEmojiMixRate','emojiMixRate',0,100);
+    try{var _em=document.getElementById('setEmojiMix'); if(_em)_em.value=String(parseInt(D.emojiMix)||0);}catch(e){}
     rd('setAskDelay','askDelay',0);
   }catch(e){}
 }
@@ -3144,6 +3147,33 @@ function yzMaybeKaomojiFor(cid){
   if(!pool.length)return null;
   return pool[Math.floor(Math.random()*pool.length)];
 }
+function yzEmojiPoolFor(cid){
+  try{
+    var lib=D.cardLib||{};
+    if(!cid)cid=(typeof yzCurKaoCharId==='function')?yzCurKaoCharId():'';
+    if(lib[cid]&&lib[cid].emoji&&lib[cid].emoji.length)return lib[cid].emoji;
+  }catch(e){}
+  return [];
+}
+function yzMaybeMixEmoji(txt,cid){
+  /* 主字卡末尾/最前面混入一个emoji，只能从字卡库抽 */
+  try{
+    if(!txt)return txt;
+    if(!(parseInt(D.emojiMix)||0))return txt;
+    var pr=parseFloat(D.emojiMixRate);if(isNaN(pr))pr=30;
+    if(pr<=0||Math.random()*100>=pr)return txt;
+    var pool=yzEmojiPoolFor(cid);
+    if(!pool||!pool.length)return txt;
+    var e=pool[Math.floor(Math.random()*pool.length)];
+    return (Math.random()<0.5)?(e+txt):(txt+e);
+  }catch(e){}
+  return txt;
+}
+function yzMainRate(){
+  var r=parseFloat(D.mainRate);
+  if(isNaN(r))return 100;
+  return Math.max(0,Math.min(100,r));
+}
 function pickCardFor(cid){
   var lib=(D.cardLib||{})[cid];
   var cs=(lib&&lib.main&&lib.main.length)?lib.main:DEFAULT_CARDS;
@@ -3190,28 +3220,61 @@ function respond(){
   var n=nextCount();
   if(n>maxN)n=maxN;
   const gap=sendGapMs();
-  /* 主字卡优先占坑：先发 n 条主字卡 */
+  /* ===== 全概率抽取：每个条数都独立掷骰子，没有谁“必须”出 =====
+     顺序：语音 > 主字卡 > 表情包 > 颜文字（各按自己的概率），总数不超 maxN */
+  var _cid=(typeof yzCurKaoCharId==='function')?yzCurKaoCharId():'';
+  var _mainP=yzMainRate();
+  var _vP=Math.max(0,parseFloat(D.voiceRate)||0);
+  var _packP=Math.max(0,parseFloat(D.packRate)||0);
+  var _kaoP=(typeof yzCurKaoRate==='function')?yzCurKaoRate():0;
+  var _packs=(D.packs||[]);
+  var _kaoPool=yzKaoPoolFor(_cid);
+
+  var plan=[];  /* 每条：{kind:'voice'|'main'|'img'|'kao', text/src} */
+  for(var _i=0;_i<n;_i++){
+    /* 先擤语音 */
+    if(_vP>0 && Math.random()*100<_vP){
+      var _vt=pickMultiCardsFor(_cid);
+      if(_vt){ plan.push({kind:'voice',text:_vt,sec:1+Math.floor(Math.random()*15)}); continue; }
+    }
+    /* 再擤主字卡 */
+    if(_mainP>0 && Math.random()*100<_mainP){
+      var _mt=pickMultiCardsFor(_cid);
+      if(_mt){ plan.push({kind:'main',text:yzMaybeMixEmoji(_mt,_cid)}); continue; }
+    }
+    /* 再擤表情包 */
+    if(_packP>0 && _packs.length && Math.random()*100<_packP){
+      plan.push({kind:'img',src:_packs[Math.floor(Math.random()*_packs.length)]}); continue;
+    }
+    /* 最后擤颜文字 */
+    if(_kaoP>0 && _kaoPool.length && Math.random()*100<_kaoP){
+      plan.push({kind:'kao',text:_kaoPool[Math.floor(Math.random()*_kaoPool.length)]}); continue;
+    }
+    /* 都没中：如果主字卡概率不是0，就补一张主字卡（保证不空回） */
+    if(_mainP>0){ plan.push({kind:'main',text:yzMaybeMixEmoji(pickMultiCardsFor(_cid),_cid)}); }
+  }
+  /* 若因为概率都是0导致空白，则至少一张主字卡（避免梦角完全不回话） */
+  if(!plan.length){ plan.push({kind:'main',text:yzMaybeMixEmoji(pickMultiCardsFor(_cid),_cid)}); }
+  if(plan.length>maxN)plan=plan.slice(0,maxN);
+
+  function _emit(item,isFirst){
+    try{
+      if(item.kind==='voice'){ push({from:'him',type:'voice',sec:item.sec||3,text:item.text,_t:clockStr()}); }
+      else if(item.kind==='img'){ push({from:'him',type:'img',src:item.src,_t:clockStr()}); }
+      else { push({from:'him',text:item.text,type:'text',_t:clockStr()}); }
+    }catch(e){}
+  }
   setTyping(true);
-  setTimeout(()=>{
-    setTyping(false);
-    markRead();
-    himSayMain();
-    for(let i=1;i<n;i++){
-      setTimeout(()=>{setTyping(true);},gap*i-gap+400>0?gap*i-gap+400:0);
-      setTimeout(()=>{setTyping(false);himSayMain();},gap*i);
+  plan.forEach(function(item,idx){
+    var t=delay+gap*idx;
+    if(idx===0){
+      setTimeout(function(){ setTyping(false); markRead(); _emit(item,true); },t);
+    }else{
+      var st=t-gap+400; if(st<0)st=0;
+      setTimeout(function(){setTyping(true);},st);
+      setTimeout(function(){ setTyping(false); _emit(item,false); },t);
     }
-    /* 剩余坑：最多再给 1 条表情包、1 条颜文字，总数不超 maxN */
-    var left=maxN-n;
-    if(left>0){
-      var idx=0;
-      var hitPack=(parseFloat(D.packRate)||0)>0 && (D.packs||[]).length && Math.random()*100<(parseFloat(D.packRate)||0);
-      var _km=(typeof yzMaybeKaomojiFor==='function')?yzMaybeKaomojiFor((typeof yzCurKaoCharId==='function'?yzCurKaoCharId():'')):'';
-      var hitKm=!!_km;
-      /* 两个都中：各占一个坑；只有一个中：占一个坑 */
-      if(hitPack){ idx++; var _pp=D.packs[Math.floor(Math.random()*D.packs.length)]; (function(P){setTimeout(function(){setTyping(false);push({from:'him',type:'img',src:P,_t:clockStr()});},gap*(n+idx-1));})(_pp); }
-      if(hitKm && (left-idx)>0){ idx++; (function(K){setTimeout(function(){setTyping(false);push({from:'him',text:K,type:'text',_t:clockStr()});},gap*(n+idx-1));})(_km); }
-    }
-   },delay);
+  });
 }
 function respondGroup(cv){
   var delay=replyDelayMs();
@@ -3296,6 +3359,8 @@ function himSayMain(who,opt){
       return;
     }
   }catch(e){}
+  /* emoji 混入主字卡（充鼙从字卡库抄） */
+  try{ _txt=yzMaybeMixEmoji(_txt,_cid); }catch(e){}
   var msg={from:'him',text:_txt,type:'text',_t:clockStr()};
   var qr=parseFloat(D.quoteRate);
   if(!isNaN(qr)&&qr>0&&Math.random()*100<qr){
@@ -3689,7 +3754,7 @@ function doPlus(act){
     askInput('拍一拍','',function(t){
       const v=String(t||'').trim();if(!v)return;
       push({from:'me',type:'pat',text:v,_t:clockStr()});
-      setTimeout(()=>{ if(Math.random()*100<50) himPat(); else himSay(); },Math.max(300,sendGapMs()));
+      setTimeout(()=>{ if(Math.random()*100<50) himPat(); else himSay(); },Math.max(200,(typeof sendGapMs==='function'?sendGapMs():1200)));
     },'就拍一下的样子，随你写，比如「拍了拍你的脑袋」');
   }
   else if(act==='album'){pickTarget='album';$('#filePick').click();}
@@ -6597,7 +6662,7 @@ function maybePat(){
   if(D.sendHold)return;
   if(Math.random()*100>=(D.patRate||0))return;
   if(!(D.pats||[]).length)return;
-  setTimeout(function(){ try{ if(!D.sendHold) himPat(); }catch(e){} }, Math.max(300,sendGapMs()));
+  setTimeout(function(){ try{ if(!D.sendHold) himPat(); }catch(e){} }, Math.max(200,(typeof sendGapMs==='function'?sendGapMs():1200)));
 }
 function showIncoming(){
   $('#callName').textContent=D.nick||'他';
@@ -7021,6 +7086,9 @@ function fillSettings(){
   $('#setTran').value=D.tran;$('#setCall').value=D.callRate;try{if($('#setPatRate'))$('#setPatRate').value=(D.patRate!==undefined?D.patRate:15);}catch(e){}try{if($('#setVoiceRate'))$('#setVoiceRate').value=(D.voiceRate!==undefined?D.voiceRate:0);}catch(e){}
   if($('#setTranTo'))$('#setTranTo').value=D.tranTo;
   if($('#setPackRate'))$('#setPackRate').value=(D.packRate===undefined?25:D.packRate);
+  if($('#setMainRate'))$('#setMainRate').value=(D.mainRate===undefined?100:D.mainRate);
+  if($('#setEmojiMix'))$('#setEmojiMix').value=String(parseInt(D.emojiMix)||0);
+  if($('#setEmojiMixRate'))$('#setEmojiMixRate').value=(D.emojiMixRate===undefined?30:D.emojiMixRate);
   if($('#setFavMsg'))$('#setFavMsg').value=(D.favMsgRate===undefined?30:D.favMsgRate);
   if($('#setFavMusic'))$('#setFavMusic').value=(D.favMusicRate===undefined?30:D.favMusicRate);
   if($('#setFavMoment'))$('#setFavMoment').value=(D.favMomentRate===undefined?30:D.favMomentRate);
@@ -7143,6 +7211,9 @@ function saveProfile(){
   if($('#setVoiceRate')&&String($('#setVoiceRate').value).trim()!=='')D.voiceRate=Math.max(0,Math.min(100,parseFloat($('#setVoiceRate').value)||0));
   if($('#setTranTo'))D.tranTo=parseFloat($('#setTranTo').value)||0;
   if($('#setPackRate')){D.packRate=parseFloat($('#setPackRate').value)||0;D.packRateLis=D.packRate;D.packRateMom=D.packRate;}
+  if($('#setMainRate'))D.mainRate=Math.max(0,Math.min(100,parseFloat($('#setMainRate').value)||0));
+  if($('#setEmojiMix'))D.emojiMix=parseInt($('#setEmojiMix').value)||0;
+  if($('#setEmojiMixRate'))D.emojiMixRate=Math.max(0,Math.min(100,parseFloat($('#setEmojiMixRate').value)||0));
   if($('#setFavMsg'))D.favMsgRate=parseFloat($('#setFavMsg').value)||0;
   if($('#setFavMusic'))D.favMusicRate=parseFloat($('#setFavMusic').value)||0;
   if($('#setFavMoment'))D.favMomentRate=parseFloat($('#setFavMoment').value)||0;
