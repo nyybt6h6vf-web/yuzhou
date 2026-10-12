@@ -6371,7 +6371,7 @@ function gmkBestFor(side, cands, foe){
     var p=cands[i]; if(_gmk.board[p.y][p.x]!==0)continue;
     var atk=gmkLineScore(p.x,p.y,side);
     var def=gmkLineScore(p.x,p.y,foe);
-    var v=atk*1.1+def*0.9;
+    var v=(def>=20000? atk*1.1+def*0.9 : atk*1.1+def*0.15); /* 只有对手活三及以上才给防守权重 */
     if(v>best){best=v;bestP=p;}
   }
   return {v:best,p:bestP};
@@ -6447,7 +6447,8 @@ function gmkAIMove(){
         _gmk.board[c.y][c.x]=0;
         /* 我的净收益 = 我的进攻 + 对手受制程度 - 对手反击 */
         var defW = (c.defThreat>=60) ? c.def*0.9 : 0; /* 只有你活三及以上才计防守权重 */
-        var val = myAtk*1.0 + defW - foeBest.v*0.9;
+        var foeW = (foeBest.v>=20000) ? foeBest.v*0.9 : 0; /* 只计对手活三及以上反击，活二/眠三不计 */
+        var val = myAtk*1.0 + defW - foeW;
         val += Math.random()*Math.max(8,(myAtk+c.def)*0.02); /* 扰动，避免每次都一样 */
         if(val>bestVal+1e-9){ bestVal=val; bestList=[c]; }
         else if(Math.abs(val-bestVal)<1e-9){ bestList.push(c); }
