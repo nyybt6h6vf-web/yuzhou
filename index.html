@@ -7754,6 +7754,14 @@ function setColor(k,v){
   try{ yzApplyLetterBg(); }catch(e){}
   try{ yzMarkSetStatus(); }catch(e){}
 }
+/* 防抖保存：粘贴大段文本时不再同步序列化整个库，避免 iOS 主线程超时被杀 */
+var _yzSaveTimer=null;
+function saveSoon(){
+  try{
+    if(_yzSaveTimer)clearTimeout(_yzSaveTimer);
+    _yzSaveTimer=setTimeout(function(){ _yzSaveTimer=null; try{save();}catch(e){} }, 600);
+  }catch(e){}
+}
 function saveBeauty(){
   if($('#setLockName'))D.lockName=$('#setLockName').value;
   if($('#setSlogan'))D.slogan=$('#setSlogan').value;
@@ -7767,13 +7775,13 @@ function saveBeauty(){
   if($('#setBubbleSize')){D.bubbleSize=parseInt($('#setBubbleSize').value)||100;var _bv=document.getElementById('bubbleSizeVal');if(_bv)_bv.textContent=D.bubbleSize+'%';}
   if($('#setChatFontSize')){D.chatFontSize=parseInt($('#setChatFontSize').value)||14;var _fv=document.getElementById('chatFontSizeVal');if(_fv)_fv.textContent=D.chatFontSize+'px';}
   if($('#setTranSize')){D.tranSize=parseInt($('#setTranSize').value)||100;var _tv=document.getElementById('tranSizeVal');if(_tv)_tv.textContent=D.tranSize+'%';}
-  save();scheduleApply();
-  try{yzPreviewBubble();}catch(e){}
+  saveSoon();scheduleApply();
+  try{yzPreviewBubbleDebounced();}catch(e){}
 }
 let _applyTimer=null;
 function scheduleApply(){
   if(_applyTimer)clearTimeout(_applyTimer);
-  _applyTimer=setTimeout(()=>{_applyTimer=null;applyCustom();},150);
+_applyTimer=setTimeout(()=>{_applyTimer=null;applyCustom();},800);
 }
 /* ===== 美化方案槽位 ===== */
 var YZ_BEAUTY_KEYS=['favicon','accentColor','theme','themeAuto','lockName','lockBg','himLetterBg','meLetterBg','lockFg','slogan','pageBg','page2Bg','chatBg','fontColor','bubbleHim','bubbleMe','tranColor','himFontColor','meFontColor','bubbleSize','chatFontSize','tranSize','momBg','bubble'];
