@@ -1839,6 +1839,15 @@ body{
     </div>
   </div>
 
+  <div class="sheet" id="beautySaveSheet">
+    <div class="dlg">
+      <h3>保存美化方案</h3>
+      <div id="beautySaveList" style="display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow-y:auto;margin:6px 0 12px"></div>
+      <div class="dbtns">
+        <div class="b cancel" style="visibility:visible;opacity:1" onclick="closeSheet2('beautySaveSheet')">取消</div>
+      </div>
+    </div>
+  </div>
   <div class="sheet" id="promptSheet">
     <div class="dlg">
       <h3 id="promptTitle">输入</h3>
@@ -7657,15 +7666,51 @@ function yzBeautySnap(){
   YZ_BEAUTY_KEYS.forEach(function(k){ o[k]=(D[k]===undefined?'':D[k]); });
   return o;
 }
-function yzBeautySave(){
+function yzBeautySave(){ yzBeautyOpenSave(); }
+function yzBeautyOpenSave(){
   try{
     if(!D.beautySlots)D.beautySlots=[];
-    if(D.beautySlots.length>=5){ toast('最多只能保存 5 个方案'); return; }
+    var wrap=document.getElementById('beautySaveList'); if(!wrap)return;
+    wrap.innerHTML='';
+    /* 现有槽位 */
+    D.beautySlots.forEach(function(s,i){
+      var row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-radius:12px;background:var(--card);cursor:pointer';
+      row.innerHTML='<div style="flex:1;font-size:14px;color:var(--text)">'+esc(s.name||('美化'+(i+1)))+'</div><div style="font-size:12px;color:var(--sub)">替换</div>';
+      row.onclick=function(){ yzBeautyReplaceTo(i); };
+      wrap.appendChild(row);
+    });
+    /* 新增槽位 */
+    var add=document.createElement('div');
+    add.style.cssText='display:flex;align-items:center;gap:8px;padding:12px 14px;border-radius:12px;background:var(--card);cursor:pointer;border:1px dashed var(--sub)';
+    add.innerHTML='<div style="flex:1;font-size:14px;color:var(--accent,#859ecb);font-weight:600">＋ 新增槽位</div>';
+    add.onclick=function(){ yzBeautySaveNew(); };
+    wrap.appendChild(add);
+    openSheet2('beautySaveSheet');
+  }catch(e){}
+}
+function yzBeautySaveNew(){
+  try{
+    if(!D.beautySlots)D.beautySlots=[];
+    if(D.beautySlots.length>=5){ closeSheet2('beautySaveSheet'); toast('最多设置五个美化方案，请替换现有美化方案或删除现有美化方案'); return; }
     var nm='美化'+(D.beautySlots.length+1);
     D.beautySlots.push({name:nm,data:yzBeautySnap()});
-    save(); yzBeautyRender();
-    toast('已保存：'+nm);
+    save(); yzBeautyRender(); closeSheet2('beautySaveSheet');
+    toast('已保存到新槽位：'+nm);
   }catch(e){ toast('保存失败'); }
+}
+function yzBeautyReplaceTo(i){
+  try{
+    var s=(D.beautySlots||[])[i]; if(!s)return;
+    askConfirm('是否替换此美化方案「'+(s.name||('美化'+(i+1)))+'」？',function(){
+      try{
+        s.data=yzBeautySnap();
+        save(); yzBeautyRender();
+        try{closeSheet2('beautySaveSheet');}catch(e){}
+        toast('已替换：'+(s.name||('美化'+(i+1))));
+      }catch(e){ toast('替换失败'); }
+    });
+  }catch(e){}
 }
 function yzBeautyRender(){
   try{
