@@ -5082,8 +5082,9 @@ function fetchPlaylist(id,cb){
         let sid='';
         if(x.url){const m=x.url.match(/[?&]id=(\d+)/);if(m)sid=m[1];}
         if(!sid&&x.id)sid=String(x.id);
-        return {title:(x.name||x.title||'未知歌曲'),by:(x.artist||x.author||''),url:neteaseSongUrl(sid),id:sid};
-      }).filter(function(x){return x.id;});
+        var _vip=false; try{ if(x.fee===1||x.fee===4||x.pay==='vip'||x.vip===true||x.privilege&&x.privilege.fee===1) _vip=true; }catch(e){}
+        return {title:(x.name||x.title||'未知歌曲'),by:(x.artist||x.author||''),url:neteaseSongUrl(sid),id:sid,vip:_vip};
+      }).filter(function(x){return x.id;}).filter(function(x){return !x.vip;}).map(function(x){delete x.vip; return x;});
       cb(songs);
     }).catch(function(){if(!done){done=true;clearTimeout(to);tryOne();}});
   };
@@ -5168,12 +5169,54 @@ function renderListenList(){
   var pl=D.listenPlaylist||[];
   if(!pl.length){box.innerHTML='<div style="color:var(--sub);font-size:13px;padding:10px 0">还没有歌单，先贴个歌单链接</div>';return;}
   box.innerHTML='';
+  var _dm=!!D._lisDelMode;
+  var _sel=D._lisDelSel||[];
+  /* 删除模式工具条 */
+  box.insertAdjacentHTML('beforeend','<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><div class="ctbtn" onclick="yzLisDelToggle()">'+(_dm?'完成':'删除')+'</div>'+('')+(_dm?('<div class="ctbtn" onclick="yzLisDelAll()">全选</div><div class="ctbtn" onclick="yzLisDelDo()">删除已选</div>'):'')+'</div>');
   pl.forEach(function(sg,i){
     var on=(i===(D.listenIdx||0))?'on':'';
-    box.insertAdjacentHTML('beforeend','<div class="lli '+on+'" onclick="pickFromList('+i+')"><div class="llidx">'+(i+1)+'</div><div class="llnm">'+esc(sg.title||'未知歌曲')+'<div class="llby">'+esc(sg.by||'')+'</div></div></div>');
+    var picked=(_sel.indexOf(i)>=0);
+    if(_dm){
+      box.insertAdjacentHTML('beforeend','<div class="lli '+on+'" onclick="yzLisDelPick('+i+')"><div class="llidx">'+esc(picked?'✓':String(i+1))+'</div><div class="llnm">'+esc(sg.title||'未知歌曲')+'<div class="llby">'+esc(sg.by||'')+'</div></div></div>');
+    }else{
+      box.insertAdjacentHTML('beforeend','<div class="lli '+on+'" onclick="pickFromList('+i+')"><div class="llidx">'+(i+1)+'</div><div class="llnm">'+esc(sg.title||'未知歌曲')+'<div class="llby">'+esc(sg.by||'')+'</div></div></div>');
+    }
   });
 }
 function openListenList(){renderListenList();openSheet2('lisListSheet');}
+
+/* ===== 一起听：播放列表删除（多选/全选） ===== */
+function yzLisDelToggle(){
+  D._lisDelMode=!D._lisDelMode;
+  if(D._lisDelMode&&!Array.isArray(D._lisDelSel))D._lisDelSel=[];
+  renderListenList();
+}
+function yzLisDelPick(i){
+  D._lisDelSel=D._lisDelSel||[];
+  var k=D._lisDelSel.indexOf(i);
+  if(k>=0)D._lisDelSel.splice(k,1); else D._lisDelSel.push(i);
+  renderListenList();
+}
+function yzLisDelAll(){
+  var pl=D.listenPlaylist||[];
+  D._lisDelSel=[];
+  for(var i=0;i<pl.length;i++)D._lisDelSel.push(i);
+  renderListenList();
+}
+function yzLisDelDo(){
+  var sel=(D._lisDelSel||[]).slice().sort(function(a,b){return b-a;});
+  if(!sel.length){toast('先选要删的歌');return;}
+  var pl=D.listenPlaylist||[];
+  var delCount=sel.length;
+  var curUrl=(D.listenPlaylist&&D.listenPlaylist[D.listenIdx||0])?D.listenPlaylist[D.listenIdx||0].url:null;
+  var curDeleted=false;
+  sel.forEach(function(i){ if(i>=0&&i<pl.length){ if(pl[i].url&&pl[i].url===curUrl)curDeleted=true; pl.splice(i,1); } });
+  D._lisDelSel=[];
+  if(!pl.length){ D.listenIdx=0; D._lisDelMode=false; save(); renderListen(); renderListenList(); toast('已删除'+delCount+'首，列表为空'); return; }
+  if(curDeleted){ D.listenIdx=Math.min(D.listenIdx||0,pl.length-1); }
+  else if((D.listenIdx||0)>=pl.length){ D.listenIdx=pl.length-1; }
+  save(); renderListen(); renderListenList(); toast('已删除'+delCount+'首');
+}
 function pickFromList(i){closeSheet2('lisListSheet');playPlaylistIndex(i);}
 function yzFmtTime(x){x=x||0;x=Math.max(0,Math.floor(x));var m=Math.floor(x/60),sec=x%60;return m+':'+(sec<10?'0':'')+sec;}
 function yzSyncOneLyric(){
@@ -5628,7 +5671,12 @@ function addSongPrompt(){
     }catch(e){}
     if(!title||title.length>40)title='一起听的歌';
     var sg={title:title,by:by,url:v};
-    var added=yzPlaylistAddSong(sg);
+    /* 单曲导入：探测是否 VIP/版权受限，受限则跳过不导入 */
+    yzProbeSong(sg,function(ok){
+      if(!ok){ toast('这首是VIP/版权受限，已跳过'); return; }
+      yzImportSingleSong(sg);
+    });
+    return;
     if(!added){ toast('这首歌已经在列表里了'); return; }
     D.listenIdx=D.listenPlaylist.length-1;
     D.listenSongs.push({title:title,by:by,url:v,time:nowStr()});
@@ -5641,6 +5689,42 @@ function addSongPrompt(){
   },'粘贴歌曲或歌单链接，他会接上。');
 }
 
+/* 单曲实际导入（挼出来） */
+function yzImportSingleSong(sg){
+  try{
+    var added=yzPlaylistAddSong(sg);
+    if(!added){ toast('这首歌已经在列表里了'); return; }
+    D.listenIdx=D.listenPlaylist.length-1;
+    D.listenSongs=D.listenSongs||[];
+    D.listenSongs.push({title:sg.title,by:sg.by,url:sg.url,time:nowStr()});
+    try{yzFavTry('music',D.listenSongs[D.listenSongs.length-1],nowStr(),'favMusicRate');}catch(e){}
+    save();renderListen();
+    setTimeout(function(){
+      try{pushListenMsg('him',pickCard());}catch(e){}
+      if(document.getElementById('lisBy'))document.getElementById('lisBy').textContent='他也在听';
+    },800+Math.random()*800);
+  }catch(e){}
+}
+/* 探测歌曲是否可导入（VIP/版权受限则返回 false） */
+function yzProbeSong(sg,cb){
+  try{
+    var raw=(sg&&sg.url)?String(sg.url):'';
+    var u=raw.split('|')[0];
+    /* 从链接里取歌id，用 outer 直链探测是否被拦 */
+    try{ var _m=raw.match(/[?&]id=(\d+)/); if(!_m){var _m2=raw.match(/song\/(\d+)/); if(_m2)_m=_m2;} if(_m&&_m[1]){ u='https://music.163.com/song/media/outer/url?id='+_m[1]+'.mp3'; } }catch(e){}
+    if(!u){ cb(true); return; }
+    var done=false;
+    var to=setTimeout(function(){ if(!done){done=true;cb(true);} },3500);
+    fetch(u,{method:'HEAD'}).then(function(r){
+      if(done)return;done=true;clearTimeout(to);
+      /* 被拦：404/403 或 content-length 极小 */
+      var cl=parseInt(r.headers.get('content-length')||'0',10);
+      if(!r.ok && (r.status===403||r.status===404)){ cb(false); return; }
+      if(r.status===200 && cl>0 && cl<2000){ cb(false); return; }
+      cb(true);
+    }).catch(function(){ if(!done){done=true;clearTimeout(to);cb(true);} });
+  }catch(e){ cb(true); }
+}
 function pushListenMsg(from,text){
   D.listenMsgs=D.listenMsgs||[];
   D.listenMsgs.push({from:from,text:text,time:clockStr()});
