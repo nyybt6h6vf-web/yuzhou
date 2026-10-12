@@ -635,6 +635,8 @@ body{
 .letter-item .lt{font-size:14.5px;font-weight:600;}
 .letter-reading{flex:1;overflow-y:auto;padding:22px 20px;}
 .letter-body{background:var(--panel);border-radius:18px;padding:22px 20px;line-height:2;font-size:14.5px;white-space:pre-wrap;word-break:break-word;box-shadow:0 6px 20px rgba(0,0,0,.07);}
+.letter-reply{flex:0 0 auto;display:flex;gap:8px;align-items:flex-end;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:var(--panel);border-top:1px solid var(--line);}
+.letter-reply .lrepbtn{flex:0 0 auto;padding:10px 18px;border-radius:14px;background:var(--accent,#859ecb);color:#fff;font-size:14px;font-weight:600;cursor:pointer;}
 
 /* 表情包 */
 #packs{background:var(--chat-bg);}
@@ -931,12 +933,11 @@ body{
 .hpages.p2{transform:translateX(-50%);}
 .hpage{width:50%;flex:0 0 50%;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
 /* ===== 消息长按菜单 ===== */
-.msgmenu{position:fixed;left:0;right:0;bottom:0;z-index:200;display:none;flex-direction:column;background:var(--panel);border-radius:20px 20px 0 0;padding:8px 0 14px;box-shadow:0 -8px 30px rgba(0,0,0,.25);}
+.msgmenu{position:fixed;z-index:200;display:none;flex-direction:row;background:#2b2b2e;border-radius:12px;padding:0;box-shadow:0 8px 30px rgba(0,0,0,.4);overflow:hidden;}
 .msgmenu.show{display:flex;}
-.msgmenu .mmi{padding:14px 20px;font-size:15px;text-align:center;cursor:pointer;border-bottom:1px solid var(--line);}
-.msgmenu .mmi:last-child{border-bottom:none;}
-.msgmenu .mmi.del{color:#e0556b;}
-.msgmenu .mmi.cancel{color:var(--sub);font-size:14px;margin-top:4px;}
+.msgmenu .mmi{padding:12px 18px;font-size:14px;color:#fff;text-align:center;cursor:pointer;white-space:nowrap;border-left:1px solid rgba(255,255,255,.12);}
+.msgmenu .mmi:first-child{border-left:none;}
+.msgmenu .mmi.del{color:#ff7a90;}
 /* ===== 小手机 ===== */
 .phbody{flex:1;overflow-y:auto;padding:18px 16px 30px;display:flex;flex-direction:column;align-items:center;}
 .phcard{width:100%;max-width:320px;border-radius:22px;padding:22px 18px;background:var(--card,#fff);box-shadow:0 6px 22px rgba(30,34,50,.10);display:flex;flex-direction:column;align-items:center;gap:10px;}
@@ -1378,6 +1379,10 @@ body{
     <div class="statusbar apple"><span id="lrTimeTop">9:41</span><span class="right">100%</span></div>
     <div class="navbar"><div class="back" onclick="go('letters')">‹</div><div class="title">读信</div></div>
     <div class="letter-reading"><div class="letter-body" id="letterBody"></div></div>
+    <div class="letter-reply" id="letterReplyBox">
+      <textarea id="lrepText" placeholder="回信…" style="flex:1;min-height:40px;max-height:90px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--text);padding:9px 12px;font-size:14px;resize:none;"></textarea>
+      <div class="lrepbtn" onclick="sendLetterReply()">回复</div>
+    </div>
   </div>
   <div class="screen" id="diaryRead">
     <div class="statusbar apple"><span id="drTimeTop">9:41</span><span class="right">100%</span></div>
@@ -1482,143 +1487,150 @@ body{
     <div class="navbar"><div class="back" onclick="go('home')">‹</div><div class="title">设置</div></div>
     <div class="list">
       <div class="group">
-        <h4>存储</h4>
-        <div class="row"><div class="lab">本网站已占</div><div class="val" id="memUsed">--</div></div>
-        <div class="row"><div class="lab">浏览器可用余额</div><div class="val" id="memQuota">--</div></div>
-        <div class="row"><div class="lab">存储方式</div><div class="val" id="memEngine">--</div></div>
-      </div>
-      <div class="group">
-        <h4>身份</h4>
-        <div class="row"><div class="lab">主页展示梦角</div><div class="chip" id="homeCharaChip" onclick="yzPickHomeChara()">选择</div></div>
-        <div class="row"><div class="lab">我的昵称</div><input type="text" id="setMyNick" oninput="saveProfile()"></div>
-        <div class="row"><div class="lab">我的头像</div><div class="chip" onclick="pickAvatar('me')">选择图片</div></div>
-      </div>
-      <div class="group">
         <h4>美化</h4>
         <div class="row"><div class="lab">网站图标</div><div class="chip" onclick="pickFavicon()">选择图片</div></div>
-        <div class="row"><div class="lab">主题模式</div>
-          <div class="seg">
-            <div class="chip" id="thLight" onclick="setTheme('light')">浅色</div>
-            <div class="chip" id="thDark" onclick="setTheme('dark')">深色</div>
-          </div>
-        </div>
-        <div class="row"><div class="lab">锁屏名称</div><input type="text" id="setLockName" oninput="saveBeauty()" placeholder="留空则不显示"></div>
-<div class="row"><div class="lab">锁屏背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('lockBg')">上传图</div><div class="chip" onclick="setColor('lockBg','')">清</div></div></div>
-<div class="row"><div class="lab">锁屏字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('lockFg','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('lockFg','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setLockFgColor" oninput="setColor('lockFg',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('lockFg','')">清</div></div></div>
-<div class="row"><div class="lab">主页签名</div><input type="text" id="setSlogan" oninput="saveBeauty()" placeholder="头像右侧那行字，留空则不显示"></div>
-<div class="row"><div class="lab">页面背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPageBg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('pageBg')">上传图</div><div class="chip" onclick="setColor('pageBg','')">清</div></div></div>
-<div class="row"><div class="lab">第二页背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPage2Bg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('page2Bg')">上传图</div><div class="chip" onclick="setColor('page2Bg','')">清</div></div></div>
-<div class="row"><div class="lab">聊天背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setChatBg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('chatBg')">上传图</div><div class="chip" onclick="setColor('chatBg','')">清</div></div></div>
-<div class="row"><div class="lab">转账字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('fontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('fontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setFontColorColor" oninput="setColor('fontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fontColor','')">清</div></div></div>
-<div class="row"><div class="lab">梦角气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleHim','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleHim','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleHimColor" oninput="setColor('bubbleHim',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleHim','')">清</div></div></div>
-<div class="row"><div class="lab">我方气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleMe','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleMe','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleMeColor" oninput="setColor('bubbleMe',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleMe','')">清</div></div></div>
-<div class="row"><div class="lab">转账卡片色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setTranColor" oninput="setColor('tranColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('tranColor','')">清</div></div></div>
-<div class="row"><div class="lab">梦角消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('himFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('himFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setHimFontColorColor" oninput="setColor('himFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('himFontColor','')">清</div></div></div>
-<div class="row"><div class="lab">我的消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('meFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('meFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setMeFontColorColor" oninput="setColor('meFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('meFontColor','')">清</div></div></div>
-<div class="row"><div class="lab">气泡大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setBubbleSize" min="80" max="140" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="bubbleSizeVal" style="min-width:38px;text-align:right">100%</span></div></div>
-<div class="row"><div class="lab">聊天字体大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setChatFontSize" min="11" max="22" step="1" value="14" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="chatFontSizeVal" style="min-width:38px;text-align:right">14px</span></div></div>
-<div class="row"><div class="lab">转账卡片大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setTranSize" min="80" max="150" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="tranSizeVal" style="min-width:38px;text-align:right">100%</span></div></div>
-<div class="row"><div class="lab">动态背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setMomBg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('momBg')">上传图</div><div class="chip" onclick="setColor('momBg','')">清</div></div></div>
+        <div class="row"><div class="lab">主题模式</div><div class="seg" id="themeSeg"><div class="segb" data-t="light" onclick="setTheme('light')">浅色</div><div class="segb" data-t="dark" onclick="setTheme('dark')">深色</div></div></div>
+        <div class="row"><div class="lab">主页签名</div><input type="text" id="setSignature" oninput="saveProfile()"></div>
+        <div class="row"><div class="lab">聊天背景</div><div class="chip" onclick="pickChatBg()">选择图片</div></div>
+        <div class="row"><div class="lab">主页照片墙</div><div class="chip" onclick="pickHero()">选择图片</div></div>
         <div class="row" style="flex-direction:column;align-items:stretch">
-          <div class="lab" style="margin-bottom:8px">气泡 CSS（.msg .bubble 通用，写一条两边都生效）</div>
-          <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty();yzPreviewBubble();"></textarea>
-          <div class="lab" style="margin-top:12px;margin-bottom:6px">预览</div>
-          <div id="bubblePreview" style="background:var(--card);border:1px solid var(--sub);border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;gap:10px">
-            <div class="msg him" style="display:flex"><div class="bubble">梦角消息示例</div></div>
-            <div class="msg me" style="display:flex"><div class="bubble">我的消息示例</div></div>
-          </div>
+          <div class="lab" style="margin-bottom:8px">气泡CSS（高级）</div>
+          <textarea id="setBubbleCss" placeholder=".bubble{...}" oninput="saveProfile()"></textarea>
         </div>
+        <div class="row"><div class="lab">气泡大小（px）</div><input type="number" id="setBubbleSize" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角气泡色</div><div class="chip" data-cid="bubbleHim" onclick="pickColor(this)">选择</div></div>
+        <div class="row"><div class="lab">我方气泡色</div><div class="chip" data-cid="bubbleMe" onclick="pickColor(this)">选择</div></div>
+        <div class="row"><div class="lab">转账卡片色</div><div class="chip" data-cid="transCard" onclick="pickColor(this)">选择</div></div>
+        <div class="row"><div class="lab">转账字色</div><div class="chip" data-cid="fontColor" onclick="pickColor(this)">选择</div></div>
+        <div class="row"><div class="lab">梦角消息字色</div><div class="chip" data-cid="himFontColor" onclick="pickColor(this)">选择</div></div>
+        <div class="row"><div class="lab">我的消息字色</div><div class="chip" data-cid="meFontColor" onclick="pickColor(this)">选择</div></div>
       </div>
-      <div class="group">
-        <h4>进入密码</h4>
-        <div class="row"><div class="lab">密码</div><input type="text" id="setPass" placeholder="留空则不需要密码" oninput="saveProfile()"></div>
-        <div class="row" style="font-size:12px;color:var(--sub)">首次进入不用输，设了之后每次进网站都要输对才能进。</div>
-      </div>
-      <div class="group">
-        <h4>互动概率</h4>
-        <div class="row"><div class="lab">字卡回复间隔（秒）</div><input type="number" id="setDelay" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">连发间隔（秒）</div><input type="number" id="setSendGap" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">最少连发条数</div><input type="number" id="setMin" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">最多连发条数</div><input type="number" id="setMax" oninput="saveProfile()" style="max-width:80px"></div>
+<div class="group">
+        <h4>梦角回复 · 概率</h4>
+        <div class="row"><div class="lab">字卡回复概率（%）</div><input type="number" id="setMainRate" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">发表情包概率（%）</div><input type="number" id="setPackRate" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角发语音概率（%）</div><input type="number" id="setVoiceRate" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">emoji混入主字卡</div><select id="setEmojiMix" onchange="saveProfile()" style="max-width:100px"><option value="0">关</option><option value="1">开</option></select></div>
+        <div class="row"><div class="lab">emoji混入概率（%）</div><input type="number" id="setEmojiMixRate" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">拼字卡触发概率（%）</div><input type="number" id="setComboRate" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">拼字卡最少张数</div><input type="number" id="setComboMin" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">拼字卡最多张数</div><input type="number" id="setComboMax" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">引用回复概率（%）</div><input type="number" id="setQuoteRate" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">字卡回复间隔（秒）</div><input type="number" id="setDelay" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">连发间隔（秒）</div><input type="number" id="setSendGap" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">最少连发条数</div><input type="number" id="setMin" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">最多连发条数</div><input type="number" id="setMax" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">回复问卷时长（秒）</div><input type="number" id="setAskDelay" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">日记间隔（分钟）</div><input type="number" id="setDiaryGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">日记最少句数</div><input type="number" id="setDiaryMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">日记最多句数</div><input type="number" id="setDiaryMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+      </div>
+<div class="group">
+        <h4>互动 · 拍一拍</h4>
+        <div class="row"><div class="lab">梦角主动拍你概率（%）</div><input type="number" id="setPatRate" min="0" max="100" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row" style="flex-direction:column;align-items:stretch">
+          <div class="lab" style="margin-bottom:8px">拍一拍文案（每行一条）</div>
+          <textarea id="setPats" placeholder="揉了揉你的头&#10;捏了捏你的脸" oninput="savePats()"></textarea>
+        </div>
+      </div>
+<div class="group">
+        <h4>互动 · 来信</h4>
+        <div class="row"><div class="lab">梦角回信间隔（分钟）</div><input type="number" id="setReplyGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">回信/来信最少句数</div><input type="number" id="setLetterMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">回信/来信最多句数</div><input type="number" id="setLetterMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角主动来信间隔（分钟）</div><input type="number" id="setLetterGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+      </div>
+<div class="group">
+        <h4>互动 · 动态</h4>
+        <div class="row"><div class="lab">梦角发动态间隔（分钟）</div><input type="number" id="setMomGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">动态最少句数</div><input type="number" id="setMomMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">动态最多句数</div><input type="number" id="setMomMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角点赞我动态概率（%）</div><input type="number" id="setMomLikeRate" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角评论我动态概率（%）</div><input type="number" id="setMomCmtRate" oninput="saveProfile()" style="max-width:80px"></div>
+      </div>
+<div class="group">
+        <h4>互动 · 代付</h4>
         <div class="row"><div class="lab">梦角找你代付概率（%）</div><input type="number" id="setDaifuRate" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">代付检查间隔（分钟）</div><input type="number" id="setDaifuGap" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角代付处理时长（秒）</div><input type="number" id="setDaifuDelay" oninput="saveProfile()" style="max-width:80px"></div>
+      </div>
+<div class="group">
+        <h4>互动 · 转账</h4>
         <div class="row"><div class="lab">转账收款概率（%）</div><input type="number" id="setTran" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角主动转账概率（%）</div><input type="number" id="setTranTo" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row" style="flex-direction:column;align-items:stretch">
-           <div class="lab" style="margin-bottom:8px">转账金额（每行一个，随机抽一个）</div>
-           <textarea id="setTranAmts" placeholder="13.14&#10;52&#10;520" oninput="saveTrans()"></textarea>
-         </div>
-         <div class="row" style="flex-direction:column;align-items:stretch">
-           <div class="lab" style="margin-bottom:8px">转账文案（每行一条，随机抽一条）</div>
-           <textarea id="setTranNotes" placeholder="给你的&#10;拿去买奶茶" oninput="saveTrans()"></textarea>
-         </div>
-         <div class="row"><div class="lab">字卡回复概率（%）</div><input type="number" id="setMainRate" oninput="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">emoji混入主字卡</div><select id="setEmojiMix" onchange="saveProfile()" style="max-width:100px"><option value="0">关</option><option value="1">开</option></select></div><div class="row"><div class="lab">emoji混入概率（%）</div><input type="number" id="setEmojiMixRate" oninput="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">发表情包概率（%）（通用）</div><input type="number" id="setPackRate" oninput="saveProfile()" style="max-width:80px"></div>
-         <div class="row"><div class="lab">梦角发语音概率（%）</div><input type="number" id="setVoiceRate" oninput="saveProfile()" style="max-width:80px"></div>
-         <div class="row"><div class="lab">主动来电概率（%）</div><input type="number" id="setCall" oninput="saveProfile()" style="max-width:80px"></div>
-         <div class="row"><div class="lab">开启消息通知</div><div class="chip" onclick="yzAskNotify()">开启 / 检查</div></div>
-        <div class="row"><div class="lab">测试通知</div><div class="chip" onclick="yzTestNotify()">发一条试试</div></div>
-        <div class="row"><div class="lab">后台保活</div><div class="chip" id="keepAliveBtn" onclick="yzToggleKeepAlive()">关闭</div></div>
+          <div class="lab" style="margin-bottom:8px">转账金额（每行一个）</div>
+          <textarea id="setTranAmts" placeholder="13.14&#10;52&#10;520" oninput="saveTrans()"></textarea>
+        </div>
+        <div class="row" style="flex-direction:column;align-items:stretch">
+          <div class="lab" style="margin-bottom:8px">转账文案（每行一条）</div>
+          <textarea id="setTranNotes" placeholder="给你的&#10;拿去买奶茶" oninput="saveTrans()"></textarea>
+        </div>
+      </div>
+<div class="group">
+        <h4>互动 · 来电与主动消息</h4>
+        <div class="row"><div class="lab">主动来电概率（%）</div><input type="number" id="setCall" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">主动发消息间隔（分钟）</div><input type="number" id="setProactiveGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">主动找我（开关）</div><div class="chip" onclick="toggleProactive()" id="proactiveBtn">关闭</div></div>
-        <div class="row"><div class="lab">梦角发动态间隔（分钟）</div><input type="number" id="setMomGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-         <div class="row"><div class="lab">动态最少句数</div><input type="number" id="setMomMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-         <div class="row"><div class="lab">动态最多句数</div><input type="number" id="setMomMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-       </div>
-       <div class="group">
-         <h4>心情库</h4>
+      </div>
+<div class="group">
+        <h4>互动 · 日记</h4>
+        <div class="row"><div class="lab">日记间隔（分钟）</div><input type="number" id="setDiaryGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">日记最少句数</div><input type="number" id="setDiaryMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">日记最多句数</div><input type="number" id="setDiaryMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+      </div>
+<div class="group">
+        <h4>互动 · 心情库</h4>
         <div class="row"><div class="lab">显示状态</div><div class="chip" id="feelToggle" onclick="toggleFeel()">开启</div></div>
         <div class="row"><div class="lab">更换间隔（分钟）</div><input type="number" id="setFeelGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row" style="flex-direction:column;align-items:stretch">
           <div class="lab" style="margin-bottom:8px">心情词（每行一条）</div>
-          <textarea id="setFeelList" placeholder="开心&#10;想你了&#10;有点吃醋" oninput="saveFeel()"></textarea>
+          <textarea id="setFeelList" placeholder="开心&#10;想你了" oninput="saveFeel()"></textarea>
         </div>
       </div>
-      <div class="group">
-        <h4>拍一拍</h4>
-        <div class="row" style="flex-direction:column;align-items:stretch">
-          <div class="lab" style="margin-bottom:8px">梦角（）（每行一条，梦角拍你时随机抽一条；互动和人物都你自己填，如「揉了揉我的头」）</div>
-          <textarea id="setPats" placeholder="揉了揉你的头&#10;捏了捏你的脸&#10;从背后抱住你" oninput="savePats()"></textarea>
-        </div>
-        <div class="row"><div class="lab">梦角主动拍你概率（%）</div><input type="number" id="setPatRate" min="0" max="100" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-      </div>
-      <div class="group">
-        <h4>来信</h4>
-        <div class="row"><div class="lab">梦角回信间隔（分钟）</div><input type="number" id="setReplyGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">回信/来信最少句数</div><input type="number" id="setLetterMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">回信/来信最多句数</div><input type="number" id="setLetterMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">梦角主动来信间隔（分钟）</div><input type="number" id="setLetterGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-      </div>
-      <div class="group">
-        <h4>聊天显示</h4>
-        <div class="row"><div class="lab">显示已读状态</div><div class="chip" id="readToggle" onclick="toggleRead()">关闭</div></div>
-        <div class="row"><div class="lab">显示"对方正在输入"</div><div class="chip" id="typingToggle" onclick="toggleTyping()">关闭</div></div>
-      </div>
-      <div class="group">
-        <h4>梦角收藏（概率 %）</h4>
+<div class="group">
+        <h4>互动 · 梦角收藏我（概率 %）</h4>
         <div class="row"><div class="lab">收藏我的消息</div><input type="number" id="setFavMsg" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">收藏我加的音乐</div><input type="number" id="setFavMusic" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">收藏我发的动态</div><input type="number" id="setFavMoment" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">收藏我的音乐</div><input type="number" id="setFavMusic" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">收藏我的动态</div><input type="number" id="setFavMoment" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">收藏我的日记</div><input type="number" id="setFavDiary" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">收藏我写的信</div><input type="number" id="setFavLetter" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">回看（翻旧内容）</div><input type="number" id="setFavReread" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">回看后收藏</div><input type="number" id="setFavRereadFav" oninput="saveProfile()" style="max-width:80px"></div>
       </div>
-      <div class="group">
-        <h4>备份</h4>
+<div class="group">
+        <h4>其他 · 存储</h4>
+        <div class="row"><div class="lab">本网站已占</div><div class="val" id="memUsed">--</div></div>
+        <div class="row"><div class="lab">浏览器可用余额</div><div class="val" id="memQuota">--</div></div>
+        <div class="row"><div class="lab">存储方式</div><div class="val" id="memEngine">--</div></div>
+      </div>
+<div class="group">
+        <h4>其他 · 身份</h4>
+        <div class="row"><div class="lab">主页展示梦角</div><div class="chip" id="homeCharaChip" onclick="yzPickHomeChara()">选择</div></div>
+        <div class="row"><div class="lab">我的昵称</div><input type="text" id="setMyNick" oninput="saveProfile()"></div>
+        <div class="row"><div class="lab">我的头像</div><div class="chip" onclick="pickAvatar('me')">选择图片</div></div>
+      </div>
+<div class="group">
+        <h4>其他 · 进入密码</h4>
+        <div class="row"><div class="lab">密码</div><input type="text" id="setPass" placeholder="留空则不需要密码" oninput="saveProfile()"></div>
+        <div class="row" style="font-size:12px;color:var(--sub)">首次进入不用输，设了之后每次进网站都要输对才能进。</div>
+      </div>
+<div class="group">
+        <h4>其他 · 聊天显示</h4>
+        <div class="row"><div class="lab">显示已读状态</div><div class="chip" id="readToggle" onclick="toggleRead()">关闭</div></div>
+        <div class="row"><div class="lab">显示"对方正在输入"</div><div class="chip" id="typingToggle" onclick="toggleTyping()">关闭</div></div>
+        <div class="row"><div class="lab">开启消息通知</div><div class="chip" onclick="yzAskNotify()">开启 / 检查</div></div>
+        <div class="row"><div class="lab">测试通知</div><div class="chip" onclick="yzTestNotify()">发一条试试</div></div>
+        <div class="row"><div class="lab">后台保活</div><div class="chip" id="keepAliveBtn" onclick="yzToggleKeepAlive()">关闭</div></div>
+      </div>
+<div class="group">
+        <h4>其他 · 备份</h4>
         <div class="row"><div class="lab">导出备份</div><div class="chip" onclick="exportData()">导出</div></div>
         <div class="row"><div class="lab">导入备份</div><div class="chip" onclick="importData()">导入</div></div>
       </div>
-      <div class="group">
-        <h4>数据</h4>
+<div class="group">
+        <h4>其他 · 数据</h4>
         <div class="row"><div class="lab">清空聊天记录</div><div class="chip" onclick="clearChat()">清空</div></div>
         <div class="row"><div class="lab">恢复默认字卡</div><div class="chip" onclick="resetCards()">恢复</div></div>
+      </div>
+</div>
       </div>
     </div>
   </div>
@@ -2362,7 +2374,7 @@ if(o.daifuGap===undefined)o.daifuGap=20;
     pageBg:'',chatBg:'',momBg:'',lockBg:'',lockFg:'',fontColor:'',himFontColor:'',meFontColor:'',bubble:'',bubbleHim:'',bubbleMe:'',heroImg:'',
     readOn:true,typingOn:true,
     lockName:'Yu·Zhou',slogan:'',pass:'',
-    delay:1.2,double:35,tran:50,tranTo:10,packRate:25,mainRate:100,emojiMix:0,emojiMixRate:30,callRate:12,patRate:15,voiceRate:0,momGap:1,
+    delay:1.2,double:35,tran:50,tranTo:10,packRate:25,mainRate:100,emojiMix:0,emojiMixRate:30,callRate:12,patRate:15,voiceRate:0,momGap:1,momLikeRate:50,momCmtRate:30,
     noteMe:'',noteHim:'',
     sendMin:1,sendMax:2,
     comboRate:20,comboMin:2,comboMax:3,quoteRate:30,askDelay:15,
@@ -2561,6 +2573,7 @@ function yzPhRender(){
     h+='<div class="phbtn on" onclick="yzPhCharge()">充电</div>';
   }
   h+='</div>';
+  h+='<div class="phbtns"><div class="phbtn on" onclick="yzMyFavHtml()">我的收藏 ›</div></div>';
   h+='<div class="phmini" onclick="yzPhToggle()">查看梦角的手机 ›</div>';
   h+='</div>';
   body.innerHTML=h;
@@ -2674,6 +2687,81 @@ function yzFavReread(){
     if(Math.random()*100<rr){ yzFavAdd(pick.type,pick.item,pick.src); }
   }catch(e){}
 }
+/* ===== 我的收藏（我收藏梦角的东西） ===== */
+function yzMyFavInit(){
+  if(!D.myFavs)D.myFavs={msg:[],music:[],moment:[],diary:[],letter:[],seen:{}};
+  ['msg','music','moment','diary','letter'].forEach(function(k){ if(!D.myFavs[k])D.myFavs[k]=[]; });
+  if(!D.myFavs.seen)D.myFavs.seen={};
+}
+function yzMyFavAdd(type,item,srcTime){
+  try{
+    yzMyFavInit();
+    if(!item)return;
+    var key=(item.id||item.url||item.title||item.text||'')+'';
+    if(!key)return;
+    if(D.myFavs.seen[type+':'+key])return;
+    D.myFavs.seen[type+':'+key]=1;
+    var nowStr=new Date().toLocaleString('zh-CN',{hour12:false}).slice(5,16);
+    D.myFavs[type].push({k:key,favTime:nowStr,srcTime:srcTime||'',text:(typeof item.text==='string'?item.text.slice(0,160):(item.text||'')),title:item.title||'',by:item.by||'',url:item.url||'',date:item.date||'',msgType:item.type||'',src:item.src||'',sec:(item.sec||'')});
+    save();
+  }catch(e){}
+}
+function yzMyFavHtml(){
+  yzMyFavInit();
+  var body=document.getElementById('phBody'); if(!body)return;
+  var cats=[['msg','\u{1F4AC}','收藏消息'],['music','\u{1F3B5}','收藏音乐'],['moment','\u{1F4F7}','收藏动态'],['diary','\u{1F4D6}','收藏日记'],['letter','\u2709','收藏信封']];
+  var h='<div class="favwrap">';
+  h+='<div class="favback" onclick="yzPhRender()">\u2039 \u8fd4\u56de</div>';
+  h+='<div class="favtitle" style="margin:6px 0 12px;">\u6211\u7684\u6536\u85cf</div>';
+  cats.forEach(function(c){
+    var t=c[0]; var arr=D.myFavs[t]||[];
+    h+='<div class="favmod" onclick="yzMyFavOpenCat(\''+t+'\')">';
+    h+='<span class="fmicon">'+c[1]+'</span>';
+    h+='<span class="fmname">'+c[2]+'</span>';
+    h+='<span class="fmnum">'+arr.length+'</span>';
+    h+='<span class="fmarr">\u203a</span>';
+    h+='</div>';
+  });
+  h+='</div>';
+  body.innerHTML=h;
+}
+function yzMyFavOpenCat(t){
+  yzMyFavInit();
+  var el=document.getElementById('favSheet');
+  if(!el){
+    el=document.createElement('div'); el.id='favSheet'; el.className='favsheet';
+    el.innerHTML='<div class="fshead"><span class="fsback" onclick="yzFavCloseCat()">\u2039 \u8fd4\u56de</span><span class="fstitle" id="favSheetTitle"></span><span class="fsspacer"></span></div><div class="fsbody" id="favSheetBody"></div>';
+    document.body.appendChild(el);
+  }
+  var arr=D.myFavs[t]||[];
+  var label=t==='msg'?'收藏消息':(t==='music'?'收藏音乐':(t==='moment'?'收藏动态':(t==='letter'?'收藏信封':'收藏日记')));
+  var tt=document.getElementById('favSheetTitle'); if(tt)tt.textContent=label+' ('+arr.length+')';
+  var b=document.getElementById('favSheetBody');
+  if(b){
+    if(!arr.length){ b.innerHTML='<div class="favempty" style="padding:40px 0;text-align:center;">\u8fd8\u6ca1\u6709</div>'; }
+    else{
+      var hh='';
+      arr.slice().reverse().forEach(function(f,idx){
+        var realIdx=arr.length-1-idx;
+        hh+='<div class="favitem">';
+        if(t==='msg'||t==='moment'){
+          if(f.msgType==='voice'){ hh+='<div class="favtxt">\u{1F3A4} '+(f.sec||'')+'\u2033 '+(f.text||'')+'</div>'; }
+          else if(f.msgType==='img'){ hh+='<div class="favtxt">'+(f.src?('<img src="'+f.src+'" style="max-width:90px;max-height:90px;border-radius:10px;">'):'[表情包]')+'</div>'; }
+          else { hh+='<div class="favtxt">'+(f.text||'')+'</div>'; }
+        }
+        if(t==='music') hh+='<div class="favtxt">\u{1F3B5} '+(f.title||'')+(f.by?' \u00b7 '+f.by:'')+'</div>';
+        if(t==='diary') hh+='<div class="favtxt">\u{1F4D6} '+(f.title||'')+'</div>';
+        if(t==='letter') hh+='<div class="favtxt">\u2709 '+(f.text||'')+'</div>';
+        hh+='<div class="favmeta">\u6536\u85cf\u4e8e '+f.favTime+(f.srcTime?' \u00b7 \u53d1\u4e8e '+f.srcTime:'')+'</div>';
+        hh+='<div class="favdel" onclick="yzMyFavDel(\''+t+'\','+realIdx+')">\u5220\u9664</div>';
+        hh+='</div>';
+      });
+      b.innerHTML=hh;
+    }
+  }
+  el.classList.add('show');
+}
+function yzMyFavDel(t,i){ try{ yzMyFavInit(); D.myFavs[t].splice(i,1); save(); yzMyFavOpenCat(t); }catch(e){} }
 function yzFavCatLabel(t){ return t==='msg'?'收藏消息':(t==='music'?'收藏音乐':(t==='moment'?'收藏动态':(t==='letter'?'收藏信封':'收藏日记'))); }
 function yzPhHtml(){
   yzFavInit();
@@ -3961,12 +4049,35 @@ function saveLetterPost(){
 }
 function openLetter(id){
   const lt=(D.letters||[]).find(x=>x.id===id);if(!lt)return;
+  window.__curLetterId=id;
+  try{ var _rb=document.getElementById('letterReplyBox'); var _rt=document.getElementById('lrepText'); if(_rt)_rt.value=''; if(_rb){ _rb.style.display=(lt.from==='me')?'none':''; } }catch(e){}
   lt.read=true;save();
-  try{ if(lt.from==='him'){ yzFavTry('letter',{text:(lt.preview||lt.text||''),id:lt.id},lt.time||'','favLetterRate'); } }catch(e){}
   try{ if(document.getElementById('letters')&&document.getElementById('letters').classList.contains('active'))renderLetters(); }catch(e){}
   const head=lt.from==='him'?((D.nick||'他')+' 写给你的信'):('你写给 '+(D.nick||'他')+' 的信');
   $('#letterBody').innerHTML=`<div style="font-size:12px;color:var(--sub);margin-bottom:14px">${esc(head)} · ${esc(lt.time||'')}</div><div class="lettertxt">${esc(lt.text).replace(/\n/g,'<br>')}</div>`;
   go('letterRead');
+}
+function sendLetterReply(){
+  try{
+    var id=window.__curLetterId; if(!id)return;
+    var src=(D.letters||[]).find(function(x){return x.id===id;}); if(!src)return;
+    var tx=document.getElementById('lrepText'); var v=tx?String(tx.value||'').trim():'';
+    if(!v){ toast('写点什么再回复'); return; }
+    tx.value='';
+    var _now=Date.now();
+    var nid='lt'+_now;
+    D.letters=D.letters||[];
+    D.letters.push({id:nid,from:'me',text:letterTo(D.nick||'他')+'\n\n'+v,preview:v.slice(0,20),time:nowStr(),read:false,replied:false,replyTo:id,_t:_now});
+    src.repliedByMe=true;
+    save();
+    renderLetters();
+    /* 梦角回信 */
+    var gap=Math.max(0.2,(D.replyGap||5))*60000;
+    setTimeout(function(){ himReplyLetter(nid); },gap);
+    /* 10分钟未回→已读 */
+    setTimeout(function(){ try{ var L=(D.letters||[]).find(function(x){return x.id===nid;}); if(L&&!L.read){ L.read=true; save(); if(document.getElementById('letters')&&document.getElementById('letters').classList.contains('active'))renderLetters(); } }catch(e){} },10*60*1000);
+    toast('已回信');
+  }catch(e){}
 }
 function himReplyLetter(id){
   const lt=(D.letters||[]).find(x=>x.id===id);if(!lt||lt.replied)return;
@@ -4127,7 +4238,7 @@ if(!window.__dfDeleg){
 }
 /* ===== 消息长按菜单 ===== */
 window.__msgMenuIdx=-1;
-function yzMsgMenuShow(i){
+function yzMsgMenuShow(i,anchor){
   try{
     var m=(D.msgs||[])[i]; if(!m)return;
     window.__msgMenuIdx=i;
@@ -4136,14 +4247,25 @@ function yzMsgMenuShow(i){
       el=document.createElement('div'); el.id='msgMenu'; el.className='msgmenu';
       document.body.appendChild(el);
     }
-    var isHim=(m.from!=='me');
     var h='';
-    h+='<div class="mmi" onclick="yzMsgMenuFav()">'+(isHim?'收藏':'收藏')+'</div>';
+    h+='<div class="mmi" onclick="yzMsgMenuFav()">'+(m.from!=='me'?'收藏':'收藏')+'</div>';
     h+='<div class="mmi" onclick="yzMsgMenuQuote()">引用</div>';
     h+='<div class="mmi del" onclick="yzMsgMenuDel()">删除</div>';
-    h+='<div class="mmi cancel" onclick="yzMsgMenuHide()">取消</div>';
     el.innerHTML=h;
     el.classList.add('show');
+    /* 定位到消息上方（仿微信） */
+    var r=null;
+    try{ if(anchor&&anchor.getBoundingClientRect)r=anchor.getBoundingClientRect(); }catch(e){}
+    if(!r){ var node=document.querySelector('#chatBody .msg[data-mi="'+i+'"]'); if(node)r=node.getBoundingClientRect(); }
+    var mw=el.offsetWidth, mh=el.offsetHeight;
+    var left=0, top=0;
+    if(r){ left=r.left+r.width/2-mw/2; top=r.top-mh-8; }
+    else { left=(window.innerWidth-mw)/2; top=window.innerHeight/2; }
+    if(left<8)left=8;
+    if(left+mw>window.innerWidth-8)left=window.innerWidth-mw-8;
+    if(top<8)top=r?(r.bottom+8):8;
+    el.style.left=left+'px'; el.style.top=top+'px';
+    window.__msgMenuAnchor=anchor||null;
   }catch(e){}
 }
 function yzMsgMenuHide(){ var el=document.getElementById('msgMenu'); if(el)el.classList.remove('show'); window.__msgMenuIdx=-1; }
@@ -4154,7 +4276,7 @@ function yzMsgMenuDel(){
 function yzMsgMenuFav(){
   try{
     var i=window.__msgMenuIdx; var m=D.msgs[i];
-    if(m){ yzFavInit(); yzFavAdd('msg',{id:'manual'+Date.now(),text:(m.text||''),type:(m.type||''),src:(m.src||''),sec:(m.sec||'')},m._t||''); toast('已收藏到小手机'); }
+    if(m){ yzMyFavInit(); yzMyFavAdd('msg',{id:'manual'+Date.now(),text:(m.text||''),type:(m.type||''),src:(m.src||''),sec:(m.sec||'')},m._t||''); toast('已收藏到我的手机'); }
   }catch(e){}
   yzMsgMenuHide();
 }
@@ -4166,6 +4288,18 @@ function yzMsgMenuQuote(){
   }catch(e){}
   yzMsgMenuHide();
 }
+/* 点一下消息 → 菜单消失 */
+if(!window.__msgMenuTapHide){
+  window.__msgMenuTapHide=true;
+  document.addEventListener('click',function(e){
+    try{
+      var el=document.getElementById('msgMenu');
+      if(!el||!el.classList.contains('show'))return;
+      if(el.contains(e.target))return; /* 点菜单自身不关 */
+      yzMsgMenuHide();
+    }catch(x){}
+  },true);
+}
 /* 长按委托 */
 if(!window.__msgLongPress){
   window.__msgLongPress=true;
@@ -4173,12 +4307,12 @@ if(!window.__msgLongPress){
     var _t=null,_el=null;
     function _find(e){ try{ return e.target&&e.target.closest?e.target.closest('#chatBody .msg[data-mi]'):null; }catch(x){ return null; } }
     function _up(){ if(_t){clearTimeout(_t);_t=null;} _el=null; }
-    document.addEventListener('touchstart',function(e){ var el=_find(e); if(!el)return; _el=el; var k=el.getAttribute('data-mi'); _t=setTimeout(function(){ _t=null; try{ yzMsgMenuShow(parseInt(k,10)); if(navigator.vibrate)navigator.vibrate(15); }catch(x){} },600); },{passive:true});
+    document.addEventListener('touchstart',function(e){ var el=_find(e); if(!el)return; _el=el; var k=el.getAttribute('data-mi'); _t=setTimeout(function(){ _t=null; try{ yzMsgMenuShow(parseInt(k,10),el); if(navigator.vibrate)navigator.vibrate(15); }catch(x){} },600); },{passive:true});
     document.addEventListener('touchend',_up,{passive:true});
     document.addEventListener('touchmove',_up,{passive:true});
-    document.addEventListener('mousedown',function(e){ var el=_find(e); if(!el)return; _el=el; var k=el.getAttribute('data-mi'); _t=setTimeout(function(){ _t=null; yzMsgMenuShow(parseInt(k,10)); },600); });
+    document.addEventListener('mousedown',function(e){ var el=_find(e); if(!el)return; _el=el; var k=el.getAttribute('data-mi'); _t=setTimeout(function(){ _t=null; yzMsgMenuShow(parseInt(k,10),el); },600); });
     document.addEventListener('mouseup',_up);
-    document.addEventListener('contextmenu',function(e){ var el=_find(e); if(el){ e.preventDefault(); yzMsgMenuShow(parseInt(el.getAttribute('data-mi'),10)); } });
+    document.addEventListener('contextmenu',function(e){ var el=_find(e); if(el){ e.preventDefault(); yzMsgMenuShow(parseInt(el.getAttribute('data-mi'),10),el); } });
   })();
 }
 function daifuUserAct(accept){
@@ -5037,12 +5171,19 @@ function maybeMomInteract(){
   const list=(D.moments||[]).filter(m=>m.from==='me');
   if(!list.length)return;
   const m=list[Math.floor(Math.random()*list.length)];
-  if(Math.random()<0.5){
+  var _lr=(D.momLikeRate===undefined?50:parseFloat(D.momLikeRate))||0;
+  var _cr=(D.momCmtRate===undefined?30:parseFloat(D.momCmtRate))||0;
+  var did=false;
+  if(Math.random()*100<_lr){
     m.likedBy=m.likedBy||[];
     if(!m.likedBy.includes('him'))m.likedBy.push('him');
-    save();
-  }else if(Math.random()<0.6){
-    momReply(m);
+    save(); did=true;
+  }
+  if(Math.random()*100<_cr){
+    momReply(m); did=true;
+  }
+  if(!did){
+    /* 两个概率都没中，就不互动 */
   }
   if($('#moments').classList.contains('active'))renderMoments();
 }
@@ -5715,22 +5856,33 @@ function addSongPrompt(){
           alert('这个歌单没拉下来，稍后再试或换链接');
           return;
         }
+        if($('#lisBy'))$('#lisBy').textContent='正在检测可播放歌曲…';
         var before=D.listenPlaylist.length;
-        var added=yzPlaylistAddBulk(list);
-        var dup=before+added-D.listenPlaylist.length;
-        if(added<=0){
-          if($('#lisBy'))$('#lisBy').textContent='歌单里的歌都在列表里了';
-          alert('这个歌单里的歌已经在列表里了，没有重复添加');
-          return;
+        var okList=[]; var skipped=0; var _pi=0;
+        function _nextProbe(){
+          if(_pi>=list.length){
+            var added=yzPlaylistAddBulk(okList);
+            if(added<=0){
+              if($('#lisBy'))$('#lisBy').textContent='没有可导入的歌';
+              alert('这个歌单里没有可播放的歌（可能全是VIP/版权受限），或都已存在');
+              return;
+            }
+            var first=okList[0];
+            D.listenIdx=before;
+            D.listenSongs=D.listenSongs||[];
+            D.listenSongs.push({title:first.title,by:first.by,url:first.url,time:nowStr()});
+            try{yzFavTry('music',D.listenSongs[D.listenSongs.length-1],nowStr(),'favMusicRate');}catch(e){}
+            save();renderListen();
+            var _msg='歌单新增 '+added+' 首'+(skipped>0?('，跳过VIP/受限 '+skipped+' 首'):'');
+            if($('#lisBy'))$('#lisBy').textContent=_msg;
+            if(skipped>0)toast(_msg);
+            setTimeout(function(){ pushListenMsg('him',pickCard()); },800+Math.random()*800);
+            return;
+          }
+          var sg=list[_pi++];
+          yzProbeSong(sg,function(ok){ if(ok)okList.push(sg); else skipped++; _nextProbe(); });
         }
-        // 只把新增的歌插入 listenSongs 历史（首首），不覆盖历史
-        var first=list[0];
-        D.listenIdx=before; // 从新增第一首开始
-        D.listenSongs.push({title:first.title,by:first.by,url:first.url,time:nowStr()});
-        try{yzFavTry('music',D.listenSongs[D.listenSongs.length-1],nowStr(),'favMusicRate');}catch(e){}
-        save();renderListen();
-        if($('#lisBy'))$('#lisBy').textContent='歌单新增 '+added+' 首，共 '+D.listenPlaylist.length+' 首';
-        setTimeout(function(){ pushListenMsg('him',pickCard()); },800+Math.random()*800);
+        _nextProbe();
       });
       return;
     }
@@ -5787,20 +5939,34 @@ function yzImportSingleSong(sg){
 function yzProbeSong(sg,cb){
   try{
     var raw=(sg&&sg.url)?String(sg.url):'';
-    var u=raw.split('|')[0];
-    /* 从链接里取歌id，用 outer 直链探测是否被拦 */
-    try{ var _m=raw.match(/[?&]id=(\d+)/); if(!_m){var _m2=raw.match(/song\/(\d+)/); if(_m2)_m=_m2;} if(_m&&_m[1]){ u='https://music.163.com/song/media/outer/url?id='+_m[1]+'.mp3'; } }catch(e){}
-    if(!u){ cb(true); return; }
+    var id='';
+    try{ var _m=raw.match(/[?&]id=(\d+)/); if(!_m){var _m2=raw.match(/song\/(\d+)/); if(_m2)_m=_m2;} if(_m&&_m[1])id=_m[1]; }catch(e){}
+    if(!id){ cb(true); return; }
+    /* 多源探测：任一源能拿到直链就算可播 */
+    var urls=[
+      'https://music.163.com/song/media/outer/url?id='+id+'.mp3',
+      'https://api.injahow.cn/meting/?type=url&id='+id
+    ];
     var done=false;
-    var to=setTimeout(function(){ if(!done){done=true;cb(true);} },3500);
-    fetch(u,{method:'HEAD'}).then(function(r){
-      if(done)return;done=true;clearTimeout(to);
-      /* 被拦：404/403 或 content-length 极小 */
-      var cl=parseInt(r.headers.get('content-length')||'0',10);
-      if(!r.ok && (r.status===403||r.status===404)){ cb(false); return; }
-      if(r.status===200 && cl>0 && cl<2000){ cb(false); return; }
-      cb(true);
-    }).catch(function(){ if(!done){done=true;clearTimeout(to);cb(true);} });
+    var to=setTimeout(function(){ if(!done){done=true;cb(false);} },6000);
+    var idx=0;
+    function tryNext(){
+      if(done)return;
+      if(idx>=urls.length){ done=true; clearTimeout(to); cb(false); return; }
+      var u=urls[idx++];
+      fetch(u,{method:'GET',headers:{'Range':'bytes=0-1'},redirect:'follow'}).then(function(r){
+        if(done)return;
+        if(!r.ok){ tryNext(); return; }
+        var ct=(r.headers.get('content-type')||'').toLowerCase();
+        var cl=parseInt(r.headers.get('content-length')||'0',10);
+        /* 音频返回就算可播；HTML(登录页/错误页)算被拦 */
+        if(ct.indexOf('audio')>=0||ct.indexOf('octet-stream')>=0){ done=true; clearTimeout(to); cb(true); return; }
+        if(cl>0&&cl<200){ tryNext(); return; }
+        if(ct.indexOf('text/html')>=0){ tryNext(); return; }
+        done=true; clearTimeout(to); cb(false);
+      }).catch(function(){ tryNext(); });
+    }
+    tryNext();
   }catch(e){ cb(true); }
 }
 function pushListenMsg(from,text){
@@ -7248,6 +7414,9 @@ function fillSettings(){
   $('#setTran').value=D.tran;$('#setCall').value=D.callRate;try{if($('#setPatRate'))$('#setPatRate').value=(D.patRate!==undefined?D.patRate:15);}catch(e){}try{if($('#setVoiceRate'))$('#setVoiceRate').value=(D.voiceRate!==undefined?D.voiceRate:0);}catch(e){}
   if($('#setTranTo'))$('#setTranTo').value=D.tranTo;
   if($('#setPackRate'))$('#setPackRate').value=(D.packRate===undefined?25:D.packRate);
+  if($('#setMomLikeRate'))$('#setMomLikeRate').value=(D.momLikeRate===undefined?50:D.momLikeRate);
+  if($('#setMomCmtRate'))$('#setMomCmtRate').value=(D.momCmtRate===undefined?30:D.momCmtRate);
+  if($('#setFavLetter'))$('#setFavLetter').value=(D.favLetterRate===undefined?30:D.favLetterRate);
   if($('#setMainRate'))$('#setMainRate').value=(D.mainRate===undefined?100:D.mainRate);
   if($('#setEmojiMix'))$('#setEmojiMix').value=String(parseInt(D.emojiMix)||0);
   if($('#setEmojiMixRate'))$('#setEmojiMixRate').value=(D.emojiMixRate===undefined?30:D.emojiMixRate);
@@ -7373,6 +7542,9 @@ function saveProfile(){
   if($('#setVoiceRate')&&String($('#setVoiceRate').value).trim()!=='')D.voiceRate=Math.max(0,Math.min(100,parseFloat($('#setVoiceRate').value)||0));
   if($('#setTranTo'))D.tranTo=parseFloat($('#setTranTo').value)||0;
   if($('#setPackRate')){D.packRate=parseFloat($('#setPackRate').value)||0;D.packRateLis=D.packRate;D.packRateMom=D.packRate;}
+  if($('#setMomLikeRate'))D.momLikeRate=Math.max(0,Math.min(100,parseFloat($('#setMomLikeRate').value)||0));
+  if($('#setMomCmtRate'))D.momCmtRate=Math.max(0,Math.min(100,parseFloat($('#setMomCmtRate').value)||0));
+  if($('#setFavLetter'))D.favLetterRate=Math.max(0,Math.min(100,parseFloat($('#setFavLetter').value)||0));
   if($('#setMainRate'))D.mainRate=Math.max(0,Math.min(100,parseFloat($('#setMainRate').value)||0));
   if($('#setEmojiMix'))D.emojiMix=parseInt($('#setEmojiMix').value)||0;
   if($('#setEmojiMixRate'))D.emojiMixRate=Math.max(0,Math.min(100,parseFloat($('#setEmojiMixRate').value)||0));
