@@ -3131,7 +3131,8 @@ function renderChat(){
     let quoteHtml='';
     if(m.quote&&m.quote.brief){
       const qsrc=(m.quote.type==='img'&&m.quote.src)?('<img class="qimg" src="'+m.quote.src+'">'):'';
-      quoteHtml='<div class="qbox" onclick="jumpMsg('+(m.quote.i)+')">'+qsrc+'<div class="qtxt">'+(m.quote.type==='img'?'[图片]':esc(m.quote.brief))+'</div></div>';
+      var _qw=''; try{ var _qm2=D.msgs[m.quote.i]; if(_qm2)_qw=quoteWho(_qm2)+'：'; }catch(e){}
+      quoteHtml='<div class="qbox" onclick="jumpMsg('+(m.quote.i)+')">'+qsrc+'<div class="qtxt">'+esc(_qw)+((m.quote.type==='img')?'[图片]':esc(m.quote.brief))+'</div></div>';
     }
     b.insertAdjacentHTML('beforeend',`<div class="msg ${me?'me':'him'}" data-mi="${i}">${avHTML(me?'me':'him',m.who)}<div class="bubwrap">${nameHtml}${quoteHtml}${bubbleHTML(m,i)}${readHtml}${himStamp}${meStamp}</div></div>`);
   });
@@ -4353,6 +4354,9 @@ function yzMsgMenuQuote(){
   }catch(e){}
   yzMsgMenuHide();
 }
+function quoteWho(m){
+  try{ if(m&&m.from==='me')return (D.myNick||'我'); return (D.nick||'梦角'); }catch(e){ return ''; }
+}
 function quoteFullText(m){
   if(!m)return '';
   if(m.type==='img')return '[图片]';
@@ -4367,7 +4371,7 @@ function updateQuoteBar(){
     var bar=document.getElementById('quoteBar'), txt=document.getElementById('quoteBarTxt');
     if(!bar||!txt)return;
     var i=window.__yzPendingQuote;
-    if(i>=0&&i!==undefined&&D.msgs[i]){ txt.textContent=quoteFullText(D.msgs[i]); bar.style.display='flex'; }
+    if(i>=0&&i!==undefined&&D.msgs[i]){ txt.textContent=quoteWho(D.msgs[i])+'：'+quoteFullText(D.msgs[i]); bar.style.display='flex'; }
     else { bar.style.display='none'; txt.textContent=''; }
   }catch(e){}
 }
@@ -4377,7 +4381,13 @@ if(!window.__msgTapMenu){
   window.__msgTapMenu=true;
   (function(){
     var sx=0, sy=0, moved=false, el=null;
-    function _find(e){ try{ return e.target&&e.target.closest?e.target.closest('#chatBody .msg[data-mi]'):null; }catch(x){ return null; } }
+    function _find(e){ try{
+      if(!e.target||!e.target.closest)return null;
+      /* 只有当手指确实落在气泡/头像/引用框等消息内容上时，才算“点了这条消息”（空白不算） */
+      var hit=e.target.closest('#chatBody .bubble, #chatBody .bubwrap > .quotebar, #chatBody .avatarbox, #chatBody .vtt, #chatBody .himname, #chatBody .msgname');
+      if(!hit)return null;
+      return hit.closest('#chatBody .msg[data-mi]');
+    }catch(x){ return null; } }
     document.addEventListener('touchstart',function(e){
       var m=_find(e); sx=(e.touches&&e.touches[0])?e.touches[0].clientX:0; sy=(e.touches&&e.touches[0])?e.touches[0].clientY:0; moved=false; el=m;
     },{passive:true});
@@ -7835,6 +7845,9 @@ function applyCustom(){
   /* 转账字色：最后一个，!important 压过转账底色 */
   var tfc=(D.fontColor||'').trim();
   if(tfc){css+='.bubble.transfer,.bubble.transfer .tt,.bubble.transfer .tamt,.bubble.transfer .td,.bubble.transfer .tstmt,.bubble.transfer .tact span,.bubble.transfer .tic{color:'+tfc+' !important;}';}
+  /* 表情包气泡保护：不管用户气泡CSS怎么写，表情包不能被挤压变形 */
+  css+='#chatBody .msg .bubble.packimg{background:transparent !important;box-shadow:none !important;padding:2px !important;border:none !important;border-radius:12px !important;max-width:64px !important;transform:none !important;}';
+  css+='#chatBody .msg .bubble.packimg img{width:64px !important;height:64px !important;object-fit:cover !important;border-radius:12px !important;display:block !important;max-width:64px !important;max-height:64px !important;}';
   let st=document.getElementById('customStyle');
   if(!st){st=document.createElement('style');st.id='customStyle';document.head.appendChild(st);}
   if(st.textContent!==css)st.textContent=css;
