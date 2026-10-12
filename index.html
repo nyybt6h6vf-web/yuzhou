@@ -1523,6 +1523,17 @@ body{
         </div>
       </div>
       <div class="group">
+        <h4>身份</h4>
+        <div class="row"><div class="lab">主页展示梦角</div><div class="chip" id="homeCharaChip" onclick="yzPickHomeChara()">选择</div></div>
+        <div class="row"><div class="lab">我的昵称</div><input type="text" id="setMyNick" oninput="saveProfile()"></div>
+        <div class="row"><div class="lab">我的头像</div><div class="chip" onclick="pickAvatar('me')">选择图片</div></div>
+      </div>
+      <div class="group">
+        <h4>进入密码</h4>
+        <div class="row"><div class="lab">密码</div><input type="text" id="setPass" placeholder="留空则不需要密码" oninput="saveProfile()"></div>
+        <div class="row" style="font-size:12px;color:var(--sub)">首次进入不用输，设了之后每次进网站都要输对才能进。</div>
+      </div>
+      <div class="group">
         <h4>互动概率</h4>
         <div class="row"><div class="lab">字卡回复间隔（秒）</div><input type="number" id="setDelay" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">连发间隔（秒）</div><input type="number" id="setSendGap" oninput="saveProfile()" style="max-width:80px"></div>
@@ -1603,17 +1614,6 @@ body{
         <div class="row"><div class="lab">本网站已占</div><div class="val" id="memUsed">--</div></div>
         <div class="row"><div class="lab">浏览器可用余额</div><div class="val" id="memQuota">--</div></div>
         <div class="row"><div class="lab">存储方式</div><div class="val" id="memEngine">--</div></div>
-      </div>
-      <div class="group">
-        <h4>身份</h4>
-        <div class="row"><div class="lab">主页展示梦角</div><div class="chip" id="homeCharaChip" onclick="yzPickHomeChara()">选择</div></div>
-        <div class="row"><div class="lab">我的昵称</div><input type="text" id="setMyNick" oninput="saveProfile()"></div>
-        <div class="row"><div class="lab">我的头像</div><div class="chip" onclick="pickAvatar('me')">选择图片</div></div>
-      </div>
-      <div class="group">
-        <h4>进入密码</h4>
-        <div class="row"><div class="lab">密码</div><input type="text" id="setPass" placeholder="留空则不需要密码" oninput="saveProfile()"></div>
-        <div class="row" style="font-size:12px;color:var(--sub)">首次进入不用输，设了之后每次进网站都要输对才能进。</div>
       </div>
       <div class="group">
         <h4>备份</h4>
