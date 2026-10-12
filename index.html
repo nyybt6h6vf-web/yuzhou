@@ -1538,7 +1538,7 @@ body{
 <div class="row"><div class="lab">动态背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('momBg')">上传图</div><div class="chip" onclick="setColor('momBg','')">清</div></div></div>
         <div class="row" style="flex-direction:column;align-items:stretch">
           <div class="lab" style="margin-bottom:8px">气泡 CSS（.msg .bubble 通用，写一条两边都生效）</div>
-          <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty();yzPreviewBubble();"></textarea>
+          <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty();yzPreviewBubbleDebounced();"></textarea>
           <div class="lab" style="margin-top:12px;margin-bottom:6px">预览</div>
           <div id="bubblePreview" style="background:var(--card);border:1px solid var(--sub);border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;gap:10px">
             <div class="msg him" style="display:flex"><div class="bubble">梦角消息示例</div></div>
@@ -8025,7 +8025,10 @@ function applyCustom(){
   else{document.documentElement.style.removeProperty('--lock-fg-color');}
   let css='';
 
-  if(lf){css+='#lock{color:'+lf+' !important;}';css+='#lock .h,#lock .d,#lock .name,#lock .hint,#lock .statusbar span{color:'+lf+' !important;}';}
+  if(lf){
+    css+='#lock, #lock *{color:'+lf+' !important;}';
+    css+='#lock #lockTimeTop,#lock #lockH,#lock #lockD,#lock .name,#lock .hint,#lock .statusbar span,#lock .right{color:'+lf+' !important;}';
+  }
   /* 转账卡片色(先记录，最后统一应用) */
   /* 气泡大小 */
   const bs=(D.bubbleSize!==undefined?D.bubbleSize:100);
@@ -8083,6 +8086,7 @@ function applyCustom(){
   css+='#chatBody .msg .bubble.packimg{background:transparent !important;box-shadow:none !important;padding:2px !important;border:none !important;border-radius:12px !important;max-width:64px !important;transform:none !important;}';
   css+='#chatBody .msg .bubble.packimg img{width:64px !important;height:64px !important;object-fit:cover !important;border-radius:12px !important;display:block !important;max-width:64px !important;max-height:64px !important;}';
   css=yzSanitizeCss(css);
+  try{ if(css.length>60000) css=css.slice(0,60000); }catch(e){}
   /* 防止用户 CSS 的伪元素/绝对定位盖住整个界面（看起来像“崩”） */
   try{ css=css.replace(/z-index\s*:\s*(\d+)/gi, function(m,d){ var v=parseInt(d,10); return 'z-index:'+(v>30?30:v); }); }catch(e){}
   try{ if(!/pointer-events/.test(css)) css+='.msg .bubble::before,.msg .bubble::after{pointer-events:none !important;}'; }catch(e){}
@@ -8143,6 +8147,14 @@ function yzSanitizeCss(css){
   }catch(e){ return ''; }
 }
 window.yzSanitizeCss=yzSanitizeCss;window.forceImportant=forceImportant;
+/* 气泡CSS预览（防抖 400ms，避免每敲一字重排导致卡死/重载） */
+var _yzPrevTimer=null;
+function yzPreviewBubbleDebounced(){
+  try{
+    if(_yzPrevTimer)clearTimeout(_yzPrevTimer);
+    _yzPrevTimer=setTimeout(function(){ _yzPrevTimer=null; try{yzPreviewBubble();}catch(e){} }, 400);
+  }catch(e){}
+}
 /* 气泡CSS预览：把用户CSS映射+important后，注入到预览盒子 */
 function yzPreviewBubble(){
   try{
