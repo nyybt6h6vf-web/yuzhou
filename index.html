@@ -8082,9 +8082,10 @@ function applyCustom(){
   /* 表情包气泡保护：不管用户气泡CSS怎么写，表情包不能被挤压变形 */
   css+='#chatBody .msg .bubble.packimg{background:transparent !important;box-shadow:none !important;padding:2px !important;border:none !important;border-radius:12px !important;max-width:64px !important;transform:none !important;}';
   css+='#chatBody .msg .bubble.packimg img{width:64px !important;height:64px !important;object-fit:cover !important;border-radius:12px !important;display:block !important;max-width:64px !important;max-height:64px !important;}';
+  css=yzSanitizeCss(css);
   let st=document.getElementById('customStyle');
   if(!st){st=document.createElement('style');st.id='customStyle';document.head.appendChild(st);}
-  if(st.textContent!==css)st.textContent=css;
+  if(st.textContent!==css){ try{ st.textContent=css; }catch(e){} }
   window.__applyBubbleInline&&window.__applyBubbleInline();
   }catch(e){ try{console.warn('applyCustom',e);}catch(_){} }
 }
@@ -8112,7 +8113,33 @@ function forceImportant(cssText){
     return sb.join(';');
   }catch(e){return String(cssText||'');}
 }
-window.forceImportant=forceImportant;
+/* ===== 安全清洗：只保留结构合法的 CSS 规则，坏的丢弃（防崩溃） ===== */
+function yzSanitizeCss(css){
+  try{
+    var src=String(css||'');
+    var out='';
+    var i=0, n=src.length, depth=0, start=-1;
+    while(i<n){
+      var ch=src[i];
+      if(ch==='{'){ if(depth===0)start=i; depth++; }
+      else if(ch==='}'){
+        depth--;
+        if(depth===0 && start>=0){
+          var rule=src.slice(start,i+1);
+          var sel=rule.slice(1,rule.indexOf('{')).trim();
+          /* 选择器不能含未闭合引号/奇怪的括号；且长度受限 */
+          if(sel && sel.length<500 && !/[{}]/.test(sel) && rule.length<6000){
+            out+=rule;
+          }
+          start=-1;
+        }else if(depth<0){ depth=0; start=-1; }
+      }
+      i++;
+    }
+    return out;
+  }catch(e){ return ''; }
+}
+window.yzSanitizeCss=yzSanitizeCss;window.forceImportant=forceImportant;
 /* 气泡CSS预览：把用户CSS映射+important后，注入到预览盒子 */
 function yzPreviewBubble(){
   try{
@@ -8140,7 +8167,7 @@ function yzPreviewBubble(){
     }).join(',');
     return pre+s2+'{';
   });
-  st.textContent=cssText;
+  try{ st.textContent=yzSanitizeCss(cssText); }catch(e){}
   }catch(e){ try{var st2=document.getElementById('bubblePreviewStyle');if(st2)st2.textContent='';}catch(_){} }
 }
 window.yzPreviewBubble=yzPreviewBubble;
@@ -8230,7 +8257,9 @@ function init(){
   tick();setInterval(tick,1000);
   const rm=$('#recMic');if(rm)rm.innerHTML=ICONS.mic;
   D._typing=false;
-  renderHome();renderPlus();applyCustom();
+  try{renderHome();}catch(e){}
+  try{renderPlus();}catch(e){}
+  try{applyCustom();}catch(e){}
   $('#lock').addEventListener('click',()=>{go('home');try{setTimeout(function(){checkPeriodRemind();},600);}catch(e){}});
 document.addEventListener('click',function(e){var t=e.target;while(t&&t!==document){if(t.classList&&t.classList.contains('back')){try{if(t.closest&&t.closest('#settings')){['passSheet','packSheet','moSend','plusSheet'].forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove('show');});var mk=document.getElementById('mask');if(mk)mk.classList.remove('show');}}catch(err){}return;}t=t.parentNode;}},true);
   renderChat();
