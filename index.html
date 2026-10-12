@@ -635,7 +635,7 @@ body{
 .letter-item .lt{font-size:14.5px;font-weight:600;}
 .letter-reading{flex:1;overflow-y:auto;padding:22px 20px;}
 .letter-body{background:var(--panel);border-radius:18px;padding:22px 20px;line-height:2;font-size:14.5px;white-space:pre-wrap;word-break:break-word;box-shadow:0 6px 20px rgba(0,0,0,.07);}
-.lwbody-reply{padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));flex:0 0 auto;height:auto;border-top:1px solid var(--line);}
+.lwbody-reply{padding:14px 16px 6px;margin-top:18px;height:auto;}
 .letter-reading{background-size:cover;background-position:center;background-repeat:no-repeat;}
 .lwbody{background-size:cover;background-position:center;background-repeat:no-repeat;}
 .lwbody-reply .lwtext{flex:0 0 auto;min-height:96px;max-height:150px;}
@@ -739,10 +739,15 @@ body{
 .diaryitem .dtext{font-size:14px;line-height:1.6;word-break:break-word;color:var(--fg);}
 .diaryitem .dadd{margin-top:8px;font-size:12px;color:var(--accent,#859ecb);}
 .diaryitem .ddel{position:absolute;right:10px;top:10px;font-size:13px;color:var(--sub);opacity:.6;}
+.diaryitem .ddel2{color:#e0556b;opacity:.85;}
 .dcmt{margin-top:6px;font-size:12.5px;color:var(--sub);line-height:1.5;word-break:break-word;}
 .dcmt b{color:var(--fg);font-weight:600;}
 .dcdel{float:right;opacity:.5;padding:0 2px;}
 .dcmtbox{margin-top:16px;padding-top:12px;border-top:1px solid rgba(127,127,127,.18);}
+.dcadd{margin-top:12px;font-size:13px;color:var(--accent,#859ecb);cursor:pointer;padding:6px 0;}
+.dcinline{margin-top:10px;display:flex;gap:8px;align-items:center;}
+.dcinline input{flex:1;min-width:0;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card,#f5f5f7);color:var(--text);font-size:14px;outline:none;}
+.dcsend{flex:0 0 auto;padding:9px 16px;border-radius:12px;background:var(--accent,#859ecb);color:#fff;font-size:14px;font-weight:600;cursor:pointer;}
 
 /* ==== 经期 ==== */
 .periodbox{padding:10px 14px 40px;overflow:auto;height:calc(100% - 96px);box-sizing:border-box;}
@@ -979,6 +984,7 @@ body{
 .favnote{font-size:13px;color:var(--accent-soft,#7f9cc4);margin-top:6px;}
 .favmeta{font-size:11px;color:#b3b8c4;margin-top:6px;}
 .favdel{font-size:11.5px;color:var(--accent,#859ecb);margin-top:6px;}
+.favcollect{margin-top:8px;font-size:12px;color:var(--accent,#859ecb);cursor:pointer;display:inline-block;margin-right:12px;}
 .favmod{display:flex;align-items:center;gap:10px;background:var(--card,#fff);border-radius:16px;padding:15px 16px;margin-bottom:10px;box-shadow:0 2px 10px rgba(30,34,50,.07);cursor:pointer;}
 [data-theme="dark"] .favmod{background:#1d1d20;}
 .favmod:active{transform:scale(.985);}
@@ -1381,13 +1387,13 @@ body{
   <div class="screen" id="letterRead">
     <div class="statusbar apple"><span id="lrTimeTop">9:41</span><span class="right">100%</span></div>
     <div class="navbar"><div class="back" onclick="go('letters')">‹</div><div class="title">读信</div></div>
-    <div class="letter-reading" id="letterReadBody"><div class="letter-body" id="letterBody"></div></div>
+    <div class="letter-reading" id="letterReadBody"><div class="letter-body" id="letterBody"></div>
     <div class="lwbody lwbody-reply" id="letterReplyBox">
       <div class="lwto">抬头 <b id="lrepTo">To：他</b></div>
       <textarea class="lwtext" id="lrepText" placeholder="写点什么…"></textarea>
       <div class="lwhint">信的开头会自动加上抬头发给他，你只管写正文。</div>
       <div class="lwrepbtn" onclick="sendLetterReply()">回复</div>
-    </div>
+    </div></div>
   </div>
   <div class="screen" id="diaryRead">
     <div class="statusbar apple"><span id="drTimeTop">9:41</span><span class="right">100%</span></div>
@@ -1554,6 +1560,7 @@ body{
         <div class="row"><div class="lab">日记间隔（分钟）</div><input type="number" id="setDiaryGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">日记最少句数</div><input type="number" id="setDiaryMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">日记最多句数</div><input type="number" id="setDiaryMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+<div class="row"><div class="lab">梦角回复日记评论概率（%）</div><input type="number" id="setDiaryReplyRate" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角找你代付概率（%）</div><input type="number" id="setDaifuRate" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">代付检查间隔（分钟）</div><input type="number" id="setDaifuGap" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角代付处理时长（秒）</div><input type="number" id="setDaifuDelay" oninput="saveProfile()" style="max-width:80px"></div>
@@ -2374,7 +2381,7 @@ if(o.daifuGap===undefined)o.daifuGap=20;
     pageBg:'',chatBg:'',momBg:'',lockBg:'',lockFg:'',fontColor:'',himFontColor:'',meFontColor:'',bubble:'',bubbleHim:'',bubbleMe:'',heroImg:'',himLetterBg:'',meLetterBg:'',
     readOn:true,typingOn:true,
     lockName:'Yu·Zhou',slogan:'',pass:'',
-    delay:1.2,double:35,tran:50,tranTo:10,packRate:25,mainRate:100,emojiMix:0,emojiMixRate:30,callRate:12,patRate:15,voiceRate:0,momGap:1,momLikeRate:50,momCmtRate:30,
+    delay:1.2,double:35,tran:50,tranTo:10,packRate:25,mainRate:100,emojiMix:0,emojiMixRate:30,callRate:12,patRate:15,voiceRate:0,momGap:1,momLikeRate:50,momCmtRate:30,diaryReplyRate:50,
     noteMe:'',noteHim:'',
     sendMin:1,sendMax:2,
     comboRate:20,comboMin:2,comboMax:3,quoteRate:30,askDelay:15,
@@ -2760,12 +2767,25 @@ function yzMyFavOpenCat(t){
         if(t==='letter') hh+='<div class="favtxt">\u2709 '+(f.text||'')+'</div>';
         hh+='<div class="favmeta">\u6536\u85cf\u4e8e '+f.favTime+(f.srcTime?' \u00b7 \u53d1\u4e8e '+f.srcTime:'')+'</div>';
         hh+='<div class="favdel" onclick="yzMyFavDel(\''+t+'\','+realIdx+')">\u5220\u9664</div>';
+        hh+='<div class="favcollect" onclick="yzMyFavToHim(\''+t+'\','+realIdx+')">\u6536\u85cf\u5230\u68a6\u89d2</div>';
         hh+='</div>';
       });
       b.innerHTML=hh;
     }
   }
   el.classList.add('show');
+}
+function yzMyFavToHim(t,i){
+  try{ yzMyFavInit(); yzFavInit(); var f=D.myFavs[t][i]; if(!f)return;
+    yzFavAdd(t,{id:f.k,text:f.text,title:f.title,by:f.by,url:f.url,date:f.date,type:f.msgType,src:f.src,sec:f.sec},f.srcTime||'');
+    toast('已收藏到梦角的收藏'); yzMyFavOpenCat(t);
+  }catch(e){}
+}
+function yzHimFavToMe(t,i){
+  try{ yzFavInit(); yzMyFavInit(); var f=D.favs[t][i]; if(!f)return;
+    yzMyFavAdd(t,{id:f.k,text:f.text,title:f.title,by:f.by,url:f.url,date:f.date,type:f.msgType,src:f.src,sec:f.sec},f.srcTime||'');
+    toast('已收藏到我的收藏'); yzFavOpenCat(t);
+  }catch(e){}
 }
 function yzMyFavDel(t,i){ try{ yzMyFavInit(); D.myFavs[t].splice(i,1); save(); yzMyFavOpenCat(t); }catch(e){} }
 function yzFavCatLabel(t){ return t==='msg'?'收藏消息':(t==='music'?'收藏音乐':(t==='moment'?'收藏动态':(t==='letter'?'收藏信封':'收藏日记'))); }
@@ -2819,6 +2839,7 @@ function yzFavOpenCat(t){
         if(f.note) hh+='<div class="favnote">'+(f.note)+'</div>';
         hh+='<div class="favmeta">\u6536\u85cf\u4e8e '+f.favTime+(f.srcTime?' \u00b7 \u53d1\u4e8e '+f.srcTime:'')+'</div>';
         hh+='<div class="favdel" onclick="yzFavDel(\''+t+'\','+realIdx+')">\u5220\u9664</div>';
+        hh+='<div class="favcollect" onclick="yzHimFavToMe(\''+t+'\','+realIdx+')">\u6536\u85cf\u5230\u6211\u7684</div>';
         hh+='</div>';
       });
       b.innerHTML=hh;
@@ -4451,6 +4472,11 @@ function dToday(){
   const d=new Date();
   return d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate();
 }
+function dFull(){
+  const d=new Date();
+  function p2(x){return (x<10?'0':'')+x;}
+  return d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate()+' '+p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds());
+}
 function diaryWho(d){return (d.from==='me')?(D.myNick||'我'):(D.nick||'他');}
 
 /* ===== 我的个人主页 ===== */
@@ -4515,7 +4541,7 @@ function diaryItemHTML(d){
     title+
     '<div class="dtext">'+esc(body.slice(0,80))+(body.length>80?'…':'')+'</div>'+
     cmts+
-    '<div class="dadd" onclick="event.stopPropagation();addDiaryComment(\''+d.id+'\')">＋ 评论</div>'+
+    '<div class="dadd ddel2" onclick="event.stopPropagation();delDiary(\''+d.id+'\')">删除</div>'+
     '<div class="ddel" onclick="event.stopPropagation();delDiary(\''+d.id+'\')">删除</div>'+
     '</div>';
 }
@@ -4558,6 +4584,7 @@ function writeDiary(){diaryAskMood();}
 /* ===== 查看单篇 ===== */
 function openDiary(id){
   const d=(D.diaries||[]).find(function(x){return x.id===id;});if(!d)return;
+  window.__curDiaryId=id;
   const who=diaryWho(d);
   let cmts='';
   (d.comments||[]).forEach(function(c){
@@ -4566,15 +4593,47 @@ function openDiary(id){
   const head=(d.title?('<div style="font-size:16px;font-weight:600;margin-bottom:6px">'+esc(d.title)+'</div>'):'')+
     '<div style="font-size:12px;color:var(--sub);margin-bottom:14px;font-style:italic">'+esc(who)+' · '+(d.mood?(esc(d.mood)+' · '):'')+esc(d.date||'')+'</div>';
   var body=$('#diaryBody'); if(!body)body=$('#letterBody');
+  var _cmtArea='<div class="dcmtbox">'+(cmts||'')+
+    '<div class="dcadd" id="dcAddBtn" onclick="diaryCmtToggle()">＋ 评论</div>'+
+    '<div class="dcinline" id="dcInline" style="display:none"><input id="dcInput" type="text" placeholder="写评论…" onkeydown="if(event.key===String.fromCharCode(13)){event.preventDefault();diaryCmtSend();}"><div class="dcsend" onclick="diaryCmtSend()">发送</div></div>'+
+    '</div>';
   if(body)body.innerHTML=head+
-    '<div class="lettertxt">'+esc(d.text).replace(/\n/g,'<br>')+'</div>'+
-    (cmts?('<div class="dcmtbox">'+cmts+'</div>'):'');
+    '<div class="lettertxt">'+esc(d.text).replace(/\n/g,'<br>')+'</div>'+_cmtArea;
   /* 记住来源：从梦角主页进的就回主页，否则回日记主页 */
   var cur=document.querySelector('.screen.active');
   window._diaryFrom=(cur&&cur.id==='himprofile')?'himprofile':'diary';
   go('diaryRead');
 }
 function diaryReadBack(){ go(window._diaryFrom||'diary'); }
+function diaryCmtToggle(){
+  var box=document.getElementById('dcInline');
+  if(!box)return;
+  if(box.style.display==='none'||!box.style.display){ box.style.display='flex'; var inp=document.getElementById('dcInput'); if(inp){inp.focus();} }
+  else { box.style.display='none'; }
+}
+function diaryCmtSend(){
+  var inp=document.getElementById('dcInput'); if(!inp)return;
+  var v=String(inp.value||'').trim(); if(!v){toast('写点什么再发');return;}
+  var id=window.__curDiaryId; if(!id)return;
+  inp.value='';
+  var d=(D.diaries||[]).find(function(x){return x.id===id;}); if(!d)return;
+  d.comments=d.comments||[];
+  d.comments.push({who:(D.myNick||'我'),text:v,time:nowStr()});
+  save();
+  openDiary(id); /* 刷新 */
+  var box=document.getElementById('dcInline'); var i2=document.getElementById('dcInput');
+  if(box)box.style.display='flex'; if(i2)i2.value='';
+  /* 梦角回复日记评论（按概率） */
+  var _rr=(D.diaryReplyRate===undefined?50:parseFloat(D.diaryReplyRate))||0;
+  if(Math.random()*100<_rr){
+    setTimeout(function(){
+      d.comments.push({who:(D.nick||'他'),text:pickCard(),time:nowStr()});
+      save();
+      if(document.getElementById('diaryRead')&&document.getElementById('diaryRead').classList.contains('active'))openDiary(id);
+      if(document.getElementById('diary')&&document.getElementById('diary').classList.contains('active'))renderDiary();
+    },Math.max(800,sendGapMs()*2));
+  }
+}
 function addDiaryComment(id){
   const d=(D.diaries||[]).find(function(x){return x.id===id;});if(!d)return;
   askInput('评论','',function(t){
@@ -4582,7 +4641,7 @@ function addDiaryComment(id){
     d.comments=d.comments||[];
     d.comments.push({who:(D.myNick||'我'),text:v,time:nowStr()});
     save();renderDiary();
-    if(Math.random()<0.7){
+    if(Math.random()*100<((D.diaryReplyRate===undefined?50:parseFloat(D.diaryReplyRate))||0)){
       setTimeout(function(){
         d.comments.push({who:(D.nick||'他'),text:pickCard(),time:nowStr()});
         save();if($('#diary').classList.contains('active'))renderDiary();
@@ -4610,7 +4669,7 @@ function himWriteDiary(){
   if(!txt)return;
   const fl=(D.feelings||[]).filter(Boolean);
   const mood=fl.length?fl[Math.floor(Math.random()*fl.length)]:'';
-  D.diaries.push({id:'dy'+Date.now(),from:'him',title:'',mood:mood,date:dToday(),text:txt,comments:[],time:new Date().toISOString()});
+  D.diaries.push({id:'dy'+Date.now(),from:'him',title:'',mood:mood,date:dFull(),text:txt,comments:[],time:new Date().toISOString()});
   save();
   sys((D.nick||'他')+' 写了一篇日记');
   if($('#diary').classList.contains('active'))renderDiary();
@@ -7430,6 +7489,7 @@ function fillSettings(){
   if($('#setMomLikeRate'))$('#setMomLikeRate').value=(D.momLikeRate===undefined?50:D.momLikeRate);
   if($('#setMomCmtRate'))$('#setMomCmtRate').value=(D.momCmtRate===undefined?30:D.momCmtRate);
   if($('#setFavLetter'))$('#setFavLetter').value=(D.favLetterRate===undefined?30:D.favLetterRate);
+  if($('#setDiaryReplyRate'))$('#setDiaryReplyRate').value=(D.diaryReplyRate===undefined?50:D.diaryReplyRate);
   if($('#setMainRate'))$('#setMainRate').value=(D.mainRate===undefined?100:D.mainRate);
   if($('#setEmojiMix'))$('#setEmojiMix').value=String(parseInt(D.emojiMix)||0);
   if($('#setEmojiMixRate'))$('#setEmojiMixRate').value=(D.emojiMixRate===undefined?30:D.emojiMixRate);
@@ -7559,6 +7619,7 @@ function saveProfile(){
   if($('#setMomLikeRate'))D.momLikeRate=Math.max(0,Math.min(100,parseFloat($('#setMomLikeRate').value)||0));
   if($('#setMomCmtRate'))D.momCmtRate=Math.max(0,Math.min(100,parseFloat($('#setMomCmtRate').value)||0));
   if($('#setFavLetter'))D.favLetterRate=Math.max(0,Math.min(100,parseFloat($('#setFavLetter').value)||0));
+  if($('#setDiaryReplyRate'))D.diaryReplyRate=Math.max(0,Math.min(100,parseFloat($('#setDiaryReplyRate').value)||0));
   if($('#setMainRate'))D.mainRate=Math.max(0,Math.min(100,parseFloat($('#setMainRate').value)||0));
   if($('#setEmojiMix'))D.emojiMix=parseInt($('#setEmojiMix').value)||0;
   if($('#setEmojiMixRate'))D.emojiMixRate=Math.max(0,Math.min(100,parseFloat($('#setEmojiMixRate').value)||0));
