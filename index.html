@@ -635,8 +635,11 @@ body{
 .letter-item .lt{font-size:14.5px;font-weight:600;}
 .letter-reading{flex:1;overflow-y:auto;padding:22px 20px;}
 .letter-body{background:var(--panel);border-radius:18px;padding:22px 20px;line-height:2;font-size:14.5px;white-space:pre-wrap;word-break:break-word;box-shadow:0 6px 20px rgba(0,0,0,.07);}
-.letter-reply{flex:0 0 auto;display:flex;gap:8px;align-items:flex-end;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:var(--panel);border-top:1px solid var(--line);}
-.letter-reply .lrepbtn{flex:0 0 auto;padding:10px 18px;border-radius:14px;background:var(--accent,#859ecb);color:#fff;font-size:14px;font-weight:600;cursor:pointer;}
+.lwbody-reply{padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));flex:0 0 auto;height:auto;border-top:1px solid var(--line);}
+.letter-reading{background-size:cover;background-position:center;background-repeat:no-repeat;}
+.lwbody{background-size:cover;background-position:center;background-repeat:no-repeat;}
+.lwbody-reply .lwtext{flex:0 0 auto;min-height:96px;max-height:150px;}
+.lwrepbtn{margin-top:12px;text-align:center;padding:12px 0;border-radius:14px;background:var(--accent,#859ecb);color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(120,130,200,.35);}
 
 /* 表情包 */
 #packs{background:var(--chat-bg);}
@@ -1378,10 +1381,12 @@ body{
   <div class="screen" id="letterRead">
     <div class="statusbar apple"><span id="lrTimeTop">9:41</span><span class="right">100%</span></div>
     <div class="navbar"><div class="back" onclick="go('letters')">‹</div><div class="title">读信</div></div>
-    <div class="letter-reading"><div class="letter-body" id="letterBody"></div></div>
-    <div class="letter-reply" id="letterReplyBox">
-      <textarea id="lrepText" placeholder="回信…" style="flex:1;min-height:40px;max-height:90px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--text);padding:9px 12px;font-size:14px;resize:none;"></textarea>
-      <div class="lrepbtn" onclick="sendLetterReply()">回复</div>
+    <div class="letter-reading" id="letterReadBody"><div class="letter-body" id="letterBody"></div></div>
+    <div class="lwbody lwbody-reply" id="letterReplyBox">
+      <div class="lwto">抬头 <b id="lrepTo">To：他</b></div>
+      <textarea class="lwtext" id="lrepText" placeholder="写点什么…"></textarea>
+      <div class="lwhint">信的开头会自动加上抬头发给他，你只管写正文。</div>
+      <div class="lwrepbtn" onclick="sendLetterReply()">回复</div>
     </div>
   </div>
   <div class="screen" id="diaryRead">
@@ -1497,6 +1502,8 @@ body{
         </div>
         <div class="row"><div class="lab">锁屏名称</div><input type="text" id="setLockName" oninput="saveBeauty()" placeholder="留空则不显示"></div>
 <div class="row"><div class="lab">锁屏背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('lockBg')">上传图</div><div class="chip" onclick="setColor('lockBg','')">清</div></div></div>
+<div class="row"><div class="lab">梦角信封背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('himLetterBg')">上传图</div><div class="chip" onclick="setColor('himLetterBg','')">清</div></div></div>
+<div class="row"><div class="lab">我的信封背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('meLetterBg')">上传图</div><div class="chip" onclick="setColor('meLetterBg','')">清</div></div></div>
 <div class="row"><div class="lab">锁屏字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('lockFg','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('lockFg','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setLockFgColor" oninput="setColor('lockFg',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('lockFg','')">清</div></div></div>
 <div class="row"><div class="lab">主页签名</div><input type="text" id="setSlogan" oninput="saveBeauty()" placeholder="头像右侧那行字，留空则不显示"></div>
 <div class="row"><div class="lab">页面背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><input type="text" id="setPageBg" placeholder="" oninput="saveBeauty()" style="max-width:90px;flex:0 0 auto;background:transparent;border:none;outline:none;color:var(--text);text-align:right;font-family:inherit;font-size:14px"><div class="chip" onclick="pickBg('pageBg')">上传图</div><div class="chip" onclick="setColor('pageBg','')">清</div></div></div>
@@ -2364,7 +2371,7 @@ if(o.daifuGap===undefined)o.daifuGap=20;
     return o;
   }}catch(e){try{console.error('LOAD_PARSE_FAIL',e);}catch(_){}}
   return {theme:'light',nick:'他',myNick:'我',avatarHim:'',avatarMe:'',
-    pageBg:'',chatBg:'',momBg:'',lockBg:'',lockFg:'',fontColor:'',himFontColor:'',meFontColor:'',bubble:'',bubbleHim:'',bubbleMe:'',heroImg:'',
+    pageBg:'',chatBg:'',momBg:'',lockBg:'',lockFg:'',fontColor:'',himFontColor:'',meFontColor:'',bubble:'',bubbleHim:'',bubbleMe:'',heroImg:'',himLetterBg:'',meLetterBg:'',
     readOn:true,typingOn:true,
     lockName:'Yu·Zhou',slogan:'',pass:'',
     delay:1.2,double:35,tran:50,tranTo:10,packRate:25,mainRate:100,emojiMix:0,emojiMixRate:30,callRate:12,patRate:15,voiceRate:0,momGap:1,momLikeRate:50,momCmtRate:30,
@@ -2432,7 +2439,7 @@ YZDB.open(function(ok){
     }
   });
 });
-var YZ_BIGKEYS=['packs','heroImg','avatarMe','avatarHim','himBg','himAv','diaryBg','diaryAv','photo1','photo2','photo3','photo4','pageBg','page2Bg','chatBg','momBg','lockBg'];
+var YZ_BIGKEYS=['packs','heroImg','avatarMe','avatarHim','himBg','himAv','diaryBg','diaryAv','photo1','photo2','photo3','photo4','pageBg','page2Bg','chatBg','momBg','lockBg','himLetterBg','meLetterBg'];
 function yzSlender(){try{var o={};for(var k in D){if(YZ_BIGKEYS.indexOf(k)>=0)continue;if(k==='charas'||k==='convs'){continue;}o[k]=D[k];}if(D.charas)o.charas=(D.charas||[]).map(function(c){var x={};for(var k in c){if(k==='avatar')continue;x[k]=c[k];}return x;});if(D.convs)o.convs=(D.convs||[]).map(function(cv){var x={};for(var k in cv){if(k==='msgs')continue;x[k]=cv[k];}x.msgs=(cv.msgs||[]).map(function(m){var y={};for(var k in m){if(k==='src')continue;y[k]=m[k];}if(m.type==='img')y.src='';return y;});return x;});return JSON.stringify(o);}catch(e){return '';}}
 function save(){var __j='';try{__j=JSON.stringify(D);}catch(e){return;}try{YZDB.set(DKEY,__j);}catch(e){}if(YZDB&&YZDB.ready){window.__yzSaveErr=false;try{var sl=yzSlender();if(sl)localStorage.setItem(DKEY,sl);}catch(e){}}else{/* IDB 未就绪：完整数据先存 localStorage 保底 */try{localStorage.setItem(DKEY,__j);window.__yzSaveErr=false;}catch(e){window.__yzSaveErr=true;}}}
 function $(s){return document.querySelector(s);}
@@ -4019,11 +4026,33 @@ function renderLetters(){
   });
 }
 function letterTo(nick){return 'To：'+(nick||'他');}
+function yzApplyLetterBg(which){
+  try{
+    /* which: 'him'=看梦角的信  'me'=写信/看我的信  'clear'=清 */
+    var readEl=document.getElementById('letterReadBody');
+    var writeEl=document.querySelector('#letterWrite .lwbody');
+    if(which==='clear'){
+      if(readEl)readEl.style.backgroundImage='';
+      if(writeEl)writeEl.style.backgroundImage='';
+      return;
+    }
+    if(!which)which=window.__curLetterWhich||'me';
+    var him=(D.himLetterBg||'').trim();
+    var me=(D.meLetterBg||'').trim();
+    if(which==='him'){
+      if(readEl)readEl.style.backgroundImage=him?('url('+him+')'):'';
+    }else{
+      if(readEl)readEl.style.backgroundImage=me?('url('+me+')'):'';
+    }
+    if(writeEl)writeEl.style.backgroundImage=me?('url('+me+')'):'';
+  }catch(e){}
+}
 function writeLetter(){
   closeSheet();
   go('letterWrite');
   const to=$('#lwTo'); if(to)to.textContent=letterTo(D.nick);
   const tx=$('#lwText'); if(tx)tx.value='';
+  try{ window.__curLetterWhich='me'; yzApplyLetterBg('me'); }catch(e){}
   setTimeout(function(){const x=$('#lwText');if(x)x.focus();},120);
 }
 function saveLetterPost(){
@@ -4044,11 +4073,12 @@ function saveLetterPost(){
 function openLetter(id){
   const lt=(D.letters||[]).find(x=>x.id===id);if(!lt)return;
   window.__curLetterId=id;
-  try{ var _rb=document.getElementById('letterReplyBox'); var _rt=document.getElementById('lrepText'); if(_rt)_rt.value=''; if(_rb){ _rb.style.display=(lt.from==='me')?'none':''; } }catch(e){}
+  try{ var _rb=document.getElementById('letterReplyBox'); var _rt=document.getElementById('lrepText'); var _rto=document.getElementById('lrepTo'); if(_rt)_rt.value=''; if(_rto)_rto.textContent=letterTo(D.nick); if(_rb){ _rb.style.display=(lt.from==='me')?'none':''; } }catch(e){}
   lt.read=true;save();
   try{ if(document.getElementById('letters')&&document.getElementById('letters').classList.contains('active'))renderLetters(); }catch(e){}
   const head=lt.from==='him'?((D.nick||'他')+' 写给你的信'):('你写给 '+(D.nick||'他')+' 的信');
   $('#letterBody').innerHTML=`<div style="font-size:12px;color:var(--sub);margin-bottom:14px">${esc(head)} · ${esc(lt.time||'')}</div><div class="lettertxt">${esc(lt.text).replace(/\n/g,'<br>')}</div>`;
+  try{ window.__curLetterWhich=(lt.from==='him')?'him':'me'; yzApplyLetterBg(window.__curLetterWhich); }catch(e){}
   go('letterRead');
 }
 function sendLetterReply(){
@@ -5297,7 +5327,7 @@ function fetchPlaylist(id,cb){
         if(!sid&&x.id)sid=String(x.id);
         var _vip=false; try{ if(x.fee===1||x.fee===4||x.pay==='vip'||x.vip===true||x.privilege&&x.privilege.fee===1) _vip=true; }catch(e){}
         return {title:(x.name||x.title||'未知歌曲'),by:(x.artist||x.author||''),url:neteaseSongUrl(sid),id:sid,vip:_vip};
-      }).filter(function(x){return x.id;}).filter(function(x){return !x.vip;}).map(function(x){delete x.vip; return x;});
+      }).filter(function(x){return x.id;});
       cb(songs);
     }).catch(function(){if(!done){done=true;clearTimeout(to);tryOne();}});
   };
@@ -5850,33 +5880,21 @@ function addSongPrompt(){
           alert('这个歌单没拉下来，稍后再试或换链接');
           return;
         }
-        if($('#lisBy'))$('#lisBy').textContent='正在检测可播放歌曲…';
         var before=D.listenPlaylist.length;
-        var okList=[]; var skipped=0; var _pi=0;
-        function _nextProbe(){
-          if(_pi>=list.length){
-            var added=yzPlaylistAddBulk(okList);
-            if(added<=0){
-              if($('#lisBy'))$('#lisBy').textContent='没有可导入的歌';
-              alert('这个歌单里没有可播放的歌（可能全是VIP/版权受限），或都已存在');
-              return;
-            }
-            var first=okList[0];
-            D.listenIdx=before;
-            D.listenSongs=D.listenSongs||[];
-            D.listenSongs.push({title:first.title,by:first.by,url:first.url,time:nowStr()});
-            try{yzFavTry('music',D.listenSongs[D.listenSongs.length-1],nowStr(),'favMusicRate');}catch(e){}
-            save();renderListen();
-            var _msg='歌单新增 '+added+' 首'+(skipped>0?('，跳过VIP/受限 '+skipped+' 首'):'');
-            if($('#lisBy'))$('#lisBy').textContent=_msg;
-            if(skipped>0)toast(_msg);
-            setTimeout(function(){ pushListenMsg('him',pickCard()); },800+Math.random()*800);
-            return;
-          }
-          var sg=list[_pi++];
-          yzProbeSong(sg,function(ok){ if(ok)okList.push(sg); else skipped++; _nextProbe(); });
+        var added=yzPlaylistAddBulk(list);
+        if(added<=0){
+          if($('#lisBy'))$('#lisBy').textContent='歌单里的歌都在列表里了';
+          alert('这个歌单里的歌已经在列表里了，没有重复添加');
+          return;
         }
-        _nextProbe();
+        var first=list[0];
+        D.listenIdx=before;
+        D.listenSongs=D.listenSongs||[];
+        D.listenSongs.push({title:first.title,by:first.by,url:first.url,time:nowStr()});
+        try{yzFavTry('music',D.listenSongs[D.listenSongs.length-1],nowStr(),'favMusicRate');}catch(e){}
+        save();renderListen();
+        if($('#lisBy'))$('#lisBy').textContent='歌单新增 '+added+' 首，共 '+D.listenPlaylist.length+' 首';
+        setTimeout(function(){ pushListenMsg('him',pickCard()); },800+Math.random()*800);
       });
       return;
     }
@@ -5895,11 +5913,7 @@ function addSongPrompt(){
     }catch(e){}
     if(!title||title.length>40)title='一起听的歌';
     var sg={title:title,by:by,url:v};
-    /* 单曲导入：探测是否 VIP/版权受限，受限则跳过不导入 */
-    yzProbeSong(sg,function(ok){
-      if(!ok){ toast('这首是VIP/版权受限，已跳过'); return; }
-      yzImportSingleSong(sg);
-    });
+    yzImportSingleSong(sg);
     return;
     if(!added){ toast('这首歌已经在列表里了'); return; }
     D.listenIdx=D.listenPlaylist.length-1;
@@ -7470,6 +7484,7 @@ function setColor(k,v){
   if(cid){const inp=$('#'+cid);if(inp)inp.value=v||'#000000';}
   save();
   scheduleApply();
+  try{ yzApplyLetterBg(); }catch(e){}
 }
 function saveBeauty(){
   if($('#setLockName'))D.lockName=$('#setLockName').value;
