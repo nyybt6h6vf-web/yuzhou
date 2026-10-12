@@ -4062,9 +4062,71 @@ function renderLetters(){
       `<div class="letter-item" onclick="openLetter('${lt.id}')">
         <div class="lh">${esc(lt.from==='me'?(D.myNick||'我')+' 写给 '+(D.nick||'他'):(D.nick||'他')+' 写给你')} · ${esc(lt.time||'')} · <span style="color:${lt.read?'var(--sub)':'var(--accent,#859ecb)'};font-weight:${lt.read?'400':'700'}">${lt.read?'已读':'未读'}</span></div>
         <div class="lt">${esc(lt.isReply?(lt.from==='me'?('我回复了'+(D.nick||'他')+'的信'):((D.nick||'他')+'回复了你的信')):(lt.from==='him'?(D.nick||'他')+'给你写了一封信':(lt.preview||'（空信）')))}</div>
-        <div class="lfav" onclick="event.stopPropagation();favLetterById('${lt.id}')">☆ 收藏</div>
+        <div class="lfav" data-favbtn="1" data-favtype="letter" data-favid="${lt.id}">☆ 收藏</div>
       </div>`);
   });
+  try{yzFavBtnSyncAll(l);}catch(e){}
+}
+/* ===== 收藏按钮：统一处理（只有点☆/文字才算）+ 状态切换 ===== */
+function yzFavItemData(type,id){
+  try{
+    if(type==='letter'){ var lt=(D.letters||[]).find(function(x){return x.id===id;}); if(!lt)return null; return {id:lt.id,text:lt.preview||lt.text,srcTime:lt.time||''}; }
+    if(type==='diary'){ var d=(D.diaries||[]).find(function(x){return x.id===id;}); if(!d)return null; return {id:d.id,title:d.title||'',text:d.text,date:d.date||'',srcTime:d.date||''}; }
+    if(type==='moment'){ var m=(D.moments||[]).find(function(x){return x.id===id;}); if(!m)return null; return {id:m.id,text:m.text,src:m.img||'',srcTime:m.time||''}; }
+  }catch(e){}
+  return null;
+}
+function yzFavIsOn(type,id){
+  try{ yzMyFavInit(); return !!(D.myFavs&&D.myFavs.seen&&D.myFavs.seen[type+':'+id]); }catch(e){ return false; }
+}
+function yzFavToggleByBtn(btn){
+  try{
+    if(!btn)return;
+    var type=btn.getAttribute('data-favtype'), id=btn.getAttribute('data-favid');
+    if(!type||!id)return;
+    yzMyFavInit();
+    if(yzFavIsOn(type,id)){
+      /* 取消收藏 */
+      delete D.myFavs.seen[type+':'+id];
+      var arr=D.myFavs[type]||[];
+      for(var i=arr.length-1;i>=0;i--){ if(String(arr[i].k)===String(id)) arr.splice(i,1); }
+      save(); _yzFavBtnRefresh(btn,false); toast('已取消收藏');
+    }else{
+      var item=yzFavItemData(type,id); if(!item)return;
+      yzMyFavAdd(type,item,item.srcTime||'');
+      _yzFavBtnRefresh(btn,true); toast('已收藏到我的收藏');
+    }
+  }catch(e){}
+}
+function _yzFavBtnRefresh(btn,on){
+  try{ if(!btn)return; btn.innerHTML=(on?'★ 已收藏':'☆ 收藏'); }catch(e){}
+}
+/* 渲染后回填已收藏状态 */
+function yzFavBtnSyncAll(root){
+  try{
+    var r=root||document;
+    var list=r.querySelectorAll('[data-favbtn]');
+    for(var i=0;i<list.length;i++){
+      var b=list[i];
+      var t=b.getAttribute('data-favtype'), id=b.getAttribute('data-favid');
+      _yzFavBtnRefresh(b, yzFavIsOn(t,id));
+    }
+  }catch(e){}
+}
+/* 全局委托：只在点到按钮本体（含内部 ☆/文字）时才处理 */
+if(!window.__yzFavDeleg){
+  window.__yzFavDeleg=true;
+  document.addEventListener('click',function(e){
+    try{
+      var t=e.target;
+      if(!t||!t.closest)return;
+      var btn=t.closest('[data-favbtn]');
+      if(!btn)return;
+      e.stopPropagation();
+      e.preventDefault();
+      yzFavToggleByBtn(btn);
+    }catch(x){}
+  },true);
 }
 function favLetterById(id){
   try{ var lt=(D.letters||[]).find(function(x){return x.id===id;}); if(!lt)return;
@@ -4584,6 +4646,7 @@ function renderHimDiary(){
   list.sort(function(a,b){return (a.time||'')<(b.time||'')?-1:1;});
   if(!list.length){l.innerHTML='<div class="empty">他还没有写日记。</div>';return;}
   list.forEach(function(d){ l.insertAdjacentHTML('beforeend', diaryItemHTML(d)); });
+  try{yzFavBtnSyncAll(l);}catch(e){}
 }
 
 /* ===== 我的日记列表（旧到新，含我+他） ===== */
@@ -4602,7 +4665,7 @@ function diaryItemHTML(d){
     title+
     '<div class="dtext">'+esc(body.slice(0,80))+(body.length>80?'…':'')+'</div>'+
     cmts+
-    '<div class="drow"><div class="dadd ddel2" onclick="event.stopPropagation();delDiary(\''+d.id+'\')">删除</div>'+'<div class="dadd dfav" onclick="event.stopPropagation();favDiaryById(\''+d.id+'\')">☆ 收藏</div></div>'+
+    '<div class="drow"><div class="dadd ddel2" onclick="event.stopPropagation();delDiary(\''+d.id+'\')">删除</div>'+'<div class="dadd dfav" data-favbtn="1" data-favtype="diary" data-favid="'+d.id+'">☆ 收藏</div></div>'+
     '</div>';
 }
 function favDiaryById(id){
@@ -5262,7 +5325,7 @@ function renderMoments(){
         <div class="moact">
           <div class="${liked?'on':''}" onclick="toggleLike('${m.id}')">♡ ${(m.likedBy||[]).length}</div>
           <div onclick="momentCmtToggle('${m.id}')">💬 评论</div>
-          <div onclick="favMomentById('${m.id}')">☆ 收藏</div>
+          <div data-favbtn="1" data-favtype="moment" data-favid="${m.id}">☆ 收藏</div>
           <div onclick="delMoment('${m.id}')">删除</div>
         </div>
         ${likeHtml}
@@ -5270,6 +5333,7 @@ function renderMoments(){
         <div class="moinline" id="moInline_${m.id}" style="display:none"><input id="moInput_${m.id}" type="text" placeholder="写评论…" onkeydown="if(event.key===String.fromCharCode(13)){event.preventDefault();momentCmtSend('${m.id}');}"><div class="dcsend" onclick="momentCmtSend('${m.id}')">发送</div></div>
       </div>`);
   });
+  try{yzFavBtnSyncAll(document.getElementById('momList')||document);}catch(e){}
 }
 function favMomentById(id){
   try{ var m=(D.moments||[]).find(function(x){return x.id===id;}); if(!m)return;
