@@ -1515,6 +1515,7 @@ body{
             <div class="chip" id="thDark" onclick="setTheme('dark')">深色</div>
           </div>
         </div>
+        <div class="row"><div class="lab">浅/深色跟随系统</div><div class="chip" id="themeAutoChip" onclick="toggleThemeAuto()">关闭</div></div>
         <div class="row"><div class="lab">锁屏名称</div><input type="text" id="setLockName" oninput="saveBeauty()" placeholder="留空则不显示"></div>
 <div class="row"><div class="lab">锁屏背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('lockBg')">上传图</div><div class="chip" onclick="setColor('lockBg','')">清</div></div></div>
 <div class="row"><div class="lab">梦角信封背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('himLetterBg')">上传图</div><div class="chip" onclick="setColor('himLetterBg','')">清</div></div></div>
@@ -1543,6 +1544,8 @@ body{
             <div class="msg me" style="display:flex"><div class="bubble">我的消息示例</div></div>
           </div>
         </div>
+        <div class="row"><div class="lab">保存当前美化方案</div><div class="chip" id="beautySaveBtn" onclick="yzBeautySave()">保存</div></div>
+        <div id="beautySlots" style="display:flex;flex-direction:column;gap:8px;margin-top:6px"></div>
       </div>
       <div class="group">
         <h4>身份</h4>
@@ -2444,7 +2447,7 @@ YZDB.open(function(ok){
         if(o&&typeof o==='object'){
           /* IDB 存的是完整数据（含图片），为权威源；localStorage 只是瘦身兜底 */
           D=Object.assign(D,o);
-          try{document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light');}catch(_){}
+          try{ if(D.themeAuto){ applyThemeAuto(true); yzBindThemeAuto(); } else { document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light'); } }catch(_){}
           try{renderHome();applyCustom();}catch(_){}
           try{if(typeof yzBindAvatarKey==='function')yzBindAvatarKey();}catch(_){}
           try{if(window.__YZ_AFTER_IDB)window.__YZ_AFTER_IDB();}catch(_){}
@@ -2483,7 +2486,7 @@ function go(id){
   if(id==='chat'){renderChat();$('#chat').style.background=getChatBg();setTimeout(scrollBottom,30);}
   if(id==='cards'){try{yzBindCards();renderCardTabs();}catch(e){}renderCards();}
   if(id==='together')renderTiles();
-  if(id==='settings'){fillSettings();try{yzMarkSetStatus();}catch(e){}}
+  if(id==='settings'){fillSettings();try{yzBeautyRender();}catch(e){}try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}try{yzMarkSetStatus();}catch(e){}}
   if(id==='moments')renderMoments();
   if(id==='listen'){ hideLisFloat(); try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
   if(id!=='listen'){ try{ setTimeout(yzMaybeShowFloat,60); }catch(e){} }
@@ -7529,6 +7532,8 @@ function fillSettings(){
   try{if($('#setChatFontSize'))$('#setChatFontSize').value=(D.chatFontSize!==undefined?D.chatFontSize:14);if($('#chatFontSizeVal'))$('#chatFontSizeVal').textContent=(D.chatFontSize!==undefined?D.chatFontSize:14)+'px';}catch(e){}
   try{if($('#setTranSize'))$('#setTranSize').value=(D.tranSize!==undefined?D.tranSize:100);if($('#tranSizeVal'))$('#tranSizeVal').textContent=(D.tranSize!==undefined?D.tranSize:100)+'%';}catch(e){}
   try{yzPreviewBubble();}catch(e){}
+  try{yzBeautyRender();}catch(e){}
+  try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}
   if($('#setDelay'))$('#setDelay').value=D.delay;
   if($('#setSendGap'))$('#setSendGap').value=(D.sendGap!==undefined?D.sendGap:D.delay);
   $('#setTran').value=D.tran;$('#setCall').value=D.callRate;try{if($('#setPatRate'))$('#setPatRate').value=(D.patRate!==undefined?D.patRate:15);}catch(e){}try{if($('#setVoiceRate'))$('#setVoiceRate').value=(D.voiceRate!==undefined?D.voiceRate:0);}catch(e){}
@@ -7643,6 +7648,115 @@ function scheduleApply(){
   if(_applyTimer)clearTimeout(_applyTimer);
   _applyTimer=setTimeout(()=>{_applyTimer=null;applyCustom();},150);
 }
+/* ===== 美化方案槽位 ===== */
+var YZ_BEAUTY_KEYS=['favicon','theme','themeAuto','lockName','lockBg','himLetterBg','meLetterBg','lockFg','slogan','pageBg','page2Bg','chatBg','fontColor','bubbleHim','bubbleMe','tranColor','himFontColor','meFontColor','bubbleSize','chatFontSize','tranSize','momBg','bubble'];
+function yzBeautySnap(){
+  var o={};
+  YZ_BEAUTY_KEYS.forEach(function(k){ o[k]=(D[k]===undefined?'':D[k]); });
+  return o;
+}
+function yzBeautySave(){
+  try{
+    if(!D.beautySlots)D.beautySlots=[];
+    if(D.beautySlots.length>=5){ toast('最多只能保存 5 个方案'); return; }
+    var nm='美化'+(D.beautySlots.length+1);
+    D.beautySlots.push({name:nm,data:yzBeautySnap()});
+    save(); yzBeautyRender();
+    toast('已保存：'+nm);
+  }catch(e){ toast('保存失败'); }
+}
+function yzBeautyRender(){
+  try{
+    var wrap=document.getElementById('beautySlots'); if(!wrap)return;
+    if(!D.beautySlots)D.beautySlots=[];
+    wrap.innerHTML='';
+    if(!D.beautySlots.length){ wrap.innerHTML='<div style="font-size:12px;color:var(--sub);padding:2px 0">还没有保存的方案</div>'; return; }
+    D.beautySlots.forEach(function(s,i){
+      var row=document.createElement('div');
+      row.className='row';
+      row.style.cssText='gap:8px';
+      row.innerHTML='<div class="lab" style="flex:1;cursor:pointer" onclick="yzBeautyApply('+i+')">'+esc(s.name||('美化'+(i+1)))+'</div>'
+        +'<div class="chip" onclick="yzBeautyRename('+i+')" style="padding:5px 12px">改</div>'
+        +'<div class="chip" onclick="yzBeautyDel('+i+')" style="padding:5px 12px">删除</div>';
+      wrap.appendChild(row);
+    });
+  }catch(e){}
+}
+function yzBeautyRenumber(){
+  try{ (D.beautySlots||[]).forEach(function(s,i){ if(/^美化\d+$/.test(String(s.name||''))) s.name='美化'+(i+1); }); }catch(e){}
+}
+function yzBeautyRename(i){
+  try{
+    var s=(D.beautySlots||[])[i]; if(!s)return;
+    askInput('修改名称',s.name||('美化'+(i+1)),function(t){
+      var v=String(t||'').trim(); if(!v)return;
+      s.name=v; save(); yzBeautyRender(); toast('已改名');
+    });
+  }catch(e){}
+}
+function yzBeautyDel(i){
+  try{
+    if(!(D.beautySlots||[])[i])return;
+    D.beautySlots.splice(i,1);
+    yzBeautyRenumber();
+    save(); yzBeautyRender(); toast('已删除');
+  }catch(e){}
+}
+function yzBeautyApply(i){
+  try{
+    var s=(D.beautySlots||[])[i]; if(!s||!s.data)return;
+    askConfirm('是否应用此方案「'+(s.name||('美化'+(i+1)))+'」？',function(){
+      try{
+        YZ_BEAUTY_KEYS.forEach(function(k){
+          if(s.data[k]!==undefined) D[k]=s.data[k];
+          else delete D[k];
+        });
+        save();
+        /* 应用主题 */
+        if(D.themeAuto) applyThemeAuto(true);
+        else document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light');
+        if($('#thLight'))$('#thLight').classList.toggle('on',!D.themeAuto&&D.theme!=='dark');
+        if($('#thDark'))$('#thDark').classList.toggle('on',!D.themeAuto&&D.theme==='dark');
+        if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';
+        try{ fillSettings(); }catch(e){}
+        try{ applyFavicon(D.favicon||''); }catch(e){}
+        try{ renderHome(); renderChat(); applyCustom(); }catch(e){}
+        toast('已应用：'+(s.name||('美化'+(i+1))));
+      }catch(e){ toast('应用失败'); }
+    });
+  }catch(e){}
+}
+/* ===== 浅/深色跟随系统 ===== */
+var _yzMqDark=null;
+function applyThemeAuto(force){
+  try{
+    if(!D.themeAuto)return;
+    var dark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
+    D.theme=dark?'dark':'light';
+    document.documentElement.setAttribute('data-theme',dark?'dark':'light');
+    if($('#thLight'))$('#thLight').classList.toggle('on',!dark);
+    if($('#thDark'))$('#thDark').classList.toggle('on',dark);
+    if(force!==true)save();
+  }catch(e){}
+}
+function yzBindThemeAuto(){
+  try{
+    if(_yzMqDark)return;
+    if(!window.matchMedia)return;
+    _yzMqDark=window.matchMedia('(prefers-color-scheme: dark)');
+    var h=function(){ if(D.themeAuto){ applyThemeAuto(true); try{save();}catch(e){} } };
+    if(_yzMqDark.addEventListener)_yzMqDark.addEventListener('change',h);
+    else if(_yzMqDark.addListener)_yzMqDark.addListener(h);
+  }catch(e){}
+}
+function toggleThemeAuto(){
+  try{
+    D.themeAuto=!D.themeAuto; save();
+    if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';
+    if(D.themeAuto){ applyThemeAuto(true); yzBindThemeAuto(); toast('已开启，跟随系统深色'); }
+    else{ document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light'); toast('已关闭'); }
+  }catch(e){}
+}
 function exportData(){
   const txt=JSON.stringify(D);
   try{
@@ -7729,6 +7843,7 @@ function saveProfile(){
   startMomLoop();startFeelLoop();startLetterLoop();
 }
 function setTheme(t){
+  try{ if(D.themeAuto){ toast('已开启跟随系统，先关闭它才能手动切'); return; } }catch(e){}
   D.theme=t;save();
   document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');
   fillSettings();applyCustom();
@@ -7992,7 +8107,7 @@ function init(){
   try{yzPhInit();}catch(e){}
   try{yzFavInit();}catch(e){}
   try{if(D.favicon)applyFavicon(D.favicon);}catch(e){}
-  document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light');
+  if(D.themeAuto){ try{ applyThemeAuto(true); yzBindThemeAuto(); }catch(e){} } else { document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light'); }
   tick();setInterval(tick,1000);
   const rm=$('#recMic');if(rm)rm.innerHTML=ICONS.mic;
   D._typing=false;
