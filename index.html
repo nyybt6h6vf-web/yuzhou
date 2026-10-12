@@ -8087,11 +8087,13 @@ function applyCustom(){
   css+='#chatBody .msg .bubble.packimg img{width:64px !important;height:64px !important;object-fit:cover !important;border-radius:12px !important;display:block !important;max-width:64px !important;max-height:64px !important;}';
   css=yzSanitizeCss(css);
   try{ if(css.length>60000) css=css.slice(0,60000); }catch(e){}
+  try{ yzPrecheckCssImages(css); }catch(e){}
   /* 防止用户 CSS 的伪元素/绝对定位盖住整个界面（看起来像“崩”） */
   try{ css=css.replace(/z-index\s*:\s*(\d+)/gi, function(m,d){ var v=parseInt(d,10); return 'z-index:'+(v>30?30:v); }); }catch(e){}
   try{ if(!/pointer-events/.test(css)) css+='.msg .bubble::before,.msg .bubble::after{pointer-events:none !important;}'; }catch(e){}
   let st=document.getElementById('customStyle');
   if(!st){st=document.createElement('style');st.id='customStyle';document.head.appendChild(st);}
+  try{ css=yzStripFailedImgs(css); }catch(e){}
   if(st.textContent!==css){ try{ st.textContent=css; }catch(e){} }
   window.__applyBubbleInline&&window.__applyBubbleInline();
   }catch(e){ try{console.warn('applyCustom',e);}catch(_){} }
@@ -8121,6 +8123,34 @@ function forceImportant(cssText){
   }catch(e){return String(cssText||'');}
 }
 /* ===== 安全清洗：只保留结构合法的 CSS 规则，坏的丢弃（防崩溃） ===== */
+/* 预检用户CSS里的网络图片：失败的图，把它所在的那条声明改成 none（避免一直加载/卡死） */
+var _yzImgFail={};
+function yzPrecheckCssImages(css){
+  try{
+    if(!window.__yzImgPending)window.__yzImgPending={};
+    var re=/url\(\s*['"]?(https?:\/\/[^'")]+)['"]?\s*\)/g, m;
+    while((m=re.exec(css))){
+      var u=m[1];
+      if(_yzImgFail[u]||window.__yzImgPending[u])continue;
+      window.__yzImgPending[u]=1;
+      (function(url){
+        var im=new Image(); var done=false;
+        var to=setTimeout(function(){ if(done)return; done=true; _yzImgFail[url]=1; }, 6000);
+        im.onload=function(){ if(done)return; done=true; clearTimeout(to); };
+        im.onerror=function(){ if(done)return; done=true; clearTimeout(to); _yzImgFail[url]=1; };
+        im.src=url;
+      })(u);
+    }
+  }catch(e){}
+}
+function yzStripFailedImgs(css){
+  try{
+    return String(css||'').replace(/background-image\s*:\s*url\(\s*['"]?(https?:\/\/[^'")]+)['"]?\s*\)([^;}]*)/gi, function(mm,u,rest){
+      if(_yzImgFail[u]) return 'background-image:none';
+      return mm;
+    });
+  }catch(e){ return css; }
+}
 function yzSanitizeCss(css){
   try{
     var src=String(css||'');
