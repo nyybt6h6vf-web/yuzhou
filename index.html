@@ -1566,7 +1566,7 @@ body{
         <div class="row"><div class="lab">日记间隔（分钟）</div><input type="number" id="setDiaryGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">日记最少句数</div><input type="number" id="setDiaryMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">日记最多句数</div><input type="number" id="setDiaryMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-<div class="row"><div class="lab">日记评论概率（%）</div><input type="number" id="setDiaryReplyRate" oninput="saveProfile()" style="max-width:80px"></div>
+<div class="row"><div class="lab">评论概率（%）（评论/回复评论通用）</div><input type="number" id="setCommentRate" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角找你代付概率（%）</div><input type="number" id="setDaifuRate" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">代付检查间隔（分钟）</div><input type="number" id="setDaifuGap" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角代付处理时长（秒）</div><input type="number" id="setDaifuDelay" oninput="saveProfile()" style="max-width:80px"></div>
@@ -1592,7 +1592,6 @@ body{
          <div class="row"><div class="lab">动态最少句数</div><input type="number" id="setMomMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">动态最多句数</div><input type="number" id="setMomMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角点赞我动态概率（%）</div><input type="number" id="setMomLikeRate" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">梦角评论我动态概率（%）</div><input type="number" id="setMomCmtRate" oninput="saveProfile()" style="max-width:80px"></div>
        </div>
        <div class="group">
          <h4>心情库</h4>
@@ -2389,7 +2388,7 @@ if(o.daifuGap===undefined)o.daifuGap=20;
     pageBg:'',chatBg:'',momBg:'',lockBg:'',lockFg:'',fontColor:'',himFontColor:'',meFontColor:'',bubble:'',bubbleHim:'',bubbleMe:'',heroImg:'',himLetterBg:'',meLetterBg:'',
     readOn:true,typingOn:true,
     lockName:'Yu·Zhou',slogan:'',pass:'',
-    delay:1.2,double:35,tran:50,tranTo:10,packRate:25,mainRate:100,emojiMix:0,emojiMixRate:30,callRate:12,patRate:15,voiceRate:0,momGap:1,momLikeRate:50,momCmtRate:30,diaryReplyRate:50,
+    delay:1.2,double:35,tran:50,tranTo:10,packRate:25,mainRate:100,emojiMix:0,emojiMixRate:30,callRate:12,patRate:15,voiceRate:0,momGap:1,momLikeRate:50,momCmtRate:30,commentRate:50,
     noteMe:'',noteHim:'',
     sendMin:1,sendMax:2,
     comboRate:20,comboMin:2,comboMax:3,quoteRate:30,askDelay:15,
@@ -4577,7 +4576,7 @@ function diaryAskMood(){
   askInput('今天心情怎么样？','',function(t){
     dwMoodTmp=String(t||'').trim();
     go('diaryWrite');
-    const dt=$('#dwDate'); if(dt)dt.textContent=dToday();
+    const dt=$('#dwDate'); if(dt)dt.textContent=dFull();
     const dm=$('#dwMood'); if(dm)dm.textContent=dwMoodTmp||'心情';
     const ti=$('#dwTitle'); if(ti)ti.value='';
     const tx=$('#dwText'); if(tx)tx.value='';
@@ -4589,7 +4588,7 @@ function saveDiaryPost(){
   const text=($('#dwText')||{}).value||'';
   if(!String(text).trim()&&!String(title).trim()){toast('写点什么再发布');return;}
   D.diaries=D.diaries||[];
-  D.diaries.push({id:'dy'+Date.now(),from:'me',title:String(title).trim(),mood:dwMoodTmp||'',date:dToday(),text:String(text),comments:[],time:new Date().toISOString()});try{yzFavTry('diary',D.diaries[D.diaries.length-1],dToday(),'favDiaryRate');}catch(e){}
+  D.diaries.push({id:'dy'+Date.now(),from:'me',title:String(title).trim(),mood:dwMoodTmp||'',date:dFull(),text:String(text),comments:[],time:new Date().toISOString()});try{yzFavTry('diary',D.diaries[D.diaries.length-1],dFull(),'favDiaryRate');}catch(e){}
   save();
   go('diary');renderDiary();toast('已发布');
 }
@@ -4639,7 +4638,7 @@ function diaryCmtSend(){
   var box=document.getElementById('dcInline'); var i2=document.getElementById('dcInput');
   if(box)box.style.display='flex'; if(i2)i2.value='';
   /* 梦角回复日记评论（按概率） */
-  var _rr=(D.diaryReplyRate===undefined?50:parseFloat(D.diaryReplyRate))||0;
+  var _rr=(D.commentRate===undefined?50:parseFloat(D.commentRate))||0;
   if(Math.random()*100<_rr){
     setTimeout(function(){
       d.comments.push({who:(D.nick||'他'),text:pickCard(),time:nowStr()});
@@ -4656,7 +4655,7 @@ function addDiaryComment(id){
     d.comments=d.comments||[];
     d.comments.push({who:(D.myNick||'我'),text:v,time:nowStr()});
     save();renderDiary();
-    if(Math.random()*100<((D.diaryReplyRate===undefined?50:parseFloat(D.diaryReplyRate))||0)){
+    if(Math.random()*100<((D.commentRate===undefined?50:parseFloat(D.commentRate))||0)){
       setTimeout(function(){
         d.comments.push({who:(D.nick||'他'),text:pickCard(),time:nowStr()});
         save();if($('#diary').classList.contains('active'))renderDiary();
@@ -5286,6 +5285,7 @@ function pushMomentByHim(){
 }
 /* 他回复评论 / 点赞你的动态 */
 function momReply(m){
+  try{ var _cr=(D.commentRate===undefined?50:parseFloat(D.commentRate))||0; if(Math.random()*100>=_cr)return; }catch(e){}
   m.comments=m.comments||[];
   var last=m.comments[m.comments.length-1];
   var rp=last?(last.from==='me'?(D.myNick||'我'):(D.nick||'他')):'';
@@ -5297,7 +5297,7 @@ function maybeMomInteract(){
   if(!list.length)return;
   const m=list[Math.floor(Math.random()*list.length)];
   var _lr=(D.momLikeRate===undefined?50:parseFloat(D.momLikeRate))||0;
-  var _cr=(D.momCmtRate===undefined?30:parseFloat(D.momCmtRate))||0;
+  var _cr=(D.commentRate===undefined?50:parseFloat(D.commentRate))||0;
   var did=false;
   if(Math.random()*100<_lr){
     m.likedBy=m.likedBy||[];
@@ -7524,9 +7524,8 @@ function fillSettings(){
   if($('#setTranTo'))$('#setTranTo').value=D.tranTo;
   if($('#setPackRate'))$('#setPackRate').value=(D.packRate===undefined?25:D.packRate);
   if($('#setMomLikeRate'))$('#setMomLikeRate').value=(D.momLikeRate===undefined?50:D.momLikeRate);
-  if($('#setMomCmtRate'))$('#setMomCmtRate').value=(D.momCmtRate===undefined?30:D.momCmtRate);
   if($('#setFavLetter'))$('#setFavLetter').value=(D.favLetterRate===undefined?30:D.favLetterRate);
-  if($('#setDiaryReplyRate'))$('#setDiaryReplyRate').value=(D.diaryReplyRate===undefined?50:D.diaryReplyRate);
+  if($('#setCommentRate'))$('#setCommentRate').value=(D.commentRate===undefined?50:D.commentRate);
   if($('#setMainRate'))$('#setMainRate').value=(D.mainRate===undefined?100:D.mainRate);
   if($('#setEmojiMix'))$('#setEmojiMix').value=String(parseInt(D.emojiMix)||0);
   if($('#setEmojiMixRate'))$('#setEmojiMixRate').value=(D.emojiMixRate===undefined?30:D.emojiMixRate);
@@ -7654,9 +7653,8 @@ function saveProfile(){
   if($('#setTranTo'))D.tranTo=parseFloat($('#setTranTo').value)||0;
   if($('#setPackRate')){D.packRate=parseFloat($('#setPackRate').value)||0;D.packRateLis=D.packRate;D.packRateMom=D.packRate;}
   if($('#setMomLikeRate'))D.momLikeRate=Math.max(0,Math.min(100,parseFloat($('#setMomLikeRate').value)||0));
-  if($('#setMomCmtRate'))D.momCmtRate=Math.max(0,Math.min(100,parseFloat($('#setMomCmtRate').value)||0));
   if($('#setFavLetter'))D.favLetterRate=Math.max(0,Math.min(100,parseFloat($('#setFavLetter').value)||0));
-  if($('#setDiaryReplyRate'))D.diaryReplyRate=Math.max(0,Math.min(100,parseFloat($('#setDiaryReplyRate').value)||0));
+  if($('#setCommentRate'))D.commentRate=Math.max(0,Math.min(100,parseFloat($('#setCommentRate').value)||0));
   if($('#setMainRate'))D.mainRate=Math.max(0,Math.min(100,parseFloat($('#setMainRate').value)||0));
   if($('#setEmojiMix'))D.emojiMix=parseInt($('#setEmojiMix').value)||0;
   if($('#setEmojiMixRate'))D.emojiMixRate=Math.max(0,Math.min(100,parseFloat($('#setEmojiMixRate').value)||0));
