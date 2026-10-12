@@ -2701,10 +2701,11 @@ function yzMyFavAdd(type,item,srcTime){
 }
 function yzMyFavHtml(){
   yzMyFavInit();
+  D.phFavOpen=true; save(); /* 标记为收藏视图，防止定时刷新把页面重渲染（闪退） */
   var body=document.getElementById('phBody'); if(!body)return;
   var cats=[['msg','\u{1F4AC}','收藏消息'],['music','\u{1F3B5}','收藏音乐'],['moment','\u{1F4F7}','收藏动态'],['diary','\u{1F4D6}','收藏日记'],['letter','\u2709','收藏信封']];
   var h='<div class="favwrap">';
-  h+='<div class="favback" onclick="yzPhRender()">\u2039 \u8fd4\u56de</div>';
+  h+='<div class="favback" onclick="D.phFavOpen=false;save();yzPhRender()">\u2039 \u8fd4\u56de</div>';
   h+='<div class="favtitle" style="margin:6px 0 12px;">\u6211\u7684\u6536\u85cf</div>';
   cats.forEach(function(c){
     var t=c[0]; var arr=D.myFavs[t]||[];
