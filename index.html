@@ -2492,6 +2492,7 @@ function yzPhInit(){
   if(D.ph.him===undefined)D.ph.him=100;
   if(D.ph.himCharging===undefined)D.ph.himCharging=false;
   if(D.ph.himPower===undefined)D.ph.himPower=true;
+  if(D.ph.himChgTries===undefined)D.ph.himChgTries=0;
   if(D.ph.meWarned===undefined)D.ph.meWarned=false;
   if(D.ph.accMy===undefined)D.ph.accMy=0;
   if(D.ph.accHim===undefined)D.ph.accHim=0;
@@ -2527,14 +2528,18 @@ function yzPhTick(){
       D.ph.himChgAcc+=dt;
       while(D.ph.himChgAcc>=60000){ D.ph.himChgAcc-=60000; D.ph.him=Math.min(100,D.ph.him+1); }
       /* 充满 100%，梦角自己悄悄拔充电器 */
-      if(D.ph.him>=100){ D.ph.himCharging=false; D.ph.himChgAcc=0; }
+      if(D.ph.him>=100){ D.ph.himCharging=false; D.ph.himChgAcc=0; D.ph.himChgTries=0; }
     } else {
       D.ph.accHim+=dt;
       while(D.ph.accHim>=120000){
         D.ph.accHim-=120000;
         D.ph.him=Math.max(0,D.ph.him-1);
-        if(D.ph.him>0 && D.ph.him<=30 && Math.random()*100<(D.himChgRate===undefined?25:D.himChgRate)){
-          D.ph.himCharging=true; break;
+        if(D.ph.him>30){ D.ph.himChgTries=0; } /* 电量回到 30% 以上→重置掷骰次数 */
+        if(D.ph.him>0 && D.ph.him<=30 && (D.ph.himChgTries||0)<3){
+          D.ph.himChgTries=(D.ph.himChgTries||0)+1; /* 最多掷 3 次骰子 */
+          if(Math.random()*100<(D.himChgRate===undefined?25:D.himChgRate)){
+            D.ph.himCharging=true; D.ph.himChgTries=0; break;
+          }
         }
         if(D.ph.him<=0){ D.ph.him=0; D.ph.himPower=false; D.ph.himCharging=false; break; }
       }
@@ -2608,7 +2613,7 @@ function yzPhHelpCharge(){
   setTimeout(function(){ if(lg)lg.classList.add('show'); },60);
   setTimeout(function(){
     yzPhInit();
-    D.ph.himPower=true; D.ph.himCharging=true; D.ph.himChgAcc=0;
+    D.ph.himPower=true; D.ph.himCharging=true; D.ph.himChgAcc=0; D.ph.himChgTries=0;
     if(D.ph.him<5)D.ph.him=5;
     save();
     yzPhRender();
