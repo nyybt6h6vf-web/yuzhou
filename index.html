@@ -1540,7 +1540,7 @@ body{
           <div class="lab" style="margin-bottom:8px">气泡 CSS（.msg .bubble 通用，写一条两边都生效）</div>
           <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty();yzPreviewBubbleDebounced();"></textarea>
           <div class="lab" style="margin-top:12px;margin-bottom:6px">预览</div>
-          <div id="bubblePreview" style="background:var(--card);border:1px solid var(--sub);border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;gap:10px">
+          <div id="bubblePreview" style="background:var(--card);border:1px solid var(--sub);border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;contain:layout paint style;isolation:isolate">
             <div class="msg him" style="display:flex"><div class="bubble">梦角消息示例</div></div>
             <div class="msg me" style="display:flex"><div class="bubble">我的消息示例</div></div>
           </div>
@@ -8106,7 +8106,10 @@ function applyCustom(){
     if(hasBlock){
       /* 用户贴的是完整 CSS 块：先映射选择器，再给每条声明补 !important 确保生效 */
       var mapped=rawBubble.replace(/\.message-sent(?![\w-])/g,'.msg.me .bubble').replace(/\.message-received(?![\w-])/g,'.msg.him .bubble').replace(/\.message(?![\w-])/g,'.bubble');
-      css+=forceImportant(mapped);
+      var __mappedImp=forceImportant(mapped);
+      /* 收敛超大 z-index：视觉等价（都在最上层），但避免 iOS 渲染层崩溃 */
+      __mappedImp=__mappedImp.replace(/z-index\s*:\s*(\d+)\s*!important/gi,function(mm,nn){var v=parseInt(nn,10);return 'z-index:'+(isNaN(v)?2:Math.min(v,5))+' !important';});
+      css+=__mappedImp;
     }else{
       /* 裸声明 → 包进气泡选择器，每条补 !important */
       var decls=rawBubble.split(/[;\n]+/).map(function(t){t=t.trim();return t.replace(/!important/ig,'').trim();}).filter(function(t){return t&&t.indexOf(':')>=0;});
@@ -8338,6 +8341,7 @@ function yzPreviewBubble(){
     }
     if(!text)return;
     if(text.length>60000)text=text.slice(0,60000);
+    text=text.replace(/z-index\s*:\s*(\d+)\s*!important/gi,function(mm,nn){var v=parseInt(nn,10);return 'z-index:'+(isNaN(v)?2:Math.min(v,5))+' !important';});
 
     var i=0,len=text.length;
     while(i<len){
