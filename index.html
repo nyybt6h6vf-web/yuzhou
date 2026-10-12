@@ -1921,48 +1921,53 @@ body{
   </div>
 </div>
 
-<script>/* ===== 崩溃现场记录器（临时诊断，稳定后可留作日志）===== */
+<script>/* ===== 崩溃现场记录器 v2：现场直接显示在页面上 ===== */
 (function(){
   try{
     var KEY='_yzCrashLog';
-    /* 1) 记录上一次的崩溃现场 */
-    var prev=null;
-    try{ prev=localStorage.getItem(KEY); }catch(e){}
-    window.__yzCrashPrev=prev||'';
     var buf=[];
     function push(tag,data){
-      try{ buf.push('['+new Date().toISOString().slice(11,19)+'] '+tag+' :: '+String(data).slice(0,300)); }catch(e){}
-      try{ localStorage.setItem(KEY, buf.join('\n')); }catch(e){}
+      try{ buf.push('['+String(Date.now()).slice(-6)+'] '+tag+' :: '+String(data).slice(0,200)); }catch(e){}
+      try{ localStorage.setItem(KEY, buf.slice(-10).join('\n')); }catch(e){}
     }
-    /* 2) 捕获未处理错误 */
+    /* 把上一次的现场画在页面上 */
+    function drawPrev(){
+      try{
+        var prev='';
+        try{ prev=localStorage.getItem(KEY)||''; }catch(e){}
+        if(!prev)return;
+        var d=document.createElement('div');
+        d.id='yzCrashView';
+        d.style.cssText='position:fixed;left:0;top:0;right:0;z-index:9999999;background:#fff3cd;color:#8a2b2b;font:11px/1.5 monospace;padding:8px;white-space:pre-wrap;max-height:40vh;overflow:auto;border-bottom:2px solid #c00;';
+        d.textContent='【上次崩溃现场】\n'+prev+'\n(点我关闭)';
+        d.onclick=function(){
+          try{ localStorage.removeItem(KEY); }catch(e){}
+          d.remove();
+        };
+        (document.body||document.documentElement).appendChild(d);
+      }catch(e){}
+    }
     window.addEventListener('error',function(e){
-      push('ERROR', (e&&e.message)+' @'+(e&&e.filename)+':'+(e&&e.lineno));
+      push('ERROR', (e&&e.message)+' @line'+(e&&e.lineno));
     },true);
     window.addEventListener('unhandledrejection',function(e){
-      push('REJECT', (e&&e.reason&&(e.reason.message||e.reason))||'unknown');
+      push('REJECT', (e&&e.reason&&(e.reason.message||e.reason))||'?');
     });
-    /* 3) 拦截重载 */
+    /* 拦截重载 */
     try{
       var _reload=location.reload.bind(location);
       var _replace=location.replace.bind(location);
       var _assign=location.assign.bind(location);
-      try{ Object.defineProperty(location,'reload',{configurable:true,value:function(){push('RELOAD','location.reload 被调用\n'+new Error().stack);return _reload();}}); }catch(e){}
-      try{ Object.defineProperty(location,'replace',{configurable:true,value:function(u){push('REPLACE','location.replace -> '+u+'\n'+new Error().stack);return _replace(u);}}); }catch(e){}
-      try{ Object.defineProperty(location,'assign',{configurable:true,value:function(u){push('ASSIGN','location.assign -> '+u);return _assign(u);}}); }catch(e){}
-      try{ Object.defineProperty(location,'href',{configurable:true,get:function(){return document.URL;},set:function(u){push('HREF','location.href -> '+u+'\n'+new Error().stack);window.open(u,'_self');}}); }catch(e){}
+      try{ Object.defineProperty(location,'reload',{configurable:true,value:function(){push('RELOAD','reload 被调用\n'+new Error().stack.slice(0,180));return _reload();}}); }catch(e){}
+      try{ Object.defineProperty(location,'replace',{configurable:true,value:function(u){push('REPLACE','-> '+u+'\n'+new Error().stack.slice(0,180));return _replace(u);}}); }catch(e){}
+      try{ Object.defineProperty(location,'assign',{configurable:true,value:function(u){push('ASSIGN','-> '+u);return _assign(u);}}); }catch(e){}
     }catch(e){}
-    /* 4) 页面要卸载时记一笔 */
     window.addEventListener('beforeunload',function(){
-      /* 不做拦截，只记录 */
-      try{ localStorage.setItem(KEY+'_unload', buf.slice(-8).join('\n')); }catch(e){}
+      try{ localStorage.setItem(KEY, buf.slice(-10).join('\n')); }catch(e){}
     });
-    /* 5) 提供一个查询接口 */
-    window.__yzCrash=function(){
-      var a='';var b='';var c='';
-      try{a=localStorage.getItem(KEY)||'';}catch(e){}
-      try{b=localStorage.getItem(KEY+'_unload')||'';}catch(e){}
-      return {now:a, unload:b, prev:window.__yzCrashPrev};
-    };
+    /* DOM 就绪后画现场 */
+    if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',drawPrev); }
+    else{ drawPrev(); }
   }catch(e){}
 })();
 </script>
