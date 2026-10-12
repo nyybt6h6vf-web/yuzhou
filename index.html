@@ -3357,7 +3357,7 @@ function respond(){
     /* 先擤语音 */
     if(_vP>0 && Math.random()*100<_vP){
       var _vt=pickMultiCardsFor(_cid);
-      if(_vt){ plan.push({kind:'voice',text:_vt,sec:1+Math.floor(Math.random()*15)}); continue; }
+      if(_vt){ plan.push({kind:'voice',text:_vt,sec:1+Math.floor(Math.random()*10)}); continue; }
     }
     /* 再擤主字卡 */
     if(_mainP>0 && Math.random()*100<_mainP){
@@ -3474,7 +3474,7 @@ function himSayMain(who,opt){
   try{
     var _vr=parseFloat(D.voiceRate)||0;
     if(_vr>0 && _txt && Math.random()*100<_vr){
-      var _sec=1+Math.floor(Math.random()*15); /* 1~15 秒 */
+      var _sec=1+Math.floor(Math.random()*10); /* 1~15 秒 */
       var vmsg={from:'him',type:'voice',sec:_sec,text:_txt,_t:clockStr()};
       if(who)vmsg.who=who;
       _p(vmsg);
@@ -3879,6 +3879,7 @@ function doPlus(act){
       const v=String(t||'').trim();if(!v)return;
       var _mn=D.myNick||'我';
       push({from:'me',type:'pat',text:_mn+v,_t:clockStr()});
+      try{ if(!D.sendHold){ respond(); maybeCall(); } }catch(e){}
     },'填拍一拍的动作，如「拍了拍你的脑袋」（会自动加上你的昵称）');
   }
   else if(act==='album'){pickTarget='album';$('#filePick').click();}
