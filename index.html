@@ -8246,35 +8246,64 @@ function yzPreviewBubbleDebounced(){
     _yzPrevTimer=setTimeout(function(){ _yzPrevTimer=null; try{yzPreviewBubble();}catch(e){} }, 400);
   }catch(e){}
 }
-/* 气泡CSS预览：把用户CSS映射+important后，注入到预览盒子 */
+/* 气泡CSS预览：走同一条安全通道（独立 style + 逐条插入，绝不整段塞 textContent） */
+var _yzPrevSheet=null;
+function yzPreviewGetSheet(){
+  try{
+    if(_yzPrevSheet)return _yzPrevSheet;
+    var st=document.getElementById('bubblePreviewStyle');
+    if(!st){st=document.createElement('style');st.id='bubblePreviewStyle';document.head.appendChild(st);}
+    _yzPrevSheet=st.sheet||null;
+    return _yzPrevSheet;
+  }catch(e){return null;}
+}
 function yzPreviewBubble(){
   try{
-  var box=document.getElementById('bubblePreview');
-  if(!box)return;
-  var raw=String((D&&D.bubble)||'').trim().replace(/：/g,':');
-  var st=document.getElementById('bubblePreviewStyle');
-  if(!st){st=document.createElement('style');st.id='bubblePreviewStyle';document.head.appendChild(st);}
-  if(!raw){st.textContent='';return;}
-  var mapped=raw.replace(/\.message-sent(?![\w-])/g,'.msg.me .bubble').replace(/\.message-received(?![\w-])/g,'.msg.him .bubble').replace(/\.message(?![\w-])/g,'.bubble');
-  var cssText='';
-  if(/[{]/.test(mapped)&&/[}]/.test(mapped)){
-    cssText=forceImportant(mapped);
-  }else{
-    var decls=mapped.split(';').map(function(t){return t.trim();}).filter(function(t){return t&&t.indexOf(':')>=0;});
-    if(decls.length)cssText='.msg.him .bubble,.msg.me .bubble{'+decls.map(function(x){return x+' !important';}).join(';')+';}';
-  }
-  /* 给预览盒子加更高优先级的 scope：#bubblePreview 自身也带上 .bubblePreviewScope */
-  box.classList.add('bubblePreviewScope');
-  if(cssText.length<8000) cssText=cssText.replace(/(^|\})\s*([^@}][^{]*)\{/g,function(mm,pre,sel){
-    var s2=sel.split(',').map(function(x){
-      var t=x.trim();
-      if(!t)return t;
-      return '.bubblePreviewScope '+t;
-    }).join(',');
-    return pre+s2+'{';
-  });
-  try{ st.textContent=cssText; }catch(e){}
-  }catch(e){ try{var st2=document.getElementById('bubblePreviewStyle');if(st2)st2.textContent='';}catch(_){} }
+    var box=document.getElementById('bubblePreview');
+    if(!box)return;
+    var raw=String((D&&D.bubble)||'').trim().replace(/：/g,':');
+    var sh=yzPreviewGetSheet();
+    if(!sh){
+      var st0=document.getElementById('bubblePreviewStyle');
+      if(st0){try{st0.textContent='';}catch(e){}}
+      return;
+    }
+    try{ while(sh.cssRules.length>0){ sh.deleteRule(0); } }catch(e){}
+    if(!raw)return;
+
+    var hasBlock=/[{]/.test(raw)&&/[}]/.test(raw);
+    var mapped=raw.replace(/\.message-sent(?![\w-])/g,'.bubblePreviewScope .msg.me .bubble')
+                  .replace(/\.message-received(?![\w-])/g,'.bubblePreviewScope .msg.him .bubble')
+                  .replace(/\.message(?![\w-])/g,'.bubblePreviewScope .bubble')
+                  .replace(/\.msg(?![\w-])/g,'.bubblePreviewScope .msg');
+    box.classList.add('bubblePreviewScope');
+
+    var text='';
+    if(hasBlock){ text=forceImportant(mapped); }
+    else{
+      var decls=mapped.split(/[;\n]+/).map(function(t){t=t.trim();return t.replace(/!important/ig,'').trim();}).filter(function(t){return t&&t.indexOf(':')>=0;});
+      if(decls.length)text='.bubblePreviewScope .msg.him .bubble,.bubblePreviewScope .msg.me .bubble{'+decls.map(function(x){return x+' !important';}).join(';')+';}';
+    }
+    if(!text)return;
+    if(text.length>60000)text=text.slice(0,60000);
+
+    var i=0,len=text.length;
+    while(i<len){
+      var start=text.indexOf('{',i);
+      if(start<0)break;
+      var depth=0,j=start,end=-1;
+      for(;j<len;j++){
+        var ch=text[j];
+        if(ch==='{')depth++;
+        else if(ch==='}'){depth--;if(depth===0){end=j;break;}}
+      }
+      if(end<0)break;
+      var rule=text.slice(i,end+1).trim();
+      if(rule){ try{ sh.insertRule(rule, sh.cssRules.length); }catch(e){} }
+      i=end+1;
+      while(i<len && /[\s;]/.test(text[i]))i++;
+    }
+  }catch(e){}
 }
 window.yzPreviewBubble=yzPreviewBubble;
 
