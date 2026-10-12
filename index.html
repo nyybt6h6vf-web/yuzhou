@@ -1921,6 +1921,51 @@ body{
   </div>
 </div>
 
+<script>/* ===== 崩溃现场记录器（临时诊断，稳定后可留作日志）===== */
+(function(){
+  try{
+    var KEY='_yzCrashLog';
+    /* 1) 记录上一次的崩溃现场 */
+    var prev=null;
+    try{ prev=localStorage.getItem(KEY); }catch(e){}
+    window.__yzCrashPrev=prev||'';
+    var buf=[];
+    function push(tag,data){
+      try{ buf.push('['+new Date().toISOString().slice(11,19)+'] '+tag+' :: '+String(data).slice(0,300)); }catch(e){}
+      try{ localStorage.setItem(KEY, buf.join('\n')); }catch(e){}
+    }
+    /* 2) 捕获未处理错误 */
+    window.addEventListener('error',function(e){
+      push('ERROR', (e&&e.message)+' @'+(e&&e.filename)+':'+(e&&e.lineno));
+    },true);
+    window.addEventListener('unhandledrejection',function(e){
+      push('REJECT', (e&&e.reason&&(e.reason.message||e.reason))||'unknown');
+    });
+    /* 3) 拦截重载 */
+    try{
+      var _reload=location.reload.bind(location);
+      var _replace=location.replace.bind(location);
+      var _assign=location.assign.bind(location);
+      try{ Object.defineProperty(location,'reload',{configurable:true,value:function(){push('RELOAD','location.reload 被调用\n'+new Error().stack);return _reload();}}); }catch(e){}
+      try{ Object.defineProperty(location,'replace',{configurable:true,value:function(u){push('REPLACE','location.replace -> '+u+'\n'+new Error().stack);return _replace(u);}}); }catch(e){}
+      try{ Object.defineProperty(location,'assign',{configurable:true,value:function(u){push('ASSIGN','location.assign -> '+u);return _assign(u);}}); }catch(e){}
+      try{ Object.defineProperty(location,'href',{configurable:true,get:function(){return document.URL;},set:function(u){push('HREF','location.href -> '+u+'\n'+new Error().stack);window.open(u,'_self');}}); }catch(e){}
+    }catch(e){}
+    /* 4) 页面要卸载时记一笔 */
+    window.addEventListener('beforeunload',function(){
+      /* 不做拦截，只记录 */
+      try{ localStorage.setItem(KEY+'_unload', buf.slice(-8).join('\n')); }catch(e){}
+    });
+    /* 5) 提供一个查询接口 */
+    window.__yzCrash=function(){
+      var a='';var b='';var c='';
+      try{a=localStorage.getItem(KEY)||'';}catch(e){}
+      try{b=localStorage.getItem(KEY+'_unload')||'';}catch(e){}
+      return {now:a, unload:b, prev:window.__yzCrashPrev};
+    };
+  }catch(e){}
+})();
+</script>
 <script id="appjs">
 const DKEY='yuzhou_data_v4';
 const ICONS={
