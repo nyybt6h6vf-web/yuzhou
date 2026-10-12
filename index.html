@@ -295,6 +295,7 @@ body{
 .group{margin-bottom:20px;}
 .group h4{font-size:12px;color:var(--sub);margin:0 6px 8px;letter-spacing:1px;font-weight:600;}
 .row{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:16px;padding:14px 16px;margin-bottom:8px;box-shadow:0 3px 12px rgba(120,130,200,.10);}
+.setstat{margin-left:8px;font-size:11px;color:var(--sub);background:rgba(127,127,127,.12);padding:2px 7px;border-radius:8px;white-space:nowrap;}
 .row .lab{flex:1;font-size:14px;}
 .row input[type=text],.row input[type=number]{flex:1;border:none;outline:none;background:transparent;color:var(--text);font-size:14px;font-family:inherit;text-align:right;}
 .row textarea{width:100%;text-align:left;resize:vertical;min-height:70px;background:var(--card);border-radius:12px;padding:10px;box-shadow:inset 0 0 0 1px var(--line);border:none;outline:none;color:var(--text);font-family:inherit;font-size:13px;}
@@ -2480,7 +2481,7 @@ function go(id){
   if(id==='chat'){renderChat();$('#chat').style.background=getChatBg();setTimeout(scrollBottom,30);}
   if(id==='cards'){try{yzBindCards();renderCardTabs();}catch(e){}renderCards();}
   if(id==='together')renderTiles();
-  if(id==='settings')fillSettings();
+  if(id==='settings'){fillSettings();try{yzMarkSetStatus();}catch(e){}}
   if(id==='moments')renderMoments();
   if(id==='listen'){ hideLisFloat(); try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
   if(id!=='listen'){ try{ setTimeout(yzMaybeShowFloat,60); }catch(e){} }
@@ -6334,7 +6335,7 @@ function gmkLineScore(x,y,c){
     if(cnt>=5)total+=10000000;
     else if(cnt===4){ total += (open>=2?1000000:(open===1?60000:0)); }
     else if(cnt===3){ total += (open>=2?20000:(open===1?1200:0)); }
-    else if(cnt===2){ total += (open>=2?400:(open===1?60:0)); }
+    else if(cnt===2){ total += (open>=2?60:(open===1?8:0)); }
     else if(cnt===1){ total += (open>=2?10:2); }
   }
   return total;
@@ -6390,8 +6391,16 @@ function gmkAIMove(){
     var win=scored.filter(function(s){return s.atk>=10000000;});
     /* 再挡（对手五） */
     var block=scored.filter(function(s){return s.def>=10000000;});
+    /* 困难模式：先看你的最大威胁，只有活三及以上才优先去挡（不盯二） */
+    var myThreats=scored.map(function(o){ return {x:o.x,y:o.y,foeT:gmkMaxThreat(o.x,o.y,foe),myT:gmkMaxThreat(o.x,o.y,me),atk:o.atk,def:o.def}; });
+    var danger=myThreats.filter(function(o){return o.foeT>=60;}); /* 你活三及以上 */
     if(win.length){ pick=gmkPickRand(win); }
     else if(block.length){ pick=gmkPickRand(block); }
+    else if(_gmk.mode==='hard' && danger.length){
+      /* 你的活三：优先找能挡又能攻的点 */
+      danger.sort(function(a,b){ return (b.myT+b.foeT)-(a.myT+a.foeT); });
+      pick=gmkPickRand(danger.slice(0,Math.min(3,danger.length)));
+    }
     else if(_gmk.mode==='easy'){
       /* 简单：按威胁优先级来处理（绝不会为了挡二放弃挡三） */
       var withT=scored.map(function(o){
@@ -6437,7 +6446,7 @@ function gmkAIMove(){
         var foeBest=gmkBestFor(foe, cands2, me);
         _gmk.board[c.y][c.x]=0;
         /* 我的净收益 = 我的进攻 + 对手受制程度 - 对手反击 */
-        var val = myAtk*1.0 + c.def*1.1 - foeBest.v*0.9;
+        var val = myAtk*1.0 + c.def*0.9 - foeBest.v*0.9;
         val += Math.random()*Math.max(8,(myAtk+c.def)*0.02); /* 扰动，避免每次都一样 */
         if(val>bestVal+1e-9){ bestVal=val; bestList=[c]; }
         else if(Math.abs(val-bestVal)<1e-9){ bestList.push(c); }
@@ -7578,6 +7587,29 @@ function fillSettings(){
   $('#thLight').classList.toggle('on',D.theme!=='dark');
   $('#thDark').classList.toggle('on',D.theme==='dark');
 }
+function yzMarkSetStatus(){
+  try{
+    var scr=document.getElementById('settings'); if(!scr)return;
+    var rows=scr.querySelectorAll('.row');
+    rows.forEach(function(row){
+      var lab=row.querySelector('.lab'); if(!lab)return;
+      /* 找该行关联的 key：优先 pickBg('X')，否则 setColor('X',...) */
+      var key='', type='';
+      var html=row.innerHTML;
+      var mb=html.match(/pickBg\(\s*'([A-Za-z0-9_]+)'/);
+      if(mb){ key=mb[1]; type='bg'; }
+      else { var mc=html.match(/setColor\(\s*'([A-Za-z0-9_]+)'/); if(mc){ key=mc[1]; type='color'; } }
+      /* 移除旧标记 */
+      var old=row.querySelector('.setstat'); if(old)old.remove();
+      if(!key)return;
+      var v=(D[key]===undefined?'':String(D[key])).trim();
+      if(!v)return;
+      var tag=document.createElement('span'); tag.className='setstat';
+      tag.textContent=(type==='bg'?'已上传':'已选择');
+      lab.parentNode.insertBefore(tag, lab.nextSibling);
+    });
+  }catch(e){}
+}
 function setColor(k,v){
   D[k]=v||'';
   if(k==='lockBg'){setTimeout(()=>$,0);}
@@ -7586,6 +7618,7 @@ function setColor(k,v){
   save();
   scheduleApply();
   try{ yzApplyLetterBg(); }catch(e){}
+  try{ yzMarkSetStatus(); }catch(e){}
 }
 function saveBeauty(){
   if($('#setLockName'))D.lockName=$('#setLockName').value;
