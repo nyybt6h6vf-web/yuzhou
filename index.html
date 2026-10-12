@@ -3536,7 +3536,7 @@ function himPat(){
   const t=ps[Math.floor(Math.random()*ps.length)];
   var _hn=(typeof yzPhHimName==='function')?yzPhHimName():(D.nick||'他');
   if(!_hn)_hn=(D.nick||'他');
-  push({from:'him',type:'pat',text:'（'+_hn+'）'+t,_t:clockStr()});
+  push({from:'him',type:'pat',text:_hn+t,_t:clockStr()});
 }
 function pickCard(){
   /* 始终取主字卡池，不受字卡库当前 tab（如颜文字）影响 */
@@ -3880,8 +3880,8 @@ function doPlus(act){
     askInput('拍一拍','',function(t){
       const v=String(t||'').trim();if(!v)return;
       var _mn=D.myNick||'我';
-      push({from:'me',type:'pat',text:'（'+_mn+'）'+v,_t:clockStr()});
-      setTimeout(()=>{ if(Math.random()*100<50) himPat(); else himSay(); },Math.max(200,(typeof sendGapMs==='function'?sendGapMs():1200)));
+      push({from:'me',type:'pat',text:_mn+v,_t:clockStr()});
+      setTimeout(()=>{ if(Math.random()*100<(D.patRate||0)) himPat(); },Math.max(200,(typeof sendGapMs==='function'?sendGapMs():1200)));
     },'填拍一拍的动作，如「拍了拍你的脑袋」（会自动加上你的昵称）');
   }
   else if(act==='album'){pickTarget='album';$('#filePick').click();}
