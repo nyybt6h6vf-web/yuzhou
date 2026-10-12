@@ -175,6 +175,9 @@ body{
 .inputbar .holdbtn.on{background:var(--accent,#859ecb);color:#fff;opacity:1;box-shadow:0 4px 12px rgba(133,158,203,.5);}
 .inputbar .holdbtn.on::after{content:"连发";position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:9px;background:var(--accent,#859ecb);color:#fff;padding:1px 5px;border-radius:6px;white-space:nowrap;}
 .inputbar .send{padding:0 16px;height:38px;border-radius:14px;background:var(--bubble-me);color:#fff;font-weight:700;font-size:14px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(120,140,255,.35);font-family:inherit;}
+.quotebar{flex:0 0 auto;display:flex;align-items:flex-start;gap:8px;padding:8px 12px;background:var(--panel);border-top:1px solid var(--line);}
+.quotebar .qb-txt{flex:1;font-size:12.5px;color:var(--sub);line-height:1.4;white-space:pre-wrap;word-break:break-word;border-left:3px solid var(--accent,#859ecb);padding-left:8px;max-height:80px;overflow-y:auto;}
+.quotebar .qb-x{flex:0 0 auto;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--sub);background:var(--card);cursor:pointer;}
 #plusSheet{position:absolute;left:0;right:0;bottom:0;background:var(--panel);backdrop-filter:blur(18px);border-radius:26px 26px 0 0;padding:12px 18px 34px;transform:translateY(110%);transition:transform .28s cubic-bezier(.2,.8,.2,1);z-index:20;box-shadow:0 -10px 34px rgba(0,0,0,.16);}
 #plusSheet .pbar{width:38px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 18px;}
 #plusSheet .ptip{font-size:12px;color:var(--sub);text-align:center;margin-top:18px;letter-spacing:.3px;}
@@ -699,9 +702,9 @@ body{
 #yzToast.show{opacity:1;transform:translate(-50%,0);}
 
 /* ==== 引用回复 ==== */
-.qbox{max-width:70%;margin:0 0 4px 0;padding:6px 10px;border-left:3px solid var(--accent,#859ecb);border-radius:8px;background:var(--card,#f5f5f7);cursor:pointer;overflow:hidden;}
+.qbox{max-width:82%;margin:0 0 4px 0;padding:6px 10px;border-left:3px solid var(--accent,#859ecb);border-radius:8px;background:var(--card,#f5f5f7);cursor:pointer;overflow:hidden;}
 .msg.me .qbox{margin-left:auto;}
-.qbox .qtxt{font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.qbox .qtxt{font-size:12px;color:var(--sub);white-space:pre-wrap;word-break:break-word;}
 .qbox .qimg{width:34px;height:34px;border-radius:6px;object-fit:cover;margin-right:6px;vertical-align:middle;float:left;}
 .flashmsg{animation:yflash 1.2s ease;}
 @keyframes yflash{0%,100%{background:transparent;}30%{background:rgba(133,158,203,.22);}}
@@ -1199,6 +1202,7 @@ body{
       <div class="title" id="chatTitle">他</div><div class="chatid" id="chatIdLine"></div><div class="chatfeel" id="chatFeeling"></div><span id="chatMore" class="chatmore" onclick="yzCharaInfo()">›</span>
     </div>
     <div class="chat-body" id="chatBody"></div>
+    <div class="quotebar" id="quoteBar" style="display:none"><div class="qb-txt" id="quoteBarTxt"></div><div class="qb-x" onclick="clearQuote()">✕</div></div>
     <div class="inputbar">
       <div class="ib" onclick="togglePlus()">＋</div>
       <div class="ib holdbtn" id="holdBtn" onclick="toggleSendHold()" title="连发（梦角暂不回复）">🗨</div>
@@ -3157,6 +3161,7 @@ function sendText(){
   var _msg={from:'me',text:v,_t:clockStr()};
   try{ var _qi=window.__yzPendingQuote; if(_qi>=0&&_qi!==undefined&&D.msgs[_qi]){ var _qm=D.msgs[_qi]; _msg.quote={i:_qi,brief:quoteBrief(_qm),type:_qm.type||'text',src:_qm.type==='img'?(_qm.src||''):''}; window.__yzPendingQuote=-1; } }catch(e){}
   push(_msg);
+  try{ updateQuoteBar(); }catch(e){}
   /* 免打扰模式：只发，不回。等关闭按钮时再一起回 */
   if(D.sendHold){ return; }
   respond();maybeCall();maybePat();
@@ -4344,36 +4349,58 @@ function yzMsgMenuFav(){
 function yzMsgMenuQuote(){
   try{
     var i=window.__msgMenuIdx; var m=D.msgs[i];
-    if(m&&window.__yzPendingQuote!==undefined){ window.__yzPendingQuote=i; toast('已引用，发送时带上'); }
-    else if(m){ window.__yzPendingQuote=i; toast('已引用，发送时带上'); }
+    if(m){ window.__yzPendingQuote=i; updateQuoteBar(); toast('已引用，发送时带上'); }
   }catch(e){}
   yzMsgMenuHide();
 }
-/* 点一下消息 → 菜单消失 */
-if(!window.__msgMenuTapHide){
-  window.__msgMenuTapHide=true;
-  document.addEventListener('click',function(e){
-    try{
-      var el=document.getElementById('msgMenu');
-      if(!el||!el.classList.contains('show'))return;
-      if(el.contains(e.target))return; /* 点菜单自身不关 */
-      yzMsgMenuHide();
-    }catch(x){}
-  },true);
+function quoteFullText(m){
+  if(!m)return '';
+  if(m.type==='img')return '[图片]';
+  if(m.type==='voice')return '🎤 '+(m.sec||'')+'″'+(m.text?(' '+m.text):'');
+  if(m.type==='pat')return String(m.text||'[拍一拍]');
+  if(m.type==='transfer')return '[转账 ¥'+(m.amt||'')+']';
+  if(m.type==='daifu')return '[代付] '+(m.text||'');
+  return String(m.text||'');
 }
-/* 长按委托 */
-if(!window.__msgLongPress){
-  window.__msgLongPress=true;
+function updateQuoteBar(){
+  try{
+    var bar=document.getElementById('quoteBar'), txt=document.getElementById('quoteBarTxt');
+    if(!bar||!txt)return;
+    var i=window.__yzPendingQuote;
+    if(i>=0&&i!==undefined&&D.msgs[i]){ txt.textContent=quoteFullText(D.msgs[i]); bar.style.display='flex'; }
+    else { bar.style.display='none'; txt.textContent=''; }
+  }catch(e){}
+}
+function clearQuote(){ window.__yzPendingQuote=-1; updateQuoteBar(); }
+/* 点一下消息 → 显示菜单；滑动/滚动不触发；点空白关闭 */
+if(!window.__msgTapMenu){
+  window.__msgTapMenu=true;
   (function(){
-    var _t=null,_el=null;
+    var sx=0, sy=0, moved=false, el=null;
     function _find(e){ try{ return e.target&&e.target.closest?e.target.closest('#chatBody .msg[data-mi]'):null; }catch(x){ return null; } }
-    function _up(){ if(_t){clearTimeout(_t);_t=null;} _el=null; }
-    document.addEventListener('touchstart',function(e){ var el=_find(e); if(!el)return; _el=el; var k=el.getAttribute('data-mi'); _t=setTimeout(function(){ _t=null; try{ yzMsgMenuShow(parseInt(k,10),el); if(navigator.vibrate)navigator.vibrate(15); }catch(x){} },600); },{passive:true});
-    document.addEventListener('touchend',_up,{passive:true});
-    document.addEventListener('touchmove',_up,{passive:true});
-    document.addEventListener('mousedown',function(e){ var el=_find(e); if(!el)return; _el=el; var k=el.getAttribute('data-mi'); _t=setTimeout(function(){ _t=null; yzMsgMenuShow(parseInt(k,10),el); },600); });
-    document.addEventListener('mouseup',_up);
-    document.addEventListener('contextmenu',function(e){ var el=_find(e); if(el){ e.preventDefault(); yzMsgMenuShow(parseInt(el.getAttribute('data-mi'),10),el); } });
+    document.addEventListener('touchstart',function(e){
+      var m=_find(e); sx=(e.touches&&e.touches[0])?e.touches[0].clientX:0; sy=(e.touches&&e.touches[0])?e.touches[0].clientY:0; moved=false; el=m;
+    },{passive:true});
+    document.addEventListener('touchmove',function(e){
+      if(!el)return;
+      var cx=(e.touches&&e.touches[0])?e.touches[0].clientX:0, cy=(e.touches&&e.touches[0])?e.touches[0].clientY:0;
+      if(Math.abs(cx-sx)>10||Math.abs(cy-sy)>10) moved=true;
+    },{passive:true});
+    document.addEventListener('touchend',function(e){
+      if(!el||moved){ el=null; return; }
+      var menu=document.getElementById('msgMenu');
+      var wasOpen=!!(menu&&menu.classList.contains('show'));
+      var k=el.getAttribute('data-mi'); el=null;
+      if(wasOpen){ yzMsgMenuHide(); return; }
+      try{ yzMsgMenuShow(parseInt(k,10),null); if(navigator.vibrate)navigator.vibrate(10); }catch(x){}
+    },{passive:true});
+    /* 桌面点击也是点一下出菜单 */
+    document.addEventListener('click',function(e){
+      var m=_find(e);
+      if(m){ var menu=document.getElementById('msgMenu'); if(menu&&menu.classList.contains('show')){ return; } var k=m.getAttribute('data-mi'); yzMsgMenuShow(parseInt(k,10),null); return; }
+      var menu2=document.getElementById('msgMenu');
+      if(menu2&&menu2.classList.contains('show')&&!menu2.contains(e.target)){ yzMsgMenuHide(); }
+    },false);
   })();
 }
 function daifuUserAct(accept){
