@@ -127,10 +127,10 @@ body{
 .meread{display:inline-block;margin-right:6px;}
 .himname{font-size:12px;font-weight:600;color:var(--text);margin:0 0 2px 2px;display:flex;align-items:flex-end;gap:3px;}
 .typing-ind{position:absolute;left:16px;bottom:74px;z-index:7;font-size:12px;color:var(--sub);padding:4px 10px;background:var(--panel);border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;align-items:center;gap:5px;}
-.typing-ind .dot{width:5px;height:5px;border-radius:50%;background:var(--sub);display:inline-block;animation:tp 1.2s infinite;}
-.typing-ind .dot:nth-child(2){animation-delay:.2s;}
-.typing-ind .dot:nth-child(3){animation-delay:.4s;}
-@keyframes tp{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px);}}
+.typing-ind .dot{width:5px;height:5px;border-radius:50%;background:var(--sub);display:inline-block;animation:tp 1.5s infinite;}
+.typing-ind .dot:nth-child(2){animation-delay:.25s;}
+.typing-ind .dot:nth-child(3){animation-delay:.5s;}
+@keyframes tp{0%,80%,100%{opacity:.35;transform:translateY(0)}40%{opacity:1;transform:translateY(-4px);}}
 .msg.me .msgname{justify-content:flex-end;margin:2px 2px 3px 0;}
 .bubble{padding:10px 14px;border-radius:20px;font-size:14.5px;line-height:1.5;word-break:break-word;white-space:pre-wrap;box-shadow:0 4px 12px rgba(120,130,200,.14);background:var(--bubble-him);color:var(--bubble-him-text);}
 .msg.him .bubble{background:var(--bubble-him);color:var(--bubble-him-text);border-top-left-radius:6px;}
@@ -538,13 +538,13 @@ body{
 .listen-chat .lts{font-size:9.5px;color:var(--sub);margin-top:2px;padding-left:3px;}
 .listen-chat .ltsme{text-align:right;padding-right:3px;}
 .lb.ltyping{display:inline-flex;align-items:center;gap:4px;}
-.lb.ltyping .dot{width:5px;height:5px;border-radius:50%;background:var(--sub);display:inline-block;animation:tp 1.2s infinite;}
-.lb.ltyping .dot:nth-child(2){animation-delay:.2s;}
-.lb.ltyping .dot:nth-child(3){animation-delay:.4s;}
+.lb.ltyping .dot{width:5px;height:5px;border-radius:50%;background:var(--sub);display:inline-block;animation:tp 1.5s infinite;}
+.lb.ltyping .dot:nth-child(2){animation-delay:.25s;}
+.lb.ltyping .dot:nth-child(3){animation-delay:.5s;}
 .gb.ltyping{display:inline-flex;align-items:center;gap:4px;}
-.gb.ltyping .dot{width:5px;height:5px;border-radius:50%;background:var(--sub);display:inline-block;animation:tp 1.2s infinite;}
-.gb.ltyping .dot:nth-child(2){animation-delay:.2s;}
-.gb.ltyping .dot:nth-child(3){animation-delay:.4s;}
+.gb.ltyping .dot{width:5px;height:5px;border-radius:50%;background:var(--sub);display:inline-block;animation:tp 1.5s infinite;}
+.gb.ltyping .dot:nth-child(2){animation-delay:.25s;}
+.gb.ltyping .dot:nth-child(3){animation-delay:.5s;}
 .listen-input{display:flex;gap:8px;padding:8px 12px 14px;align-items:center;}
 .listen-input input{flex:1;border:none;outline:none;background:var(--card);border-radius:20px;padding:11px 15px;font-size:14px;color:var(--text);font-family:inherit;}
 .listen-input .send{height:40px;padding:0 18px;border:none;border-radius:20px;background:var(--bubble-me);color:var(--bubble-me-text);font-size:14px;font-weight:600;cursor:pointer;}
@@ -1606,7 +1606,7 @@ body{
       <div class="group">
         <h4>拍一拍</h4>
         <div class="row" style="flex-direction:column;align-items:stretch">
-          <div class="lab" style="margin-bottom:8px">梦角（）（每行一条，梦角拍你时随机抽一条；互动和人物都你自己填，如「揉了揉我的头」）</div>
+          <div class="lab" style="margin-bottom:8px">梦角拍你内容（每行一条，随机抽一条；会自动加上梦角昵称，如你填「拍了拍你的脑袋」→「梦角拍了拍你的脑袋」）</div>
           <textarea id="setPats" placeholder="揉了揉你的头&#10;捏了捏你的脸&#10;从背后抱住你" oninput="savePats()"></textarea>
         </div>
         <div class="row"><div class="lab">梦角主动拍你概率（%）</div><input type="number" id="setPatRate" min="0" max="100" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
@@ -3534,7 +3534,9 @@ function himPat(){
   const ps=(D.pats||[]);
   if(!ps.length){himSay();return;}
   const t=ps[Math.floor(Math.random()*ps.length)];
-  push({from:'him',type:'pat',text:t,_t:clockStr()});
+  var _hn=(typeof yzPhHimName==='function')?yzPhHimName():(D.nick||'他');
+  if(!_hn)_hn=(D.nick||'他');
+  push({from:'him',type:'pat',text:'（'+_hn+'）'+t,_t:clockStr()});
 }
 function pickCard(){
   /* 始终取主字卡池，不受字卡库当前 tab（如颜文字）影响 */
@@ -3877,9 +3879,10 @@ function doPlus(act){
   else if(act==='pat'){
     askInput('拍一拍','',function(t){
       const v=String(t||'').trim();if(!v)return;
-      push({from:'me',type:'pat',text:v,_t:clockStr()});
+      var _mn=D.myNick||'我';
+      push({from:'me',type:'pat',text:'（'+_mn+'）'+v,_t:clockStr()});
       setTimeout(()=>{ if(Math.random()*100<50) himPat(); else himSay(); },Math.max(200,(typeof sendGapMs==='function'?sendGapMs():1200)));
-    },'就拍一下的样子，随你写，比如「拍了拍你的脑袋」');
+    },'填拍一拍的动作，如「拍了拍你的脑袋」（会自动加上你的昵称）');
   }
   else if(act==='album'){pickTarget='album';$('#filePick').click();}
   else if(act==='pack'){openPackPicker();}
