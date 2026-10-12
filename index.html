@@ -6324,138 +6324,101 @@ function gmkEmptyNeighbors(dist){
   if(!res.length)res.push({x:7,y:7});
   return res;
 }
-function gmkLineScore(x,y,c){
+/* 某方在某点的形状分（标准表） */
+function gmkShape(x,y,c){
   var dirs=[[1,0],[0,1],[1,1],[1,-1]]; var total=0;
   for(var d=0;d<4;d++){
     var dx=dirs[d][0],dy=dirs[d][1];
     var cnt=1, openA=0, openB=0;
     for(var s=1;s<5;s++){var nx=x+dx*s,ny=y+dy*s;if(!gmkInB(nx,ny)){openA=-1;break;}var v=_gmk.board[ny][nx];if(v===c)cnt++;else if(v===0){openA++;break;}else{openA=-1;break;}}
     for(var s2=1;s2<5;s2++){var nx2=x-dx*s2,ny2=y-dy*s2;if(!gmkInB(nx2,ny2)){openB=-1;break;}var v2=_gmk.board[ny2][nx2];if(v2===c)cnt++;else if(v2===0){openB++;break;}else{openB=-1;break;}}
-    var open=0; if(openA>=0)open++; if(openB>=0)open++;
-    if(cnt>=5)total+=10000000;
-    else if(cnt===4){ total += (open>=2?1000000:(open===1?60000:0)); }
-    else if(cnt===3){ total += (open>=2?20000:(open===1?1200:0)); }
-    else if(cnt===2){ total += (open>=2?60:(open===1?8:0)); }
-    else if(cnt===1){ total += (open>=2?10:2); }
+    var op=0; if(openA>0)op++; if(openB>0)op++;
+    if(cnt>=5) total+=100000000;
+    else if(cnt===4) total += (op>=2?10000000:(op===1?60000:0));
+    else if(cnt===3) total += (op>=2?20000:(op===1?1200:0));
+    else if(cnt===2) total += (op>=2?300:(op===1?30:0));
+    else if(cnt===1) total += (op>=2?10:2);
   }
   return total;
 }
-/* 返回某点对某方的最大威胁等级（取4个方向中最高） */
-function gmkMaxThreat(x,y,c){
-  var dirs=[[1,0],[0,1],[1,1],[1,-1]]; var best=0;
-  for(var d=0;d<4;d++){
-    var dx=dirs[d][0],dy=dirs[d][1];
-    var cnt=1, openA=0, openB=0;
-    for(var s=1;s<5;s++){var nx=x+dx*s,ny=y+dy*s;if(!gmkInB(nx,ny)){openA=-1;break;}var v=_gmk.board[ny][nx];if(v===c)cnt++;else if(v===0){openA++;break;}else{openA=-1;break;}}
-    for(var s2=1;s2<5;s2++){var nx2=x-dx*s2,ny2=y-dy*s2;if(!gmkInB(nx2,ny2)){openB=-1;break;}var v2=_gmk.board[ny2][nx2];if(v2===c)cnt++;else if(v2===0){openB++;break;}else{openB=-1;break;}}
-    var open=0; if(openA>=0)open++; if(openB>=0)open++;
-    var lv=0;
-    if(cnt>=5)lv=100;               /* 成五 */
-    else if(cnt===4&&open>=2)lv=90; /* 活四 */
-    else if(cnt===4&&open===1)lv=70;/* 冲四 */
-    else if(cnt===3&&open>=2)lv=60; /* 活三 */
-    else if(cnt===3&&open===1)lv=40;/* 眠三 */
-    else if(cnt===2&&open>=2)lv=20; /* 活二 */
-    else if(cnt===2&&open===1)lv=10;
-    else lv=1;
-    if(lv>best)best=lv;
-  }
-  return best;
-}
 function gmkPickRand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-function gmkPickRand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-/* 在给定局面评估“某方下在该点”的价值 */
-function gmkBestFor(side, cands, foe){
-  var best=-1, bestP=null;
+function gmkFindWin(cands, c){
   for(var i=0;i<cands.length;i++){
     var p=cands[i]; if(_gmk.board[p.y][p.x]!==0)continue;
-    var atk=gmkLineScore(p.x,p.y,side);
-    var def=gmkLineScore(p.x,p.y,foe);
-    var v=(def>=20000? atk*1.1+def*0.9 : atk*1.1+def*0.15); /* 只有对手活三及以上才给防守权重 */
-    if(v>best){best=v;bestP=p;}
+    if(gmkShape(p.x,p.y,c)>=100000000) return p;
   }
-  return {v:best,p:bestP};
+  return null;
+}
+function gmkFindFour(cands, c){
+  var out=[];
+  for(var i=0;i<cands.length;i++){
+    var p=cands[i]; if(_gmk.board[p.y][p.x]!==0)continue;
+    if(gmkShape(p.x,p.y,c)>=10000000) out.push(p);
+  }
+  return out;
+}
+/* 我方落 p 后，对手“一步成五”的点数 与 “四”威胁点数 */
+function gmkFoeAfter(me, foe, p){
+  _gmk.board[p.y][p.x]=me;
+  var cs=gmkEmptyNeighbors(2);
+  var five=!!gmkFindWin(cs, foe);
+  var fours=gmkFindFour(cs, foe).length;
+  _gmk.board[p.y][p.x]=0;
+  return {five:five, fours:fours};
 }
 function gmkAIMove(){
   if(_gmk.over||!(_gmk.turn===_gmk.youColor)){ _gmk.busy=false; return; }
   var me=_gmk.youColor, foe=_gmk.meColor;
   var cands=gmkEmptyNeighbors(2);
+  if(!cands.length)cands=gmkEmptyNeighbors(999);
   var pick=null;
+
   if(_gmk.mode==='random'){
     pick=gmkPickRand(cands);
   } else {
-    var scored=cands.map(function(p){
-      return {x:p.x,y:p.y,atk:gmkLineScore(p.x,p.y,me),def:gmkLineScore(p.x,p.y,foe),defThreat:gmkMaxThreat(p.x,p.y,foe),myThreat:gmkMaxThreat(p.x,p.y,me)};
+    var list=cands.map(function(p){
+      return {x:p.x,y:p.y,atk:gmkShape(p.x,p.y,me),def:gmkShape(p.x,p.y,foe)};
     });
-    /* 先赢 */
-    var win=scored.filter(function(s){return s.atk>=10000000;});
-    /* 再挡（对手五） */
-    var block=scored.filter(function(s){return s.def>=10000000;});
-    /* 困难模式：先看你的最大威胁，只有活三及以上才优先去挡（不盯二） */
-    var myThreats=scored.map(function(o){ return {x:o.x,y:o.y,foeT:gmkMaxThreat(o.x,o.y,foe),myT:gmkMaxThreat(o.x,o.y,me),atk:o.atk,def:o.def}; });
-    var danger=myThreats.filter(function(o){return o.foeT>=60;}); /* 你活三及以上 */
-    if(win.length){ pick=gmkPickRand(win); }
-    else if(block.length){ pick=gmkPickRand(block); }
-    else if(_gmk.mode==='hard' && danger.length){
-      /* 你的活三：优先找能挡又能攻的点 */
-      danger.sort(function(a,b){ return (b.myT+b.foeT)-(a.myT+a.foeT); });
-      pick=gmkPickRand(danger.slice(0,Math.min(3,danger.length)));
-    }
-    else if(_gmk.mode==='easy'){
-      /* 简单：按威胁优先级来处理（绝不会为了挡二放弃挡三） */
-      var withT=scored.map(function(o){
-        return {x:o.x,y:o.y,myT:gmkMaxThreat(o.x,o.y,me),foeT:gmkMaxThreat(o.x,o.y,foe),atk:o.atk,def:o.def};
-      });
-      function bestBy(fn){ var mx=0,arr=[]; withT.forEach(function(o){var v=fn(o);if(v>mx){mx=v;arr=[o];}else if(v===mx&&mx>0){arr.push(o);}}); return mx>0?arr:null; }
-      /* 1 我能成五 */
-      var lv1=bestBy(function(o){return o.myT>=100?100:0;});
-      /* 2 挡你成五 */
-      var lv2=lv1||bestBy(function(o){return o.foeT>=100?100:0;});
-      /* 3 我能成活四 */
-      var lv3=lv2||bestBy(function(o){return o.myT>=90?o.myT:0;});
-      /* 4 挡你活四 */
-      var lv4=lv3||bestBy(function(o){return o.foeT>=90?o.foeT:0;});
-      /* 5 我能活三 */
-      var lv5=lv4||bestBy(function(o){return o.myT>=60?o.myT:0;});
-      /* 6 挡你活三（或冲四）*/
-      var lv6=lv5||bestBy(function(o){return o.foeT>=60?o.foeT:(o.foeT>=70?o.foeT:0);});
+    var win=list.filter(function(o){return o.atk>=100000000;});   /* 我能成五 */
+    var foeWin=list.filter(function(o){return o.def>=100000000;}); /* 对手能成五 */
 
-      var chosen=lv1||lv2||lv3||lv4||lv5||lv6;
-      if(chosen&&chosen.length){
-        pick=gmkPickRand(chosen);
-      } else {
-        /* 7 无明确威胁：选自己进攻价值最高的几个里随机 */
-        var rest=withT.filter(function(o){return o.atk>0;});
-        rest.sort(function(a,b){return b.atk-a.atk;});
-        pick=gmkPickRand(rest.slice(0,Math.min(4,rest.length)).map(function(o){return o;}));
+    if(win.length){ pick=gmkPickRand(win); }
+    else if(foeWin.length){ pick=gmkPickRand(foeWin); }
+    else {
+      /* 1 先筛出“不漏防”的点：我下完后对手没有一步成五 */
+      var safeAt=[];   /* {o, fours} */
+      var oneFour=[];  /* 只留一个四威胁的点（次优） */
+      for(var i=0;i<list.length;i++){
+        var o=list[i]; if(_gmk.board[o.y][o.x]!==0)continue;
+        if(_gmk.mode==='easy'){ safeAt.push({o:o,fours:0}); continue; }
+        var f=gmkFoeAfter(me,foe,o);
+        if(f.five) continue;               /* 送对手成五，直接否掉 */
+        if(f.fours===0) safeAt.push({o:o,fours:0});
+        else if(f.fours===1) oneFour.push({o:o,fours:1});
       }
-    } else {
-      /* 困难：两层预判（只看“你的威胁≥活三”才去防，否则不盯你的二） */
-      scored.forEach(function(s){ s.base=s.atk*1.05+(s.defThreat>=60?s.def*1.0:0); });
-      scored.sort(function(a,b){return b.base-a.base;});
-      var top=scored.slice(0, Math.min(12, scored.length));
-      var bestVal=-1, bestList=[];
-      for(var i=0;i<top.length;i++){
-        var c=top[i];
-        /* 模拟：我下 c */
-        _gmk.board[c.y][c.x]=me;
-        var myAtk=gmkLineScore(c.x,c.y,me);
-        /* 对手的下一步（含对手能立即成五则视为灾难），仅看附近1格降复杂度 */
-        var cands2=gmkEmptyNeighbors(1);
-        if(cands2.length>80)cands2=cands2.slice(0,80);
-        var foeBest=gmkBestFor(foe, cands2, me);
-        _gmk.board[c.y][c.x]=0;
-        /* 我的净收益 = 我的进攻 + 对手受制程度 - 对手反击 */
-        var defW = (c.defThreat>=60) ? c.def*0.9 : 0; /* 只有你活三及以上才计防守权重 */
-        var foeW = (foeBest.v>=20000) ? foeBest.v*0.9 : 0; /* 只计对手活三及以上反击，活二/眠三不计 */
-        var val = myAtk*1.0 + defW - foeW;
-        val += Math.random()*Math.max(8,(myAtk+c.def)*0.02); /* 扰动，避免每次都一样 */
-        if(val>bestVal+1e-9){ bestVal=val; bestList=[c]; }
-        else if(Math.abs(val-bestVal)<1e-9){ bestList.push(c); }
+      var pool = safeAt.length? safeAt : (oneFour.length? oneFour : list.map(function(o){return {o:o,fours:0};}));
+
+      /* 2 在池子里选“攻防综合最高” */
+      var bestVal=-1e18, bestArr=[];
+      for(var t=0;t<pool.length;t++){
+        var o2=pool[t].o;
+        var v = o2.atk*1.0 + o2.def*0.9;
+        /* 进攻加成：我下完后，自己是否有下一步能成活四的点（= 形成活三威胁链） */
+        if(_gmk.mode!=='easy'){
+          _gmk.board[o2.y][o2.x]=me;
+          var cs2=gmkEmptyNeighbors(2);
+          var myFour=gmkFindFour(cs2, me).length;
+          _gmk.board[o2.y][o2.x]=0;
+          if(myFour>=1) v += 30000;      /* 能继续做四：进攻强 */
+          if(myFour>=2) v += 60000;      /* 双四：几乎必胜 */
+        } else {
+          v = o2.atk*1.0 + o2.def*0.5;
+        }
+        v += Math.random()*20;
+        if(v>bestVal){ bestVal=v; bestArr=[o2]; }
+        else if(Math.abs(v-bestVal)<1e-6){ bestArr.push(o2); }
       }
-      /* 从最优几个里随机挑一个（不固定套路） */
-      if(bestList.length>1){ pick=gmkPickRand(bestList); }
-      else{ pick=bestList[0]||top[0]; }
+      pick = bestArr.length? gmkPickRand(bestArr) : (pool.length? pool[0].o : null);
     }
   }
   if(!pick)pick=gmkPickRand(cands);
@@ -6465,8 +6428,7 @@ function gmkAIMove(){
   _gmk.turn=foe;
   gmkRender();gmkRenderPlayers();
   gmkStatus('轮到你了');
-}
-function gmkNearCount(x,y){
+}function gmkNearCount(x,y){
   var n=0;
   for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){
     if(!dx&&!dy)continue;
