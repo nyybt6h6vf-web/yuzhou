@@ -1509,6 +1509,7 @@ body{
       <div class="group">
         <h4>美化</h4>
         <div class="row"><div class="lab">网站图标</div><div class="chip" onclick="pickFavicon()">选择图片</div></div>
+        <div class="row"><div class="lab">强调色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setAccentColor" oninput="setAccent(this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setAccent('')">清</div></div></div>
         <div class="row"><div class="lab">主题模式</div>
           <div class="seg">
             <div class="chip" id="thLight" onclick="setTheme('light')">浅色</div>
@@ -7522,6 +7523,7 @@ function fillSettings(){
   if($('#setSlogan'))$('#setSlogan').value=D.slogan||'';
   if($('#setPageBg'))$('#setPageBg').value=D.pageBg||'';if($('#setPage2Bg'))$('#setPage2Bg').value=D.page2Bg||'';if($('#setChatBg'))$('#setChatBg').value=D.chatBg||'';
   if($('#setMomBg'))$('#setMomBg').value=D.momBg||'';
+  try{ if($('#setAccentColor')){ var _acv=(D.accentColor||'').trim(); if(/^#[0-9a-fA-F]{6}$/.test(_acv))$('#setAccentColor').value=_acv; } }catch(e){}
   ['lockFg','fontColor','himFontColor','meFontColor','bubbleHim','bubbleMe','tranColor'].forEach(function(k){
     var c=$('#set'+k.charAt(0).toUpperCase()+k.slice(1)+'Color');
     var v=(D[k]||'').trim();
@@ -7649,7 +7651,7 @@ function scheduleApply(){
   _applyTimer=setTimeout(()=>{_applyTimer=null;applyCustom();},150);
 }
 /* ===== 美化方案槽位 ===== */
-var YZ_BEAUTY_KEYS=['favicon','theme','themeAuto','lockName','lockBg','himLetterBg','meLetterBg','lockFg','slogan','pageBg','page2Bg','chatBg','fontColor','bubbleHim','bubbleMe','tranColor','himFontColor','meFontColor','bubbleSize','chatFontSize','tranSize','momBg','bubble'];
+var YZ_BEAUTY_KEYS=['favicon','accentColor','theme','themeAuto','lockName','lockBg','himLetterBg','meLetterBg','lockFg','slogan','pageBg','page2Bg','chatBg','fontColor','bubbleHim','bubbleMe','tranColor','himFontColor','meFontColor','bubbleSize','chatFontSize','tranSize','momBg','bubble'];
 function yzBeautySnap(){
   var o={};
   YZ_BEAUTY_KEYS.forEach(function(k){ o[k]=(D[k]===undefined?'':D[k]); });
@@ -7842,6 +7844,13 @@ function saveProfile(){
   save();updateHomeAvatar();$('#chatTitle').textContent=D.nick||'他';
   startMomLoop();startFeelLoop();startLetterLoop();
 }
+function setAccent(c){
+  try{
+    c=String(c||'').trim();
+    D.accentColor=c; save(); applyCustom();
+    if($('#setAccentColor')){ try{ if(/^#[0-9a-fA-F]{6}$/.test(c))$('#setAccentColor').value=c; }catch(e){} }
+  }catch(e){}
+}
 function setTheme(t){
   try{ if(D.themeAuto){ toast('已开启跟随系统，先关闭它才能手动切'); return; } }catch(e){}
   D.theme=t;save();
@@ -7898,6 +7907,7 @@ function applyCustom(){
     if(mb.startsWith('http')||mb.startsWith('data:'))mq.style.background=`url('${mb}') center/cover no-repeat`;
     else mq.style.background=mb||'';
   }
+  try{ var _ac=(D.accentColor||'').trim(); if(_ac){ document.documentElement.style.setProperty('--accent',_ac); document.documentElement.style.setProperty('--accent-soft',_ac); } else { document.documentElement.style.removeProperty('--accent'); document.documentElement.style.removeProperty('--accent-soft'); } }catch(e){}
   const fc=(D.fontColor||'').trim();
   if(fc){document.documentElement.style.setProperty('--chat-text-color',fc);}
   else{document.documentElement.style.removeProperty('--chat-text-color');}
