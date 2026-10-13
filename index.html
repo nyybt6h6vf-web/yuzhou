@@ -138,6 +138,10 @@ body{
 .msg.him .bubble{background:var(--bubble-him);color:var(--bubble-him-text);border-top-left-radius:6px;}
 .msg.me .bubble{background:var(--bubble-me);color:var(--bubble-me-text);border-top-right-radius:6px;}
 .sys{align-self:center;background:rgba(140,145,175,.16);color:var(--sub);font-size:11.5px;border-radius:12px;padding:5px 12px;text-align:center;max-width:80%;}
+.yz-timebar{display:flex;justify-content:center;margin:10px 0 6px;}
+.yz-timebar span{background:rgba(140,145,175,.18);color:var(--sub);font-size:11px;border-radius:10px;padding:3px 12px;text-align:center;max-width:86%;}
+.gmk-chat .yz-timebar,.gb-chat .yz-timebar{margin:8px 0 4px;}
+#listenChat .yz-timebar{margin:8px 0 4px;}
 .bubble.voice{display:flex;align-items:center;gap:8px;min-width:110px;}
 .vtt{font-size:12.5px;color:inherit;opacity:.85;margin-top:5px;padding:6px 10px;background:rgba(128,128,128,.12);border-radius:10px;line-height:1.5;white-space:pre-wrap;}
 .lb .vtt,.gb .vtt{margin-top:4px;font-size:12px;opacity:.85;}
@@ -2545,12 +2549,12 @@ function go(id){
   if(id==='home'){try{yzApplyHomeChara();}catch(e){}
   try{yzBindLisFloatDrag();}catch(e){}}
   if(id==='chatlist')renderChatList();
-  if(id==='chat'){renderChat();$('#chat').style.background=getChatBg();setTimeout(scrollBottom,30);}
+  if(id==='chat'){D._yzChatEnterMs=Date.now();renderChat();$('#chat').style.background=getChatBg();setTimeout(scrollBottom,30);}
   if(id==='cards'){try{yzBindCards();renderCardTabs();}catch(e){}renderCards();}
   if(id==='together')renderTiles();
   if(id==='settings'){fillSettings();try{yzBeautyRender();}catch(e){}try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}try{yzMarkSetStatus();}catch(e){}}
   if(id==='moments')renderMoments();
-  if(id==='listen'){ hideLisFloat(); try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
+  if(id==='listen'){ D._yzLisEnterMs=Date.now(); hideLisFloat(); try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
   if(id!=='listen'){ try{ setTimeout(yzMaybeShowFloat,60); }catch(e){} }
   if(id==='letters')renderLetters();
   if(id==='packs')renderPacks();
@@ -2558,8 +2562,8 @@ function go(id){
   if(id==='period')renderPeriod();
   if(id==='shop')renderShop();
   if(id==='phony'){try{yzPhInit();yzPhRender();}catch(e){}}
-  if(id==='gomoku'){try{renderGomoku();}catch(e){}}
-  if(id==='ttt'){try{renderTtt();}catch(e){}}
+  if(id==='gomoku'){try{_gmk._yzEnterMs=Date.now();renderGomoku();}catch(e){}}
+  if(id==='ttt'){try{_ttt._yzEnterMs=Date.now();renderTtt();}catch(e){}}
   try{yzPhStatusIcon();}catch(e){}
   if(id==='himprofile')renderHimProfile();
   if(id==='letterWrite'){const to=$('#lwTo');if(to)to.textContent=letterTo(D.nick);}
@@ -3164,7 +3168,18 @@ function renderChat(){
   const cf=$('#chatFeeling');
   if(cf){const t=curFeeling();cf.textContent=t||'';cf.style.display=t?'':'none';}
   if(!D.msgs.length){b.innerHTML='';}
+  var _yzSessMs=D._yzChatEnterMs||yzNowMs();
+  var _yzLastStamp=null, _yzPrevMs=null;
   D.msgs.forEach((m,i)=>{
+    /* 时间戳分隔条：进入/发消息/每30分钟 */
+    try{
+      var _curMs=yzMsOf(m,_yzSessMs);
+      if(yzNeedStamp(_yzPrevMs,_curMs,_yzLastStamp,30*60*1000)){
+        b.insertAdjacentHTML('beforeend',yzStampHtml(_curMs));
+        _yzLastStamp=_curMs;
+      }
+      _yzPrevMs=_curMs;
+    }catch(e){}
     if(m.type==='sys'){b.insertAdjacentHTML('beforeend',`<div class="sys">${esc(m.text)}</div>`);return;}
     if(m.type==='pat'){b.insertAdjacentHTML('beforeend',`<div class="msg patrow"><div class="patline">${esc(m.text)}</div></div>`);return;}
     const me=m.from==='me';
@@ -3208,7 +3223,7 @@ function renderChat(){
   window.__applyBubbleInline&&window.__applyBubbleInline();
   try{ var _hb=document.getElementById('holdBtn'); if(_hb)_hb.classList.toggle('on',!!D.sendHold); }catch(e){}
 }
-function push(m){D.msgs.push(m);save();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}if($('#chat').classList.contains('active')){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40));}}catch(e){}}
+function push(m){try{if(m&&!m._dms)m._dms=Date.now();}catch(e){}D.msgs.push(m);save();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}if($('#chat').classList.contains('active')){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40));}}catch(e){}}
 function jumpMsg(i){
   const list=document.querySelectorAll('#chatBody .msg');
   const el=list[i];if(!el)return;
@@ -3259,6 +3274,53 @@ function toggleSendHold(){
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',bindAutoGrow);}else{bindAutoGrow();}
   window.__yzBindMsgGrow=bindAutoGrow;
 })();
+/* ===== 聊天时间戳（分隔条）=====
+   规则：
+   1) 每次重新进入聊天界面 → 显示
+   2) 每次我方/梦角发送消息 → 显示
+   3) 一直停留在聊天界面时，每隔 30 分钟显示一次
+*/
+function yzNowMs(){ return Date.now(); }
+function yzMsOf(m,sessEnterMs){
+  try{
+    if(m && m._dms) return m._dms;
+    if(m && m._t && /^\d{1,2}:\d{1,2}/.test(m._t)){
+      var parts=String(m._t).split(':');
+      var d=new Date();
+      d.setHours(parseInt(parts[0],10)||0,parseInt(parts[1],10)||0,parseInt(parts[2],10)||0,0);
+      return d.getTime();
+    }
+  }catch(e){}
+  return sessEnterMs||yzNowMs();
+}
+function yzFmtStamp(ms){
+  var d=new Date(ms);
+  var W=['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+  var hh=d.getHours(), mm=d.getMinutes();
+  function p2(n){return (n<10?'0':'')+n;}
+  var clock;
+  if(hh===0) clock='凌晨12:'+p2(mm);
+  else if(hh<6) clock='凌晨'+hh+':'+p2(mm);
+  else if(hh<12) clock='上午'+hh+':'+p2(mm);
+  else if(hh===12) clock='中午12:'+p2(mm);
+  else if(hh<18) clock='下午'+(hh-12)+':'+p2(mm);
+  else clock='晚上'+(hh-12)+':'+p2(mm);
+  return (d.getMonth()+1)+'月'+d.getDate()+'日 '+W[d.getDay()]+' '+clock;
+}
+/* 是否需要插入时间戳：首条 / 跨天 / 距上次时间戳>=gapMs */
+function yzNeedStamp(prevMs, curMs, lastStampMs, gapMs){
+  if(lastStampMs===null||lastStampMs===undefined)return true;
+  try{
+    var a=new Date(prevMs),b=new Date(curMs);
+    if(a.getFullYear()!==b.getFullYear()||a.getMonth()!==b.getMonth()||a.getDate()!==b.getDate())return true;
+  }catch(e){}
+  if(curMs-lastStampMs >= (gapMs||30*60*1000))return true;
+  return false;
+}
+function yzStampHtml(ms){
+  return '<div class="yz-timebar"><span>'+esc(yzFmtStamp(ms))+'</span></div>';
+}
+window.yzNowMs=yzNowMs;window.yzFmtStamp=yzFmtStamp;window.yzMsOf=yzMsOf;window.yzNeedStamp=yzNeedStamp;window.yzStampHtml=yzStampHtml;
 function clockStr(){const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());}
 function setTyping(on){
   D._typing=on;
@@ -5538,7 +5600,10 @@ function renderListen(){
   try{yzRenderLyric(cur);}catch(e){}
   try{ yzSyncOneLyric(); }catch(e){} /* 一起听页不显示悬浮卡片 */
   const c=$('#listenChat');if(!c)return;c.innerHTML='';
+  var _lisEnter=D._yzLisEnterMs||yzNowMs();
+  var _lisLast=null,_lisPrev=null;
   D.listenMsgs.forEach(m=>{
+    try{ var _cm=yzMsOf(m,_lisEnter); if(yzNeedStamp(_lisPrev,_cm,_lisLast,30*60*1000)){ c.insertAdjacentHTML('beforeend',yzStampHtml(_cm)); _lisLast=_cm; } _lisPrev=_cm; }catch(e){}
     const isMe=m.from==='me';
     const av=isMe?D.avatarMe:D.avatarHim;
     const nm=isMe?(D.myNick||'我'):(D.nick||'他');
@@ -6248,13 +6313,13 @@ function yzProbeSong(sg,cb){
 }
 function pushListenMsg(from,text){
   D.listenMsgs=D.listenMsgs||[];
-  D.listenMsgs.push({from:from,text:text,time:clockStr()});
+  D.listenMsgs.push({from:from,text:text,time:clockStr(),_dms:Date.now()});
   save();
   if($('#listen').classList.contains('active'))renderListen();
 }
 function pushListenImg(from,src){
   D.listenMsgs=D.listenMsgs||[];
-  D.listenMsgs.push({from:from,type:'img',src:src,time:clockStr()});
+  D.listenMsgs.push({from:from,type:'img',src:src,time:clockStr(),_dms:Date.now()});
   save();
   if($('#listen').classList.contains('active'))renderListen();
   if(from==='me'){ try{ if(D.sendHold) return; }catch(e){} listenReply(); }
@@ -6607,7 +6672,10 @@ function gmkAIMove(){
 function gmkChatRender(){
   var c=$('#gmkChat'); if(!c)return;
   c.innerHTML='';
+  var _gmkEnter=_gmk._yzEnterMs||yzNowMs();
+  var _gmkLast=null,_gmkPrev=null;
   (D.gmkMsgs||[]).forEach(function(m){
+    try{ var _cm=yzMsOf(m,_gmkEnter); if(yzNeedStamp(_gmkPrev,_cm,_gmkLast,30*60*1000)){ c.insertAdjacentHTML('beforeend',yzStampHtml(_cm)); _gmkLast=_cm; } _gmkPrev=_cm; }catch(e){}
     var isMe=m.from==='me';
     var av=isMe?D.avatarMe:gmkCurAvatar();
     var nm=isMe?(D.myNick||'我'):gmkCurName();
@@ -6623,7 +6691,7 @@ function gmkChatRender(){
 }
 function gmkPush(from,text,type,src){
   D.gmkMsgs=D.gmkMsgs||[];
-  D.gmkMsgs.push({from:from,text:text||'',type:type||'text',src:src||''});
+  D.gmkMsgs.push({from:from,text:text||'',type:type||'text',src:src||'',_dms:Date.now()});
   if(D.gmkMsgs.length>300)D.gmkMsgs=D.gmkMsgs.slice(-300);
   try{save();}catch(e){}
   if($('#gomoku')&&$('#gomoku').classList.contains('active'))gmkChatRender();
@@ -7034,7 +7102,10 @@ function tttLeave(){
 function tttChatRender(){
   var c=$('#tttChat'); if(!c)return;
   c.innerHTML='';
+  var _tttEnter=_ttt._yzEnterMs||yzNowMs();
+  var _tttLast=null,_tttPrev=null;
   (D.tttMsgs||[]).forEach(function(m){
+    try{ var _cm=yzMsOf(m,_tttEnter); if(yzNeedStamp(_tttPrev,_cm,_tttLast,30*60*1000)){ c.insertAdjacentHTML('beforeend',yzStampHtml(_cm)); _tttLast=_cm; } _tttPrev=_cm; }catch(e){}
     var isMe=m.from==='me';
     var av=isMe?D.avatarMe:tttCurAvatar();
     var nm=isMe?(D.myNick||'我'):tttCurName();
@@ -7050,7 +7121,7 @@ function tttChatRender(){
 }
 function tttPush(from,text,type,src){
   D.tttMsgs=D.tttMsgs||[];
-  D.tttMsgs.push({from:from,text:text||'',type:type||'text',src:src||''});
+  D.tttMsgs.push({from:from,text:text||'',type:type||'text',src:src||'',_dms:Date.now()});
   if(D.tttMsgs.length>300)D.tttMsgs=D.tttMsgs.slice(-300);
   try{save();}catch(e){}
   if($('#ttt')&&$('#ttt').classList.contains('active'))tttChatRender();
@@ -8469,6 +8540,7 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
   if(!D.packs)D.packs=[];
   try{startProactiveLoop();}catch(e){}
   try{setTimeout(yzCheckVersion,2500);}catch(e){}
+  try{ if(!window._yzStampTimer){ window._yzStampTimer=setInterval(function(){ try{ var c=document.getElementById("chat"); if(c&&c.classList.contains("active")){ renderChat(); } }catch(e){} }, 1800000); } }catch(e){}
   try{yzApplyHomeChara();}catch(e){}
   try{ if(location.search.indexOf('v=')>=0){ history.replaceState(null,'',location.pathname); } }catch(e){}
   startMomLoop();startFeelLoop();startGiftLoop();startLetterLoop();startDiaryLoop();startShopLoop();
