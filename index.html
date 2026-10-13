@@ -1635,6 +1635,8 @@ body{
         <div class="row"><div class="lab">梦角回信间隔（分钟）</div><input type="number" id="setReplyGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">回信/来信最少句数</div><input type="number" id="setLetterMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">回信/来信最多句数</div><input type="number" id="setLetterMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角主动来信间隔（分钟）</div><input type="number" id="setLetterGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角回信概率（%）</div><input type="number" id="setReplyRate" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角主动来信概率（%）</div><input type="number" id="setLetterRate" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
       </div>
       <div class="group">
         <h4>聊天显示</h4>
@@ -4210,7 +4212,7 @@ function renderLetters(){
   if(!list.length){l.innerHTML='<div class="empty">还没有来信。</div>';return;}
   list.forEach(lt=>{
     /* 已读判定：我写的信 → 只有梦角回复了才算已读；梦角写的信 → 我看了就算已读 */
-    var _rd=(lt.from==='me')?!!lt.replied:!!lt.read;
+    var _rd=!!lt.read;
     var _rdColor=_rd?'var(--sub)':'var(--accent,#859ecb)';
     var _rdWeight=_rd?'400':'700';
     var _rdText=_rd?'已读':'未读';
@@ -4331,6 +4333,8 @@ function saveLetterPost(){
   /* 10分钟未回复 → 自动标记已读 */
   const gap=Math.max(0.2,(D.replyGap||5))*60000;
   setTimeout(()=>himReplyLetter(id),gap);
+  /* 30分钟未回 → 自动已读（他可以不回，但要看）*/
+  setTimeout(function(){ try{ var L=(D.letters||[]).find(function(x){return x.id===id;}); if(L&&!L.read){ L.read=true; save(); if(document.getElementById('letters')&&document.getElementById('letters').classList.contains('active'))renderLetters(); } }catch(e){} },30*60*1000);
 }
 function openLetter(id){
   const lt=(D.letters||[]).find(x=>x.id===id);if(!lt)return;
@@ -4389,12 +4393,17 @@ function sendLetterReply(){
     /* 梦角回信 */
     var gap=Math.max(0.2,(D.replyGap||5))*60000;
     setTimeout(function(){ himReplyLetter(nid); },gap);
+    /* 30分钟未回 → 自动已读 */
+    setTimeout(function(){ try{ var L=(D.letters||[]).find(function(x){return x.id===nid;}); if(L&&!L.read){ L.read=true; save(); if(document.getElementById('letters')&&document.getElementById('letters').classList.contains('active'))renderLetters(); } }catch(e){} },30*60*1000);
     /* 10分钟未回→已读 */
     toast('已回信');
   }catch(e){}
 }
 function himReplyLetter(id){
   const lt=(D.letters||[]).find(x=>x.id===id);if(!lt||lt.replied)return;
+  /* 抽回信概率：没中就不回（但信仍会30分钟后自动已读）*/
+  var _rr=(D.replyRate!==undefined?D.replyRate:100);
+  if(Math.random()*100>=_rr){ return; }
   lt.replied=true;
   try{ lt.read=true; }catch(e){} /* 梦角回了 → 我写的那封置已读 */
   try{ yzFavTry('letter',{text:(lt.preview||lt.text||''),id:lt.id},lt.time||'','favLetterRate'); }catch(e){}
@@ -5660,7 +5669,8 @@ function startLetterLoop(){
   if(letterTimer)clearInterval(letterTimer);
   const gap=Math.max(1,(D.letterGap||10))*60000;
   letterTimer=setInterval(()=>{
-    pushLetterByHim();
+    var _r=(D.letterRate!==undefined?D.letterRate:100);
+    if(Math.random()*100<_r){ pushLetterByHim(); }
   },gap);
 }
 
@@ -7860,6 +7870,8 @@ function fillSettings(){
   if($('#setTranNotes'))$('#setTranNotes').value=(D.tranNotes||[]).join('\n');
   if($('#setReplyGap'))$('#setReplyGap').value=D.replyGap!==undefined?D.replyGap:5;
   if($('#setLetterGap'))$('#setLetterGap').value=D.letterGap!==undefined?D.letterGap:10;
+  if($('#setReplyRate'))$('#setReplyRate').value=D.replyRate!==undefined?D.replyRate:100;
+  if($('#setLetterRate'))$('#setLetterRate').value=D.letterRate!==undefined?D.letterRate:100;
   // 通用兜底：扫描页面上所有 id 以 set 开头的输入框，逐个从 D 回填
   document.querySelectorAll('input[id^="set"],textarea[id^="set"],select[id^="set"]').forEach(function(el){
     const id=el.id;
@@ -8118,6 +8130,10 @@ function saveProfile(){
     if($('#setFeelGap')&&String($('#setFeelGap').value).trim()!=='')D.feelGap=parseFloat($('#setFeelGap').value)||30;
     if($('#setReplyGap')&&String($('#setReplyGap').value).trim()!=='')D.replyGap=parseFloat($('#setReplyGap').value)||5;
     if($('#setLetterGap')&&String($('#setLetterGap').value).trim()!=='')D.letterGap=parseFloat($('#setLetterGap').value)||10;
+  if($('#setReplyRate')&&String($('#setReplyRate').value).trim()!=='')D.replyRate=parseFloat($('#setReplyRate').value);
+  if($('#setLetterRate')&&String($('#setLetterRate').value).trim()!=='')D.letterRate=parseFloat($('#setLetterRate').value);
+    if($('#setReplyRate')&&String($('#setReplyRate').value).trim()!=='')D.replyRate=parseFloat($('#setReplyRate').value);
+    if($('#setLetterRate')&&String($('#setLetterRate').value).trim()!=='')D.letterRate=parseFloat($('#setLetterRate').value);
     if($('#setLetterMin')||$('#setLetterMax')){var _a=Math.max(1,parseInt(($('#setLetterMin')||{}).value)||1);var _b=Math.max(_a,parseInt(($('#setLetterMax')||{}).value)||_a);D.letterSent=_a+'-'+_b;}
     save();
   }catch(e){}
