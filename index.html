@@ -989,15 +989,19 @@ body{
 .favtitle{font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px;}
 .favnum{font-size:12px;color:#9aa0ad;font-weight:400;}
 .favempty{font-size:12.5px;color:#b3b8c4;padding:8px 0;}
+[data-favbtn]{display:inline-block;width:auto;}
+.favbtn{display:inline-block;width:auto;}
 .favcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 11px;cursor:pointer;}
 .favcard-t{font-size:13px;color:var(--text);line-height:1.5;word-break:break-word;}
 .favcard-h{font-size:11px;color:var(--accent,#859ecb);margin-top:4px;}
-#favDetail{position:fixed;inset:0;background:rgba(10,12,25,.5);z-index:100000;display:none;align-items:center;justify-content:center;padding:20px;}
+#favDetail{position:fixed;inset:0;z-index:320;background:var(--page-bg,#fff);display:none;flex-direction:column;}
 #favDetail.show{display:flex;}
-#favDetail .fdbox{background:var(--panel);color:var(--text);border-radius:18px;padding:20px 18px;max-width:88%;max-height:76%;overflow:auto;width:88%;box-shadow:0 16px 48px rgba(0,0,0,.3);}
-#favDetail .fdtitle{font-size:15px;font-weight:600;margin-bottom:10px;}
-#favDetail .fdbody{font-size:13.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;}
-#favDetail .fdclose{margin-top:16px;text-align:center;padding:10px;border-radius:12px;background:var(--card);font-size:13.5px;cursor:pointer;}
+#favDetail .fdhead{display:flex;align-items:center;gap:10px;padding:16px 16px 10px;flex:0 0 auto;}
+#favDetail .fdback{font-size:16px;color:var(--accent,#859ecb);cursor:pointer;font-weight:600;}
+#favDetail .fdtitle{flex:1;text-align:center;font-size:16px;font-weight:600;color:var(--text);}
+#favDetail .fbspacer{width:30px;}
+#favDetail .fdbody{flex:1;overflow-y:auto;padding:6px 18px 30px;font-size:14px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word;}
+#favDetail .fdmeta{padding:0 18px 10px;font-size:12px;color:var(--sub);}
 .favitem{background:var(--card,#fff);border-radius:14px;padding:12px 14px;margin-bottom:9px;box-shadow:0 2px 8px rgba(30,34,50,.07);}
 [data-theme="dark"] .favitem{background:#1d1d20;}
 .favtxt{font-size:14px;color:var(--text);line-height:1.45;}
@@ -2805,7 +2809,7 @@ function yzMyFavOpenCat(t){
         if(t==='music') _full='\u{1F3B5} '+(f.title||'')+(f.by?' \u00b7 '+f.by:'');
         if(t==='diary') _full='\u{1F4D6} '+(f.title||'')+(f.text?('\n'+f.text):'');
         if(t==='letter') _full=(f.text||'');
-        var _isLong = _full.length>60;
+        var _isLong = _full.length>40;
         hh+='<div class="favitem">';
         if(f.msgType==='img' && (t==='msg'||t==='moment')){
           hh+='<div class="favtxt">'+(f.src?('<img src="'+f.src+'" style="max-width:90px;max-height:90px;border-radius:10px;">'):'[表情包]')+'</div>';
@@ -2838,15 +2842,16 @@ function yzFavShowFull(t,i){
     if(t==='letter') _full=(f.text||'');
     var el=document.getElementById('favDetail');
     if(!el){ el=document.createElement('div'); el.id='favDetail';
-      el.innerHTML='<div class="fdbox"><div class="fdtitle" id="favDetailTitle"></div><div class="fdbody" id="favDetailBody"></div><div class="fdclose" onclick="document.getElementById(\'favDetail\').classList.remove(\'show\')">关闭</div></div>';
+      el.innerHTML='<div class="fdhead"><span class="fdback" onclick="yzFavDetailClose()">\u2039 \u8fd4\u56de</span><span class="fdtitle" id="favDetailTitle"></span><span class="fbspacer"></span></div><div class="fdbody" id="favDetailBody"></div>';
       document.body.appendChild(el);
     }
     var lab={msg:'收藏消息',music:'收藏音乐',moment:'收藏动态',diary:'收藏日记',letter:'收藏信封'}[t]||'详情';
-    var tt=document.getElementById('favDetailTitle'); if(tt)tt.textContent=lab+' \u00b7 '+f.favTime+(f.srcTime?(' \u00b7 \u53d1\u4e8e '+f.srcTime):'');
-    var bb=document.getElementById('favDetailBody'); if(bb)bb.textContent=_full;
+    var tt=document.getElementById('favDetailTitle'); if(tt)tt.textContent=lab;
+    var bb=document.getElementById('favDetailBody'); if(bb)bb.textContent=_full+(f.favTime?('\n\n—— 收藏于 '+f.favTime+(f.srcTime?(' · 发于 '+f.srcTime):'')):'');
     el.classList.add('show');
   }catch(e){}
 }
+function yzFavDetailClose(){ try{ var el=document.getElementById('favDetail'); if(el)el.classList.remove('show'); }catch(e){} }
 function yzMyFavDel(t,i){ try{ yzMyFavInit(); D.myFavs[t].splice(i,1); save(); yzMyFavOpenCat(t); }catch(e){} }
 function yzFavCatLabel(t){ return t==='msg'?'收藏消息':(t==='music'?'收藏音乐':(t==='moment'?'收藏动态':(t==='letter'?'收藏信封':'收藏日记'))); }
 function yzPhHtml(){
@@ -2892,7 +2897,7 @@ function yzFavOpenCat(t){
         if(t==='music') _full='\u{1F3B5} '+(f.title||'')+(f.by?' \u00b7 '+f.by:'');
         if(t==='diary') _full='\u{1F4D6} '+(f.title||'')+' '+(f.date||'')+(f.text?('\n\n'+f.text):'');
         if(t==='letter') _full=(f.text||'');
-        var _isLong = _full.length>60;
+        var _isLong = _full.length>40;
         hh+='<div class="favitem">';
         if(f.msgType==='img' && (t==='msg'||t==='moment')){
           hh+='<div class="favtxt">'+(f.src?('<img src="'+f.src+'" style="max-width:90px;max-height:90px;border-radius:10px;">'):'[表情包]')+'</div>';
@@ -2926,12 +2931,12 @@ function yzFavShowFull2(t,i){
     if(f.note)_full='【备注】'+f.note+'\n\n'+_full;
     var el=document.getElementById('favDetail');
     if(!el){ el=document.createElement('div'); el.id='favDetail';
-      el.innerHTML='<div class="fdbox"><div class="fdtitle" id="favDetailTitle"></div><div class="fdbody" id="favDetailBody"></div><div class="fdclose" onclick="document.getElementById(\'favDetail\').classList.remove(\'show\')">关闭</div></div>';
+      el.innerHTML='<div class="fdhead"><span class="fdback" onclick="yzFavDetailClose()">\u2039 \u8fd4\u56de</span><span class="fdtitle" id="favDetailTitle"></span><span class="fbspacer"></span></div><div class="fdbody" id="favDetailBody"></div>';
       document.body.appendChild(el);
     }
     var lab={msg:'收藏消息',music:'收藏音乐',moment:'收藏动态',diary:'收藏日记',letter:'收藏信封'}[t]||'详情';
-    var tt=document.getElementById('favDetailTitle'); if(tt)tt.textContent=lab+' \u00b7 '+f.favTime+(f.srcTime?(' \u00b7 \u53d1\u4e8e '+f.srcTime):'');
-    var bb=document.getElementById('favDetailBody'); if(bb)bb.textContent=_full;
+    var tt=document.getElementById('favDetailTitle'); if(tt)tt.textContent=lab;
+    var bb=document.getElementById('favDetailBody'); if(bb)bb.textContent=_full+(f.favTime?('\n\n—— 收藏于 '+f.favTime+(f.srcTime?(' · 发于 '+f.srcTime):'')):'');
     el.classList.add('show');
   }catch(e){}
 }
@@ -4220,7 +4225,7 @@ function renderLetters(){
       `<div class="letter-item" onclick="openLetter('${lt.id}')">
         <div class="lh">${esc(lt.from==='me'?(D.myNick||'我')+' 写给 '+(D.nick||'他'):(D.nick||'他')+' 写给你')} · ${esc(lt.time||'')} · <span style="color:${_rdColor};font-weight:${_rdWeight}">${_rdText}</span></div>
         <div class="lt">${esc(lt.isReply?(lt.from==='me'?('我回复了'+(D.nick||'他')+'的信'):((D.nick||'他')+'回复了你的信')):(lt.from==='him'?(D.nick||'他')+'给你写了一封信':(lt.preview||'（空信）')))}</div>
-        <div class="lfav" data-favbtn="1" data-favtype="letter" data-favid="${lt.id}">☆ 收藏</div>
+        <div><span class="lfav favbtn" data-favbtn="1" data-favtype="letter" data-favid="${lt.id}">☆ 收藏</span></div>
       </div>`);
   });
   try{yzFavBtnSyncAll(l);}catch(e){}
@@ -4280,6 +4285,12 @@ if(!window.__yzFavDeleg){
       if(!t||!t.closest)return;
       var btn=t.closest('[data-favbtn]');
       if(!btn)return;
+      /* 只有手指确实落在 ☆/文字 上才算：元素本身，或其内部子元素 */
+      if(t!==btn && !btn.contains(t))return;
+      /* 若点到的是容器（非按钮本体）则忽略 */
+      if(t===btn){
+        /* 允许：点在按钮本体的文字区域 */
+      }
       e.stopPropagation();
       e.preventDefault();
       yzFavToggleByBtn(btn);
@@ -4870,7 +4881,7 @@ function diaryItemHTML(d){
     title+
     '<div class="dtext">'+esc(body.slice(0,80))+(body.length>80?'…':'')+'</div>'+
     cmts+
-    '<div class="drow"><div class="dadd ddel2" onclick="event.stopPropagation();delDiary(\''+d.id+'\')">删除</div>'+'<div class="dadd dfav" data-favbtn="1" data-favtype="diary" data-favid="'+d.id+'">☆ 收藏</div></div>'+
+    '<div class="drow"><div class="dadd ddel2" onclick="event.stopPropagation();delDiary(\''+d.id+'\')">删除</div>'+'<div class="dadd dfav"><span class="favbtn" data-favbtn="1" data-favtype="diary" data-favid="'+d.id+'">☆ 收藏</span></div>'+
     '</div>';
 }
 function favDiaryById(id){
@@ -5530,7 +5541,7 @@ function renderMoments(){
         <div class="moact">
           <div class="${liked?'on':''}" onclick="toggleLike('${m.id}')">♡ ${(m.likedBy||[]).length}</div>
           <div onclick="momentCmtToggle('${m.id}')">💬 评论</div>
-          <div data-favbtn="1" data-favtype="moment" data-favid="${m.id}">☆ 收藏</div>
+          <div><span class="favbtn" data-favbtn="1" data-favtype="moment" data-favid="${m.id}">☆ 收藏</span></div>
           <div onclick="delMoment('${m.id}')">删除</div>
         </div>
         ${likeHtml}
