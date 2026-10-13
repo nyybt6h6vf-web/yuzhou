@@ -989,6 +989,15 @@ body{
 .favtitle{font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px;}
 .favnum{font-size:12px;color:#9aa0ad;font-weight:400;}
 .favempty{font-size:12.5px;color:#b3b8c4;padding:8px 0;}
+.favcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 11px;cursor:pointer;}
+.favcard-t{font-size:13px;color:var(--text);line-height:1.5;word-break:break-word;}
+.favcard-h{font-size:11px;color:var(--accent,#859ecb);margin-top:4px;}
+#favDetail{position:fixed;inset:0;background:rgba(10,12,25,.5);z-index:100000;display:none;align-items:center;justify-content:center;padding:20px;}
+#favDetail.show{display:flex;}
+#favDetail .fdbox{background:var(--panel);color:var(--text);border-radius:18px;padding:20px 18px;max-width:88%;max-height:76%;overflow:auto;width:88%;box-shadow:0 16px 48px rgba(0,0,0,.3);}
+#favDetail .fdtitle{font-size:15px;font-weight:600;margin-bottom:10px;}
+#favDetail .fdbody{font-size:13.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;}
+#favDetail .fdclose{margin-top:16px;text-align:center;padding:10px;border-radius:12px;background:var(--card);font-size:13.5px;cursor:pointer;}
 .favitem{background:var(--card,#fff);border-radius:14px;padding:12px 14px;margin-bottom:9px;box-shadow:0 2px 8px rgba(30,34,50,.07);}
 [data-theme="dark"] .favitem{background:#1d1d20;}
 .favtxt{font-size:14px;color:var(--text);line-height:1.45;}
@@ -2696,7 +2705,7 @@ function yzFavAdd(type,item,srcTime){
     if(D.favs.seen[type+':'+key])return;
     D.favs.seen[type+':'+key]=1;
     var nowStr=new Date().toLocaleString('zh-CN',{hour12:false}).slice(5,16);
-    D.favs[type].push({k:key,note:yzFavNote(),favTime:nowStr,srcTime:srcTime||'',text:(typeof item.text==='string'?item.text.slice(0,120):(item.text||'')),title:item.title||'',by:item.by||'',url:item.url||'',date:item.date||'',msgType:item.type||'',src:item.src||'',sec:(item.sec||'')});
+    D.favs[type].push({k:key,note:yzFavNote(),favTime:nowStr,srcTime:srcTime||'',text:(typeof item.text==='string'?item.text:(item.text||'')),title:item.title||'',by:item.by||'',url:item.url||'',date:item.date||'',msgType:item.type||'',src:item.src||'',sec:(item.sec||'')});
     save();
   }catch(e){}
 }
@@ -2742,7 +2751,7 @@ function yzMyFavAdd(type,item,srcTime){
     if(D.myFavs.seen[type+':'+key])return;
     D.myFavs.seen[type+':'+key]=1;
     var nowStr=new Date().toLocaleString('zh-CN',{hour12:false}).slice(5,16);
-    D.myFavs[type].push({k:key,favTime:nowStr,srcTime:srcTime||'',text:(typeof item.text==='string'?item.text.slice(0,160):(item.text||'')),title:item.title||'',by:item.by||'',url:item.url||'',date:item.date||'',msgType:item.type||'',src:item.src||'',sec:(item.sec||'')});
+    D.myFavs[type].push({k:key,favTime:nowStr,srcTime:srcTime||'',text:(typeof item.text==='string'?item.text:(item.text||'')),title:item.title||'',by:item.by||'',url:item.url||'',date:item.date||'',msgType:item.type||'',src:item.src||'',sec:(item.sec||'')});
     save();
   }catch(e){}
 }
@@ -2784,15 +2793,28 @@ function yzMyFavOpenCat(t){
       var hh='';
       arr.slice().reverse().forEach(function(f,idx){
         var realIdx=arr.length-1-idx;
-        hh+='<div class="favitem">';
+        var _full='';
         if(t==='msg'||t==='moment'){
-          if(f.msgType==='voice'){ hh+='<div class="favtxt">\u{1F3A4} '+(f.sec||'')+'\u2033 '+(f.text||'')+'</div>'; }
-          else if(f.msgType==='img'){ hh+='<div class="favtxt">'+(f.src?('<img src="'+f.src+'" style="max-width:90px;max-height:90px;border-radius:10px;">'):'[表情包]')+'</div>'; }
-          else { hh+='<div class="favtxt">'+(f.text||'')+'</div>'; }
+          if(f.msgType==='voice'){ _full='\u{1F3A4} '+(f.sec||'')+'\u2033 '+(f.text||''); }
+          else if(f.msgType==='img'){ _full=''; }
+          else { _full=(f.text||''); }
         }
-        if(t==='music') hh+='<div class="favtxt">\u{1F3B5} '+(f.title||'')+(f.by?' \u00b7 '+f.by:'')+'</div>';
-        if(t==='diary') hh+='<div class="favtxt">\u{1F4D6} '+(f.title||'')+'</div>';
-        if(t==='letter') hh+='<div class="favtxt">\u2709 '+(f.text||'')+'</div>';
+        if(t==='music') _full='\u{1F3B5} '+(f.title||'')+(f.by?' \u00b7 '+f.by:'');
+        if(t==='diary') _full='\u{1F4D6} '+(f.title||'')+(f.text?('\n'+f.text):'');
+        if(t==='letter') _full=(f.text||'');
+        var _isLong = _full.length>60;
+        hh+='<div class="favitem">';
+        if(f.msgType==='img' && (t==='msg'||t==='moment')){
+          hh+='<div class="favtxt">'+(f.src?('<img src="'+f.src+'" style="max-width:90px;max-height:90px;border-radius:10px;">'):'[表情包]')+'</div>';
+        } else if(_isLong){
+          /* 长内容 → 小卡片，点一下看完整 */
+          hh+='<div class="favcard" data-favfull="'+realIdx+'" onclick="yzFavShowFull(\''+t+'\','+realIdx+')">';
+          hh+='<div class="favcard-t">'+esc(String(_full).slice(0,60).replace(/\n/g,' '))+'…</div>';
+          hh+='<div class="favcard-h">点击查看完整内容 ›</div>';
+          hh+='</div>';
+        } else {
+          hh+='<div class="favtxt">'+esc(_full).replace(/\n/g,'<br>')+'</div>';
+        }
         hh+='<div class="favmeta">\u6536\u85cf\u4e8e '+f.favTime+(f.srcTime?' \u00b7 \u53d1\u4e8e '+f.srcTime:'')+'</div>';
         hh+='<div class="favdel" onclick="yzMyFavDel(\''+t+'\','+realIdx+')">\u5220\u9664</div>';
         hh+='</div>';
@@ -2801,6 +2823,26 @@ function yzMyFavOpenCat(t){
     }
   }
   el.classList.add('show');
+}
+function yzFavShowFull(t,i){
+  try{
+    yzMyFavInit();
+    var f=(D.myFavs[t]||[])[i]; if(!f)return;
+    var _full='';
+    if(t==='msg'||t==='moment'){ _full=(f.msgType==='voice')?('\u{1F3A4} '+(f.sec||'')+'\u2033 '+(f.text||'')):(f.text||''); }
+    if(t==='music') _full='\u{1F3B5} '+(f.title||'')+(f.by?' \u00b7 '+f.by:'');
+    if(t==='diary') _full='\u{1F4D6} '+(f.title||'')+(f.text?('\n\n'+f.text):'');
+    if(t==='letter') _full=(f.text||'');
+    var el=document.getElementById('favDetail');
+    if(!el){ el=document.createElement('div'); el.id='favDetail';
+      el.innerHTML='<div class="fdbox"><div class="fdtitle" id="favDetailTitle"></div><div class="fdbody" id="favDetailBody"></div><div class="fdclose" onclick="document.getElementById(\'favDetail\').classList.remove(\'show\')">关闭</div></div>';
+      document.body.appendChild(el);
+    }
+    var lab={msg:'收藏消息',music:'收藏音乐',moment:'收藏动态',diary:'收藏日记',letter:'收藏信封'}[t]||'详情';
+    var tt=document.getElementById('favDetailTitle'); if(tt)tt.textContent=lab+' \u00b7 '+f.favTime+(f.srcTime?(' \u00b7 \u53d1\u4e8e '+f.srcTime):'');
+    var bb=document.getElementById('favDetailBody'); if(bb)bb.textContent=_full;
+    el.classList.add('show');
+  }catch(e){}
 }
 function yzMyFavDel(t,i){ try{ yzMyFavInit(); D.myFavs[t].splice(i,1); save(); yzMyFavOpenCat(t); }catch(e){} }
 function yzFavCatLabel(t){ return t==='msg'?'收藏消息':(t==='music'?'收藏音乐':(t==='moment'?'收藏动态':(t==='letter'?'收藏信封':'收藏日记'))); }
@@ -2842,15 +2884,23 @@ function yzFavOpenCat(t){
       var hh='';
       arr.slice().reverse().forEach(function(f,idx){
         var realIdx=arr.length-1-idx;
+        var _full='';
+        if(t==='msg'||t==='moment'){ _full=(f.msgType==='voice')?('\u{1F3A4} '+(f.sec||'')+'\u2033 '+(f.text||'')):(f.text||''); }
+        if(t==='music') _full='\u{1F3B5} '+(f.title||'')+(f.by?' \u00b7 '+f.by:'');
+        if(t==='diary') _full='\u{1F4D6} '+(f.title||'')+' '+(f.date||'')+(f.text?('\n\n'+f.text):'');
+        if(t==='letter') _full=(f.text||'');
+        var _isLong = _full.length>60;
         hh+='<div class="favitem">';
-        if(t==='msg'||t==='moment'){
-          if(f.msgType==='voice'){ hh+='<div class="favtxt">\u{1F3A4} '+(f.sec||'')+'\u2033 '+(f.text||'')+'</div>'; }
-          else if(f.msgType==='img'){ hh+='<div class="favtxt">'+(f.src?('<img src="'+f.src+'" style="max-width:90px;max-height:90px;border-radius:10px;">'):'[表情包]')+'</div>'; }
-          else { hh+='<div class="favtxt">'+(f.text||'')+'</div>'; }
+        if(f.msgType==='img' && (t==='msg'||t==='moment')){
+          hh+='<div class="favtxt">'+(f.src?('<img src="'+f.src+'" style="max-width:90px;max-height:90px;border-radius:10px;">'):'[表情包]')+'</div>';
+        } else if(_isLong){
+          hh+='<div class="favcard" onclick="yzFavShowFull2(\''+t+'\','+realIdx+')">';
+          hh+='<div class="favcard-t">'+esc(String(_full).slice(0,60).replace(/\n/g,' '))+'…</div>';
+          hh+='<div class="favcard-h">点击查看完整内容 ›</div>';
+          hh+='</div>';
+        } else {
+          hh+='<div class="favtxt">'+esc(_full).replace(/\n/g,'<br>')+'</div>';
         }
-        if(t==='music') hh+='<div class="favtxt">\u{1F3B5} '+(f.title||'')+(f.by?' \u00b7 '+f.by:'')+'</div>';
-        if(t==='diary') hh+='<div class="favtxt">\u{1F4D6} '+(f.title||'')+' <span class="favdate">'+(f.date||'')+'</span></div>';
-        if(t==='letter') hh+='<div class="favtxt">\u2709 '+(f.text||'')+'</div>';
         if(f.note) hh+='<div class="favnote">'+(f.note)+'</div>';
         hh+='<div class="favmeta">\u6536\u85cf\u4e8e '+f.favTime+(f.srcTime?' \u00b7 \u53d1\u4e8e '+f.srcTime:'')+'</div>';
         hh+='<div class="favdel" onclick="yzFavDel(\''+t+'\','+realIdx+')">\u5220\u9664</div>';
@@ -2860,6 +2910,27 @@ function yzFavOpenCat(t){
     }
   }
   el.classList.add('show');
+}
+function yzFavShowFull2(t,i){
+  try{
+    yzFavInit();
+    var f=(D.favs[t]||[])[i]; if(!f)return;
+    var _full='';
+    if(t==='msg'||t==='moment'){ _full=(f.msgType==='voice')?('\u{1F3A4} '+(f.sec||'')+'\u2033 '+(f.text||'')):(f.text||''); }
+    if(t==='music') _full='\u{1F3B5} '+(f.title||'')+(f.by?' \u00b7 '+f.by:'');
+    if(t==='diary') _full='\u{1F4D6} '+(f.title||'')+' '+(f.date||'')+(f.text?('\n\n'+f.text):'');
+    if(t==='letter') _full=(f.text||'');
+    if(f.note)_full='【备注】'+f.note+'\n\n'+_full;
+    var el=document.getElementById('favDetail');
+    if(!el){ el=document.createElement('div'); el.id='favDetail';
+      el.innerHTML='<div class="fdbox"><div class="fdtitle" id="favDetailTitle"></div><div class="fdbody" id="favDetailBody"></div><div class="fdclose" onclick="document.getElementById(\'favDetail\').classList.remove(\'show\')">关闭</div></div>';
+      document.body.appendChild(el);
+    }
+    var lab={msg:'收藏消息',music:'收藏音乐',moment:'收藏动态',diary:'收藏日记',letter:'收藏信封'}[t]||'详情';
+    var tt=document.getElementById('favDetailTitle'); if(tt)tt.textContent=lab+' \u00b7 '+f.favTime+(f.srcTime?(' \u00b7 \u53d1\u4e8e '+f.srcTime):'');
+    var bb=document.getElementById('favDetailBody'); if(bb)bb.textContent=_full;
+    el.classList.add('show');
+  }catch(e){}
 }
 function yzFavCloseCat(){ var el=$('#favSheet'); if(el)el.classList.remove('show'); }
 
@@ -4057,11 +4128,27 @@ function confirmTransfer(){
 }
 let tranIdx=-1;
 function bindTranTaps(){
-  var list=document.querySelectorAll('#chatBody .bubble.transfer');
+  var list=document.querySelectorAll('#chatBody .bubble.transfer, #chatBody .bubble.dfbub');
   for(var k=0;k<list.length;k++){
     (function(el){
       if(el.__trb)return;el.__trb=1;
-      el.addEventListener('click',function(ev){ev.stopPropagation();
+      /* 第一下：打开详情卡片；连点两下：弹消息菜单 */
+      el.addEventListener('click',function(ev){
+        ev.stopPropagation();
+        var now=Date.now();
+        var dbl=el.__lastTap && (now-el.__lastTap)<320;
+        el.__lastTap=now;
+        /* 取索引 */
+        var mi=-1;
+        try{
+          var w=el.closest('.msg'); if(w&&w.getAttribute('data-mi')!==null)mi=parseInt(w.getAttribute('data-mi'),10);
+        }catch(e){}
+        if(dbl){
+          /* 连点两下 → 弹菜单，不打开详情 */
+          try{ if(mi>=0 && window.yzMsgMenuShow) yzMsgMenuShow(mi, el); }catch(e){}
+          return;
+        }
+        /* 单点 → 打开转账/代付详情 */
         var ti=el.getAttribute('data-ti');
         if(ti===null||ti===''||ti==='undefined'){
           var all=document.querySelectorAll('#chatBody .bubble.transfer');var idx=-1;
@@ -4211,7 +4298,7 @@ function yzApplyLetterBg(which){
     var replyEl=document.getElementById('letterReplyBox');
     var writeEl=document.querySelector('#letterWrite .lwbody');
     /* 信区：看梦角的信→梦角背景；看我自己的信→我的背景 */
-    if(bodyEl)bodyEl.style.backgroundImage=(which==='him'?him:me)?('url('+(which==='him'?him:me)+')'):'';
+    if(bodyEl){ bodyEl.style.backgroundImage=(which==='him'?him:me)?('url('+(which==='him'?him:me)+')'):''; if((which==='him'?him:me)){ bodyEl.style.backgroundColor='transparent'; } else { bodyEl.style.backgroundColor=''; } }
     bodyEl&&(bodyEl.style.backgroundSize='cover');
     bodyEl&&(bodyEl.style.backgroundPosition='center');
     /* 回信区（即我回复的信）：永远用我的背景 */
@@ -4246,15 +4333,32 @@ function saveLetterPost(){
 function openLetter(id){
   const lt=(D.letters||[]).find(x=>x.id===id);if(!lt)return;
   window.__curLetterId=id;
-  try{ var _rb=document.getElementById('letterReplyBox'); var _rt=document.getElementById('lrepText'); var _rto=document.getElementById('lrepTo'); if(_rt)_rt.value=''; if(_rto)_rto.textContent=letterTo(D.nick); if(_rb){ _rb.style.display=(lt.from==='me')?'none':''; } }catch(e){}
+  try{ var _rb=document.getElementById('letterReplyBox'); var _rt=document.getElementById('lrepText'); var _rto=document.getElementById('lrepTo'); if(_rt)_rt.value=''; if(_rto)_rto.textContent=letterTo(D.nick); if(_rb){ var _canReply=!((lt.from==='me')||lt.repliedByMe||lt.reply&&lt.reply.from==='me'); _rb.style.display=_canReply?'':'none'; _rb.__canReply=_canReply; } }catch(e){}
   lt.read=true;save();
   try{ if(document.getElementById('letters')&&document.getElementById('letters').classList.contains('active'))renderLetters(); }catch(e){}
   const head=lt.from==='him'?((D.nick||'他')+' 写给你的信'):('你写给 '+(D.nick||'他')+' 的信');
   var _mine=(lt.from==='me');
   var _sect1='<div class="lemailsec" style="background-image:'+(( _mine?(D.meLetterBg||''):(D.himLetterBg||''))?('url('+(_mine?(D.meLetterBg||''):(D.himLetterBg||''))+')'):'none')+'"><div style="font-size:12px;color:var(--sub);margin-bottom:14px">'+esc(head)+' · '+esc(lt.time||'')+'</div><div class="lettertxt">'+esc(lt.text).replace(/\n/g,'<br>')+'</div></div>';
+  /* 追加的新信：带上原信内容 */
+  var _sect0='';
+  try{
+    if(lt.isReply){
+      var _srcId=null;
+      /* 找原信：时间更早、且不是自己的 */
+      var _arr=(D.letters||[]);
+      var _myIdx=_arr.indexOf(lt);
+      for(var _q=_myIdx-1;_q>=0;_q--){
+        var _cand=_arr[_q];
+        if(!_cand.isReply){ _srcId=_cand; break; }
+      }
+      if(_srcId && _srcId.text){
+        _sect0='<div class="lemailsec" style="margin-bottom:14px;background-image:'+((_srcId.from==='me'?(D.meLetterBg||''):(D.himLetterBg||''))?('url('+(_srcId.from==='me'?(D.meLetterBg||''):(D.himLetterBg||''))+')'):'none')+'"><div style="font-size:12px;color:var(--sub);margin-bottom:10px">'+esc((_srcId.from==='me'?(D.myNick||'我'):(D.nick||'他'))+' 的原信')+' · '+esc(_srcId.time||'')+'</div><div class="lettertxt">'+esc(_srcId.text).replace(/\n/g,'<br>')+'</div></div>';
+      }
+    }
+  }catch(e){}
   var _sect2='';
   if(lt.reply&&lt.reply.text){ var _rbg=(D.meLetterBg||''); _sect2='<div class="lemailsec" style="margin-top:14px;background-image:'+(_rbg?('url('+_rbg+')'):'none')+'"><div style="font-size:12px;color:var(--sub);margin-bottom:14px">'+esc((D.myNick||'我')+' 的回复')+' · '+esc(lt.reply.time||'')+'</div><div class="lettertxt">'+esc(lt.reply.text).replace(/\n/g,'<br>')+'</div></div>'; }
-  $('#letterBody').innerHTML=_sect1+_sect2;
+  $('#letterBody').innerHTML=_sect0+_sect1+_sect2;
   try{ window.__curLetterWhich=(lt.from==='him')?'him':'me'; yzApplyLetterBg(window.__curLetterWhich); }catch(e){}
   go('letterRead');
 }
@@ -4262,6 +4366,7 @@ function sendLetterReply(){
   try{
     var id=window.__curLetterId; if(!id)return;
     var src=(D.letters||[]).find(function(x){return x.id===id;}); if(!src)return;
+    if(src.repliedByMe || (src.reply&&src.reply.from==='me')){ toast('这封信已经回过了'); return; }
     var tx=document.getElementById('lrepText'); var v=tx?String(tx.value||'').trim():'';
     if(!v){ toast('写点什么再回复'); return; }
     tx.value='';
@@ -4439,8 +4544,25 @@ if(!window.__dfDeleg){
   window.__dfDeleg=true;
   document.addEventListener('click',function(e){
     try{
-      var el=e.target&&e.target.closest?e.target.closest('.dfbub[data-dfi]'):null;
-      if(el){ var k=el.getAttribute('data-dfi'); if(k!==null&&k!==''){ openDaifuAct(k); } }
+      var el=e.target&&e.target.closest?e.target.closest('.dfbub'):null;
+      if(!el)return;
+      var now=Date.now();
+      var dbl=el.__dfLastTap && (now-el.__dfLastTap)<320;
+      el.__dfLastTap=now;
+      if(dbl){
+        /* 连点两下 → 弹消息菜单，不再打开代付详情 */
+        e.stopPropagation(); e.preventDefault();
+        try{
+          var w=el.closest('.msg'); var mi=w?parseInt(w.getAttribute('data-mi'),10):-1;
+          if(mi>=0 && window.yzMsgMenuShow) yzMsgMenuShow(mi, el);
+        }catch(_){}
+        return;
+      }
+      /* 单点 → 打开代付详情（仅可操作时）*/
+      if(el.getAttribute('data-dfi')!==null&&el.getAttribute('data-dfi')!==''){
+        var k=el.getAttribute('data-dfi');
+        if(k!==null&&k!==''){ openDaifuAct(k); }
+      }
     }catch(_){}
   },true);
 }
@@ -4525,6 +4647,8 @@ if(!window.__msgTapMenu){
     function _find(e){ try{
       if(!e.target||!e.target.closest)return null;
       /* 只有当手指确实落在气泡/头像/引用框等消息内容上时，才算“点了这条消息”（空白不算） */
+      /* 代付/转账气泡有自己的点击逻辑，不归菜单管 */
+      if(e.target.closest && e.target.closest('#chatBody .bubble.transfer, #chatBody .bubble.dfbub'))return null;
       var hit=e.target.closest('#chatBody .bubble, #chatBody .bubwrap > .quotebar, #chatBody .avatarbox, #chatBody .vtt, #chatBody .himname, #chatBody .msgname');
       if(!hit)return null;
       return hit.closest('#chatBody .msg[data-mi]');
