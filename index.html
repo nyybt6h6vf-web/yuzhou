@@ -8730,7 +8730,7 @@ function passKey(k){
   var ek=document.getElementById('passErr');if(ek)ek.textContent='';
   if(_passBuf===(D.pass||'')){
     _yzUnlock=true;
-    setTimeout(function(){closeSheet2('passSheet');_passBuf='';},160);
+    setTimeout(function(){closeSheet2('passSheet');_passBuf='';try{go('home');}catch(e){}},160);
   }else if(_passBuf.length>=(D.pass||'').length){
     var e2=document.getElementById('passErr');if(e2)e2.textContent='密码不对';
     var box=document.getElementById('passDots');if(box)box.style.transform='translateX(-8px)';
@@ -8786,7 +8786,7 @@ function init(){
   try{renderHome();}catch(e){}
   try{renderPlus();}catch(e){}
   try{applyCustom();}catch(e){}
-  $('#lock').addEventListener('click',()=>{go('home');try{setTimeout(function(){checkPeriodRemind();},600);}catch(e){}});
+  $('#lock').addEventListener('click',()=>{ if(yzLocked()){ openPass(); } else { go('home'); } try{setTimeout(function(){checkPeriodRemind();},600);}catch(e){} });
 document.addEventListener('click',function(e){var t=e.target;while(t&&t!==document){if(t.classList&&t.classList.contains('back')){try{if(t.closest&&t.closest('#settings')){['passSheet','packSheet','moSend','plusSheet'].forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove('show');});var mk=document.getElementById('mask');if(mk)mk.classList.remove('show');}}catch(err){}return;}t=t.parentNode;}},true);
   renderChat();
   try{document.addEventListener('visibilitychange',function(){if(!document.hidden){try{var ll=document.querySelector('.duo .linkline');if(ll){ll.style.animation='none';void ll.offsetWidth;ll.style.animation='';}}catch(e){}try{yzPassGate();}catch(e){}}});}catch(e){}
@@ -8822,7 +8822,8 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
     }catch(e){ return {err:String(e)}; }
   };
   renderListen();
-  try{if(D.pass&&D.pass.trim()){_yzUnlock=false;openPass();}}catch(e){}
+  /* 重进不自动弹密码：等锁屏轻触进入再弹 */
+  try{ if(D.pass&&D.pass.trim()){ _yzUnlock=false; } }catch(e){}
 }
 
 
