@@ -992,7 +992,7 @@ body{
 [data-favbtn]{display:inline-block;width:auto;}
 .favbtn,.delbtn{display:inline-block;width:auto;}
 /* 头像形状统一跟随 --yz-av-radius */
-.avatar,.convitem .cav,.gmk-chat .gm .gav,.listen-person .lav,.listen-chat .lm .lav,#call .cav,.himav,.meav,#callbar .cavb,.noteav,.gp-av,.lfhead,#lisAvHim,#lisAvMe,.cav,.lav,.gav,.avatarbox .avatar{border-radius:var(--yz-av-radius,14px)!important;}
+.avatar,.convitem .cav,.gmk-chat .gm .gav,.listen-person .lav,.listen-chat .lm .lav,#call .cav,.himav,.meav,#callbar .cavb,.noteav,.gp-av,.lfhead,#lisAvHim,#lisAvMe,.cav,.lav,.gav,.avatarbox .avatar,.duo .avatar,.duo .avatar2,#homeAvatar,#homeAvatar2,#hProfAv,#dProfAv{border-radius:var(--yz-av-radius,14px)!important;}
 .favcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 11px;cursor:pointer;}
 .favcard-t{font-size:13px;color:var(--text);line-height:1.5;word-break:break-word;}
 .favcard-h{font-size:11px;color:var(--accent,#859ecb);margin-top:4px;}
@@ -2831,14 +2831,12 @@ function yzMyFavOpenCat(t){
         hh+='<div class="favitem">';
         if(f.msgType==='img' && (t==='msg'||t==='moment')){
           hh+='<div class="favtxt">'+(f.src?('<img src="'+f.src+'" style="max-width:90px;max-height:90px;border-radius:10px;">'):'[表情包]')+'</div>';
-        } else if(_isLong){
+        } else {
           /* 长内容 → 小卡片，点一下看完整 */
           hh+='<div class="favcard" data-favfull="'+realIdx+'" onclick="yzFavShowFull(\''+t+'\','+realIdx+')">';
           hh+='<div class="favcard-t">'+esc(String(_full).slice(0,60).replace(/\n/g,' '))+'…</div>';
           hh+='<div class="favcard-h">点击查看完整内容 ›</div>';
           hh+='</div>';
-        } else {
-          hh+='<div class="favtxt">'+esc(_full).replace(/\n/g,'<br>')+'</div>';
         }
         hh+='<div class="favmeta">\u6536\u85cf\u4e8e '+f.favTime+(f.srcTime?' \u00b7 \u53d1\u4e8e '+f.srcTime:'')+'</div>';
         hh+='<div class="favdel"><span class="delbtn" onclick="yzMyFavDel(\''+t+'\','+realIdx+')">\u5220\u9664</span></div>';
@@ -2919,13 +2917,11 @@ function yzFavOpenCat(t){
         hh+='<div class="favitem">';
         if(f.msgType==='img' && (t==='msg'||t==='moment')){
           hh+='<div class="favtxt">'+(f.src?('<img src="'+f.src+'" style="max-width:90px;max-height:90px;border-radius:10px;">'):'[表情包]')+'</div>';
-        } else if(_isLong){
+        } else {
           hh+='<div class="favcard" onclick="yzFavShowFull2(\''+t+'\','+realIdx+')">';
           hh+='<div class="favcard-t">'+esc(String(_full).slice(0,60).replace(/\n/g,' '))+'…</div>';
           hh+='<div class="favcard-h">点击查看完整内容 ›</div>';
           hh+='</div>';
-        } else {
-          hh+='<div class="favtxt">'+esc(_full).replace(/\n/g,'<br>')+'</div>';
         }
         if(f.note) hh+='<div class="favnote">'+(f.note)+'</div>';
         hh+='<div class="favmeta">\u6536\u85cf\u4e8e '+f.favTime+(f.srcTime?' \u00b7 \u53d1\u4e8e '+f.srcTime:'')+'</div>';
