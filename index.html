@@ -990,9 +990,9 @@ body{
 .favnum{font-size:12px;color:#9aa0ad;font-weight:400;}
 .favempty{font-size:12.5px;color:#b3b8c4;padding:8px 0;}
 [data-favbtn]{display:inline-block;width:auto;}
-.favbtn{display:inline-block;width:auto;}
+.favbtn,.delbtn{display:inline-block;width:auto;}
 /* 头像形状统一跟随 --yz-av-radius */
-.avatar,.convitem .cav,.gmk-chat .gm .gav,.listen-person .lav,.listen-chat .lm .lav,#call .cav,.himav,.meav,#callbar .cavb{border-radius:var(--yz-av-radius,14px)!important;}
+.avatar,.convitem .cav,.gmk-chat .gm .gav,.listen-person .lav,.listen-chat .lm .lav,#call .cav,.himav,.meav,#callbar .cavb,.noteav,.pfav,.gp-av,.lfhead,.pcalhead,.heroimg,#lisAvHim,#lisAvMe,.cav,.lav,.gav,.avatarbox .avatar{border-radius:var(--yz-av-radius,14px)!important;}
 .favcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 11px;cursor:pointer;}
 .favcard-t{font-size:13px;color:var(--text);line-height:1.5;word-break:break-word;}
 .favcard-h{font-size:11px;color:var(--accent,#859ecb);margin-top:4px;}
@@ -1529,6 +1529,7 @@ body{
         <h4>美化</h4>
         <div class="row"><div class="lab">网站图标</div><div class="chip" onclick="pickFavicon()">选择图片</div></div>
         <div class="row"><div class="lab">强调色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setAccentColor" oninput="setAccent(this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setAccent('')">清</div></div></div>
+<div class="row"><div class="lab">头像形状</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" id="avShapeRound" onclick="setAvatarShape('round')">圆角</div><div class="chip" id="avShapeSquare" onclick="setAvatarShape('square')">方形</div></div></div>
         <div class="row"><div class="lab">主题模式</div>
           <div class="seg">
             <div class="chip" id="thLight" onclick="setTheme('light')">浅色</div>
@@ -1643,10 +1644,6 @@ body{
         <div class="row"><div class="lab">梦角主动来信间隔（分钟）</div><input type="number" id="setLetterGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角回信概率（%）</div><input type="number" id="setReplyRate" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角主动来信概率（%）</div><input type="number" id="setLetterRate" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-      </div>
-      <div class="group">
-        <h4>头像</h4>
-        <div class="row"><div class="lab">头像形状</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" id="avShapeRound" onclick="setAvatarShape('round')">圆角</div><div class="chip" id="avShapeSquare" onclick="setAvatarShape('square')">方形</div></div></div>
       </div>
       <div class="group">
         <h4>聊天显示</h4>
@@ -2844,7 +2841,7 @@ function yzMyFavOpenCat(t){
           hh+='<div class="favtxt">'+esc(_full).replace(/\n/g,'<br>')+'</div>';
         }
         hh+='<div class="favmeta">\u6536\u85cf\u4e8e '+f.favTime+(f.srcTime?' \u00b7 \u53d1\u4e8e '+f.srcTime:'')+'</div>';
-        hh+='<div class="favdel" onclick="yzMyFavDel(\''+t+'\','+realIdx+')">\u5220\u9664</div>';
+        hh+='<div class="favdel"><span class="delbtn" onclick="yzMyFavDel(\''+t+'\','+realIdx+')">\u5220\u9664</span></div>';
         hh+='</div>';
       });
       b.innerHTML=hh;
@@ -2932,7 +2929,7 @@ function yzFavOpenCat(t){
         }
         if(f.note) hh+='<div class="favnote">'+(f.note)+'</div>';
         hh+='<div class="favmeta">\u6536\u85cf\u4e8e '+f.favTime+(f.srcTime?' \u00b7 \u53d1\u4e8e '+f.srcTime:'')+'</div>';
-        hh+='<div class="favdel" onclick="yzFavDel(\''+t+'\','+realIdx+')">\u5220\u9664</div>';
+        hh+='<div class="favdel"><span class="delbtn" onclick="yzFavDel(\''+t+'\','+realIdx+')">\u5220\u9664</span></div>';
         hh+='</div>';
       });
       b.innerHTML=hh;
@@ -4320,7 +4317,7 @@ if(!window.__yzFavDeleg){
 }
 function favLetterById(id){
   try{ var lt=(D.letters||[]).find(function(x){return x.id===id;}); if(!lt)return;
-    yzMyFavInit(); yzMyFavAdd('letter',{id:lt.id,text:lt.preview||lt.text},lt.time||'');
+    yzMyFavInit(); yzMyFavAdd('letter',{id:lt.id,text:(String(lt.text||'').replace(/^\s*To\uFF1A[^\n]*\n+/,'').trim()||lt.preview||'')},lt.time||'');
     toast('已收藏到我的收藏');
   }catch(e){}
 }
@@ -4438,7 +4435,7 @@ function himReplyLetter(id){
   if(Math.random()*100>=_rr){ return; }
   lt.replied=true;
   try{ lt.read=true; }catch(e){} /* 梦角回了 → 我写的那封置已读 */
-  try{ yzFavTry('letter',{text:(lt.preview||lt.text||''),id:lt.id},lt.time||'','favLetterRate'); }catch(e){}
+  try{ var _ltFull=String(lt.text||'').replace(/^\s*To\uFF1A[^\n]*\n+/,'').trim(); yzFavTry('letter',{text:(_ltFull||lt.preview||''),id:lt.id},lt.time||'','favLetterRate'); }catch(e){}
   const rb=pickByRange(parseInt((D.letterSent||"1-2").split("-")[0])||1,parseInt((D.letterSent||"1-2").split("-")[1])||2);
   var _rid='lt'+(Date.now()+1);
   var _body=letterTo(D.myNick||'我')+'\n\n'+rb;
@@ -4480,7 +4477,7 @@ function renderShop(){
         '<div class="gbtn give" onclick="giveGoods(\''+g.id+'\')">送给他</div>'+
         '<div class="gbtn pay" onclick="askHimPay(\''+g.id+'\')">找他代付</div>'+
       '</div>'+
-      '<div class="gdel" onclick="delGoods(\''+g.id+'\')">✕</div>'+
+      '<div class="gdel"><span class="delbtn" onclick="delGoods(\''+g.id+'\')">✕</span></div>'+
       '</div>');
   });
   b.insertAdjacentHTML('beforeend','<div class="shopadd" onclick="addGoodsPrompt()">＋ 添加商品</div>');
@@ -4635,23 +4632,20 @@ function yzMsgMenuShow(i,anchor){
     try{ if(anchor&&anchor.getBoundingClientRect)r=anchor.getBoundingClientRect(); }catch(e){}
     if(!r){ var node=document.querySelector('#chatBody .msg[data-mi="'+i+'"]'); if(node)r=node.getBoundingClientRect(); }
     var mw=el.offsetWidth, mh=el.offsetHeight;
-    var vv=window.visualViewport||null;
-    var vw=vv?vv.width:window.innerWidth;
-    var vh=vv?vv.height:window.innerHeight;
-    var voffX=vv?vv.offsetLeft:0;
-    var voffY=vv?vv.offsetTop:0;
+    /* 菜单用 fixed：#chatBody 的 getBoundingClientRect 已经是相对视口的坐标，
+       直接用，不要再叠加 visualViewport.offsetTop（iOS 上它是负值会导致菜单跑到顶端） */
     var left=0, top=0;
     if(r){
       left=r.left+r.width/2-mw/2;
       top=r.top-mh-8;
-      if(top<voffY+8) top=r.bottom+8;
-      if(top+mh>voffY+vh-8) top=Math.max(voffY+8, voffY+vh-mh-8);
+      if(top<8) top=r.bottom+8;
     } else {
-      left=voffX+(vw-mw)/2; top=voffY+vh/2;
+      left=(window.innerWidth-mw)/2; top=window.innerHeight/3;
     }
-    if(left<voffX+8)left=voffX+8;
-    if(left+mw>voffX+vw-8)left=voffX+vw-mw-8;
-    if(top<voffY+8)top=voffY+8;
+    if(left<8)left=8;
+    if(left+mw>window.innerWidth-8)left=window.innerWidth-mw-8;
+    if(top+mh>window.innerHeight-8) top=Math.max(8, window.innerHeight-mh-8);
+    if(top<8)top=8;
     el.style.left=left+'px'; el.style.top=top+'px';
     window.__msgMenuAnchor=anchor||null;
   }catch(e){}
@@ -4913,7 +4907,7 @@ function diaryItemHTML(d){
     title+
     '<div class="dtext">'+esc(body.slice(0,80))+(body.length>80?'…':'')+'</div>'+
     cmts+
-    '<div class="drow"><div class="dadd ddel2" onclick="event.stopPropagation();delDiary(\''+d.id+'\')">删除</div>'+'<div class="dadd dfav"><span class="favbtn" data-favbtn="1" data-favtype="diary" data-favid="'+d.id+'">☆ 收藏</span></div>'+
+    '<div class="drow"><div class="dadd ddel2"><span class="delbtn" onclick="event.stopPropagation();delDiary(\''+d.id+'\')">删除</span></div>'+'<div class="dadd dfav"><span class="favbtn" data-favbtn="1" data-favtype="diary" data-favid="'+d.id+'">☆ 收藏</span></div>'+
     '</div>';
 }
 function favDiaryById(id){
@@ -7995,7 +7989,7 @@ function scheduleApply(){
 _applyTimer=setTimeout(()=>{_applyTimer=null;applyCustom();},800);
 }
 /* ===== 美化方案槽位 ===== */
-var YZ_BEAUTY_KEYS=['favicon','accentColor','theme','themeAuto','lockName','lockBg','himLetterBg','meLetterBg','lockFg','slogan','pageBg','page2Bg','chatBg','fontColor','bubbleHim','bubbleMe','tranColor','himFontColor','meFontColor','bubbleSize','chatFontSize','tranSize','momBg','bubble'];
+var YZ_BEAUTY_KEYS=['favicon','avatarShape','accentColor','theme','themeAuto','lockName','lockBg','himLetterBg','meLetterBg','lockFg','slogan','pageBg','page2Bg','chatBg','fontColor','bubbleHim','bubbleMe','tranColor','himFontColor','meFontColor','bubbleSize','chatFontSize','tranSize','momBg','bubble'];
 function yzBeautySnap(){
   var o={};
   YZ_BEAUTY_KEYS.forEach(function(k){ o[k]=(D[k]===undefined?'':D[k]); });
