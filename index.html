@@ -3262,28 +3262,6 @@ function renderChat(){
     b.insertAdjacentHTML('beforeend',`<div class="typing-ind"><span>对方正在输入中</span><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div>`);
   }
   bindTranTaps();
-  /* 给每条消息直接绑 click（解决 iOS 键盘开着时 touchend 不触发的问题） */
-  try{
-    var _nodes=b.querySelectorAll('.msg[data-mi]');
-    for(var _k=0;_k<_nodes.length;_k++){
-      (function(nd){
-        if(nd.__mbox)return; nd.__mbox=1;
-        nd.addEventListener('click',function(ev){
-          try{
-            if(ev.target&&ev.target.closest&&ev.target.closest('#chatBody .bubble.transfer, #chatBody .bubble.dfbub'))return;
-            if(ev.target&&ev.target.closest&&ev.target.closest('[data-favbtn]'))return;
-            var hit=ev.target&&ev.target.closest?ev.target.closest('#chatBody .bubble, #chatBody .bubwrap > .quotebar, #chatBody .avatarbox, #chatBody .vtt, #chatBody .himname, #chatBody .msgname'):null;
-            if(!hit)return;
-            var menu=document.getElementById('msgMenu');
-            var wasOpen=!!(menu&&menu.classList.contains('show'));
-            if(wasOpen){ yzMsgMenuHide(); return; }
-            var k2=nd.getAttribute('data-mi');
-            yzMsgMenuShow(parseInt(k2,10),nd);
-          }catch(x){}
-        },false);
-      })(_nodes[_k]);
-    }
-  }catch(e){}
   window.__applyBubbleInline&&window.__applyBubbleInline();
   try{ var _hb=document.getElementById('holdBtn'); if(_hb)_hb.classList.toggle('on',!!D.sendHold); }catch(e){}
 }
@@ -4732,16 +4710,15 @@ if(!window.__msgTapMenu){
       if(Math.abs(cx-sx)>10||Math.abs(cy-sy)>10) moved=true;
     },{passive:true});
     document.addEventListener('touchend',function(e){
-      if(!el||moved){ el=null; return; }
+      /* 键盘开着时 touchstart 可能没命中（或落在键盘区），这里用 touchend 的坐标重新判定 */
+      var m2=moved?null:_find(e);
+      if(!m2){ el=null; return; }
+      el=null;
       var menu=document.getElementById('msgMenu');
       var wasOpen=!!(menu&&menu.classList.contains('show'));
-      var _el=el; el=null;
-      var k=_el.getAttribute('data-mi');
+      var k=m2.getAttribute('data-mi');
       if(wasOpen){ yzMsgMenuHide(); return; }
-      /* 键盘开着时：延迟一点点，等 iOS 的键盘收起/布局稳定，用元素实时位置定位 */
-      setTimeout(function(){
-        try{ yzMsgMenuShow(parseInt(k,10),_el); if(navigator.vibrate)navigator.vibrate(10); }catch(x){}
-      }, navigator.userAgent&&/iPhone|iPad|iPod/.test(navigator.userAgent)?250:0);
+      try{ yzMsgMenuShow(parseInt(k,10),m2); if(navigator.vibrate)navigator.vibrate(10); }catch(x){}
     },{passive:true});
     /* 桌面点击也是点一下出菜单 */
     document.addEventListener('click',function(e){
@@ -5718,19 +5695,23 @@ let letterTimer=null;
 function pushLetterByHim(){
   D.letters=D.letters||[];
   var txt=pickByRange(parseInt((D.letterSent||"1-2").split("-")[0])||1,parseInt((D.letterSent||"1-2").split("-")[1])||2);
-  if(!txt){ txt='最近有点想你，就给你写封信。'; }
+  if(!txt)return;
   D.letters.push({id:'lt'+Date.now(),from:'him',text:letterTo(D.myNick||'我')+'\n\n'+txt,preview:txt.slice(0,20),time:nowStr(),read:false,replied:true});
   save();
   sys((D.nick||'他')+' 给你寄了一封信');
   if($('#letters').classList.contains('active'))renderLetters();
 }
 function startLetterLoop(){
-  if(letterTimer)clearInterval(letterTimer);
-  const gap=Math.max(1,(D.letterGap||10))*60000;
-  letterTimer=setInterval(()=>{
-    var _r=(D.letterRate!==undefined?D.letterRate:100);
-    if(Math.random()*100<_r){ pushLetterByHim(); }
-  },gap);
+  if(letterTimer)clearTimeout(letterTimer);
+  var gap=Math.max(1,(D.letterGap||10))*60000;
+  if(!D._yzLetterAt) D._yzLetterAt=Date.now();
+  var left=gap-(Date.now()-D._yzLetterAt);
+  if(left<1000) left=1000;
+  letterTimer=setTimeout(function _yzLetterOnce(){
+    D._yzLetterAt=Date.now();
+    try{ var _r=(D.letterRate!==undefined?D.letterRate:100); if(Math.random()*100<_r){ pushLetterByHim(); } }catch(e){}
+    letterTimer=setTimeout(_yzLetterOnce, gap);
+  }, left);
 }
 
 /* ===== 一起听 ===== */
@@ -8243,8 +8224,6 @@ function saveProfile(){
   // 兜底已移除：它会把其它屏幕里未初始化的空输入框写进 D，导致昵称等被覆盖
   save();updateHomeAvatar();$('#chatTitle').textContent=D.nick||'他';
   startMomLoop();startFeelLoop();startLetterLoop();
-  /* 设置改动后立即抽一次（不用干等一个间隔）*/
-  try{ var _r0=(D.letterRate!==undefined?D.letterRate:100); if(Math.random()*100<_r0){ pushLetterByHim(); } }catch(e){}
 }
 function setAccent(c){
   try{
