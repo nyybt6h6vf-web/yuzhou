@@ -992,7 +992,7 @@ body{
 [data-favbtn]{display:inline-block;width:auto;}
 .favbtn,.delbtn{display:inline-block;width:auto;}
 /* 头像形状统一跟随 --yz-av-radius */
-.avatar,.convitem .cav,.gmk-chat .gm .gav,.listen-person .lav,.listen-chat .lm .lav,#call .cav,.himav,.meav,#callbar .cavb,.noteav,.pfav,.gp-av,.lfhead,.pcalhead,.heroimg,#lisAvHim,#lisAvMe,.cav,.lav,.gav,.avatarbox .avatar{border-radius:var(--yz-av-radius,14px)!important;}
+.avatar,.convitem .cav,.gmk-chat .gm .gav,.listen-person .lav,.listen-chat .lm .lav,#call .cav,.himav,.meav,#callbar .cavb,.noteav,.gp-av,.lfhead,#lisAvHim,#lisAvMe,.cav,.lav,.gav,.avatarbox .avatar{border-radius:var(--yz-av-radius,14px)!important;}
 .favcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 11px;cursor:pointer;}
 .favcard-t{font-size:13px;color:var(--text);line-height:1.5;word-break:break-word;}
 .favcard-h{font-size:11px;color:var(--accent,#859ecb);margin-top:4px;}
@@ -4317,7 +4317,7 @@ if(!window.__yzFavDeleg){
 }
 function favLetterById(id){
   try{ var lt=(D.letters||[]).find(function(x){return x.id===id;}); if(!lt)return;
-    yzMyFavInit(); yzMyFavAdd('letter',{id:lt.id,text:(String(lt.text||'').replace(/^\s*To\uFF1A[^\n]*\n+/,'').trim()||lt.preview||'')},lt.time||'');
+    yzMyFavInit(); yzMyFavAdd('letter',{id:lt.id,text:((String(lt.text||'').replace(/^[\s\S]*?To[\uFF1A:][^\n]*\n+/,'').trim()||String(lt.text||'').trim()||lt.preview||''))},lt.time||'');
     toast('已收藏到我的收藏');
   }catch(e){}
 }
@@ -4435,7 +4435,7 @@ function himReplyLetter(id){
   if(Math.random()*100>=_rr){ return; }
   lt.replied=true;
   try{ lt.read=true; }catch(e){} /* 梦角回了 → 我写的那封置已读 */
-  try{ var _ltFull=String(lt.text||'').replace(/^\s*To\uFF1A[^\n]*\n+/,'').trim(); yzFavTry('letter',{text:(_ltFull||lt.preview||''),id:lt.id},lt.time||'','favLetterRate'); }catch(e){}
+  try{ var _ltFull=String(lt.text||'').replace(/^[\s\S]*?To[\uFF1A:][^\n]*\n+/,'').trim(); if(!_ltFull)_ltFull=String(lt.text||'').trim(); yzFavTry('letter',{text:(_ltFull||lt.preview||''),id:lt.id},lt.time||'','favLetterRate'); }catch(e){}
   const rb=pickByRange(parseInt((D.letterSent||"1-2").split("-")[0])||1,parseInt((D.letterSent||"1-2").split("-")[1])||2);
   var _rid='lt'+(Date.now()+1);
   var _body=letterTo(D.myNick||'我')+'\n\n'+rb;
@@ -8221,6 +8221,8 @@ function saveProfile(){
   // 兜底已移除：它会把其它屏幕里未初始化的空输入框写进 D，导致昵称等被覆盖
   save();updateHomeAvatar();$('#chatTitle').textContent=D.nick||'他';
   startMomLoop();startFeelLoop();startLetterLoop();
+  /* 设置改动后立即抽一次（不用干等一个间隔）*/
+  try{ var _r0=(D.letterRate!==undefined?D.letterRate:100); if(Math.random()*100<_r0){ pushLetterByHim(); } }catch(e){}
 }
 function setAccent(c){
   try{
