@@ -4342,15 +4342,19 @@ function openLetter(id){
   try{
     if(lt.isReply){
       var _srcId=null;
-      /* 找原信：时间更早、且不是自己的 */
       var _arr=(D.letters||[]);
-      var _myIdx=_arr.indexOf(lt);
-      for(var _q=_myIdx-1;_q>=0;_q--){
-        var _cand=_arr[_q];
-        if(!_cand.isReply){ _srcId=_cand; break; }
+      /* 优先按 refId 精确引用（谁回谁，引用被回的那封）*/
+      if(lt.refId){ _srcId=_arr.find(function(x){return x.id===lt.refId;})||null; }
+      /* 兜底：向前找最近一封非自己的信 */
+      if(!_srcId){
+        var _myIdx=_arr.indexOf(lt);
+        for(var _q=_myIdx-1;_q>=0;_q--){
+          var _cand=_arr[_q];
+          if(_cand.from!==lt.from){ _srcId=_cand; break; }
+        }
       }
       if(_srcId && _srcId.text){
-        _sect0='<div class="lemailsec" style="margin-bottom:14px;background-image:'+((_srcId.from==='me'?(D.meLetterBg||''):(D.himLetterBg||''))?('url('+(_srcId.from==='me'?(D.meLetterBg||''):(D.himLetterBg||''))+')'):'none')+'"><div style="font-size:12px;color:var(--sub);margin-bottom:10px">'+esc((_srcId.from==='me'?(D.myNick||'我'):(D.nick||'他'))+' 的原信')+' · '+esc(_srcId.time||'')+'</div><div class="lettertxt">'+esc(_srcId.text).replace(/\n/g,'<br>')+'</div></div>';
+        _sect0='<div class="lemailsec" style="margin-bottom:14px;background-image:'+((_srcId.from==='me'?(D.meLetterBg||''):(D.himLetterBg||''))?('url('+(_srcId.from==='me'?(D.meLetterBg||''):(D.himLetterBg||''))+')'):'none')+'"><div style="font-size:12px;color:var(--sub);margin-bottom:10px">'+esc((_srcId.from==='me'?(D.myNick||'我'):(D.nick||'他'))+' 的信')+' · '+esc(_srcId.time||'')+'</div><div class="lettertxt">'+esc(_srcId.text).replace(/\n/g,'<br>')+'</div></div>';
       }
     }
   }catch(e){}
@@ -4373,10 +4377,11 @@ function sendLetterReply(){
     D.letters=D.letters||[];
     var _body=letterTo(D.nick||'他')+'\n\n'+v;
     src.reply={from:'me',text:_body,preview:v.slice(0,20),time:nowStr()};
-    D.letters.push({id:nid,from:'me',text:_body,preview:v.slice(0,20),time:nowStr(),read:false,replied:false,isReply:true,bgWhich:'me',_t:_now});
+    D.letters.push({id:nid,from:'me',text:_body,preview:v.slice(0,20),time:nowStr(),read:false,replied:false,isReply:true,refId:id,bgWhich:'me',_t:_now});
     src.repliedByMe=true;
     save();
     renderLetters();
+    try{ openLetter(id); }catch(e){}
     /* 梦角回信 */
     var gap=Math.max(0.2,(D.replyGap||5))*60000;
     setTimeout(function(){ himReplyLetter(nid); },gap);
@@ -4396,7 +4401,7 @@ function himReplyLetter(id){
   /* 挂在原信下面 */
   lt.reply={from:'him',text:_body,preview:rb.slice(0,20),time:nowStr()};
   /* 另外单独发一份出去 */
-  D.letters.push({id:_rid,from:'him',text:_body,preview:rb.slice(0,20),time:nowStr(),read:false,replied:false,isReply:true,bgWhich:'him'});
+  D.letters.push({id:_rid,from:'him',text:_body,preview:rb.slice(0,20),time:nowStr(),read:false,replied:false,isReply:true,refId:id,bgWhich:'him'});
   save();
   sys((D.nick||'他')+' 回复了你的信');
   if($('#letters').classList.contains('active'))renderLetters();
