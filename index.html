@@ -111,7 +111,7 @@ body{
 .chat-body::-webkit-scrollbar{width:0;}
 .msg{display:flex;gap:9px;max-width:100%;}
 .msg.me{flex-direction:row-reverse;}
-.avatar{width:38px;height:38px;border-radius:14px;flex:0 0 38px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-weight:700;box-shadow:0 4px 10px rgba(120,130,200,.22);}
+.avatar{width:38px;height:38px;border-radius:var(--yz-av-radius,14px);flex:0 0 38px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-weight:700;box-shadow:0 4px 10px rgba(120,130,200,.22);}
 .avatar img{width:100%;height:100%;object-fit:cover;}
 .avatarbox{position:relative;flex:0 0 38px;}
 .avatarbox .avatar{width:38px;height:38px;}
@@ -991,6 +991,8 @@ body{
 .favempty{font-size:12.5px;color:#b3b8c4;padding:8px 0;}
 [data-favbtn]{display:inline-block;width:auto;}
 .favbtn{display:inline-block;width:auto;}
+/* 头像形状统一跟随 --yz-av-radius */
+.avatar,.convitem .cav,.gmk-chat .gm .gav,.listen-person .lav,.listen-chat .lm .lav,#call .cav,.himav,.meav,#callbar .cavb{border-radius:var(--yz-av-radius,14px)!important;}
 .favcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 11px;cursor:pointer;}
 .favcard-t{font-size:13px;color:var(--text);line-height:1.5;word-break:break-word;}
 .favcard-h{font-size:11px;color:var(--accent,#859ecb);margin-top:4px;}
@@ -1641,6 +1643,10 @@ body{
         <div class="row"><div class="lab">梦角主动来信间隔（分钟）</div><input type="number" id="setLetterGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角回信概率（%）</div><input type="number" id="setReplyRate" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角主动来信概率（%）</div><input type="number" id="setLetterRate" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+      </div>
+      <div class="group">
+        <h4>头像</h4>
+        <div class="row"><div class="lab">头像形状</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" id="avShapeRound" onclick="setAvatarShape('round')">圆角</div><div class="chip" id="avShapeSquare" onclick="setAvatarShape('square')">方形</div></div></div>
       </div>
       <div class="group">
         <h4>聊天显示</h4>
@@ -2492,7 +2498,17 @@ YZDB.open(function(ok){
 });
 var YZ_BIGKEYS=['packs','heroImg','avatarMe','avatarHim','himBg','himAv','diaryBg','diaryAv','photo1','photo2','photo3','photo4','pageBg','page2Bg','chatBg','momBg','lockBg','himLetterBg','meLetterBg'];
 function yzSlender(){try{var o={};for(var k in D){if(YZ_BIGKEYS.indexOf(k)>=0)continue;if(k==='charas'||k==='convs'){continue;}o[k]=D[k];}if(D.charas)o.charas=(D.charas||[]).map(function(c){var x={};for(var k in c){if(k==='avatar')continue;x[k]=c[k];}return x;});if(D.convs)o.convs=(D.convs||[]).map(function(cv){var x={};for(var k in cv){if(k==='msgs')continue;x[k]=cv[k];}x.msgs=(cv.msgs||[]).map(function(m){var y={};for(var k in m){if(k==='src')continue;y[k]=m[k];}if(m.type==='img')y.src='';return y;});return x;});return JSON.stringify(o);}catch(e){return '';}}
-function save(){var __j='';try{__j=JSON.stringify(D);}catch(e){return;}try{YZDB.set(DKEY,__j);}catch(e){}if(YZDB&&YZDB.ready){window.__yzSaveErr=false;try{var sl=yzSlender();if(sl)localStorage.setItem(DKEY,sl);}catch(e){}}else{/* IDB 未就绪：完整数据先存 localStorage 保底 */try{localStorage.setItem(DKEY,__j);window.__yzSaveErr=false;}catch(e){window.__yzSaveErr=true;}}}
+var _yzSavePending=false, _yzSaveTimer2=null;
+function save(){
+  /* 防抖合并：120ms 内的多次 save 只真正写一次，避免高频全量序列化卡顿 */
+  if(_yzSavePending){ return; }
+  _yzSavePending=true;
+  if(_yzSaveTimer2)clearTimeout(_yzSaveTimer2);
+  _yzSaveTimer2=setTimeout(function(){ _yzSaveTimer2=null; _yzSavePending=false; try{saveNow();}catch(e){} },120);
+}
+/* 立即落盘（关键操作如退出/切页时用） */
+function saveFlush(){ try{ if(_yzSaveTimer2){clearTimeout(_yzSaveTimer2);_yzSaveTimer2=null;} _yzSavePending=false; saveNow(); }catch(e){} }
+function saveNow(){var __j='';try{__j=JSON.stringify(D);}catch(e){return;}try{YZDB.set(DKEY,__j);}catch(e){}if(YZDB&&YZDB.ready){window.__yzSaveErr=false;try{var sl=yzSlender();if(sl)localStorage.setItem(DKEY,sl);}catch(e){}}else{/* IDB 未就绪：完整数据先存 localStorage 保底 */try{localStorage.setItem(DKEY,__j);window.__yzSaveErr=false;}catch(e){window.__yzSaveErr=true;}}}
 function $(s){return document.querySelector(s);}
 function pad(n){return n<10?'0'+n:''+n;}
 
@@ -2500,8 +2516,11 @@ function tick(){
   const d=new Date(),t=d.getHours()+':'+pad(d.getMinutes());
   const days=['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
   const ds=(d.getMonth()+1)+'月'+d.getDate()+'日 '+days[d.getDay()];
-  ['lockTimeTop','homeTimeTop','chatTimeTop','cardTimeTop','togTimeTop','setTimeTop','moTimeTop','lisTimeTop','letTimeTop','lrTimeTop','pkTimeTop'].forEach(id=>{const el=$('#'+id);if(el)el.textContent=t;});
-  $('#lockH').textContent=t;$('#lockD').textContent=ds;
+  if(window.__yzLastClock!==t){
+    window.__yzLastClock=t;
+    ['lockTimeTop','homeTimeTop','chatTimeTop','cardTimeTop','togTimeTop','setTimeTop','moTimeTop','lisTimeTop','letTimeTop','lrTimeTop','pkTimeTop'].forEach(id=>{const el=$('#'+id);if(el)el.textContent=t;});
+    $('#lockH').textContent=t;$('#lockD').textContent=ds;
+  }
   try{yzPhTick();}catch(e){}
   try{if(!window.__yzFavLast||Date.now()-window.__yzFavLast>180000){window.__yzFavLast=Date.now();yzFavReread();}}catch(e){}
 }
@@ -2596,7 +2615,9 @@ function yzPhTick(){
       }
     }
     try{ yzDaifuTick(dt); }catch(e){} /* 代付累计计时 */
-    save();
+    /* 电量没变就不写库：避免每秒全量序列化 → 越用越卡 */
+    var _phSig=D.ph.my+'/'+D.ph.him+'/'+(D.ph.myCharging?1:0)+'/'+(D.ph.himCharging?1:0)+'/'+(D.ph.himPower?1:0);
+    if(window.__yzPhSig!==_phSig){ window.__yzPhSig=_phSig; save(); }
     try{ yzPhStatusIcon(); }catch(e){}
     if($('#phony') && $('#phony').classList.contains('active') && !D.phFavOpen){ try{ yzPhRender(); }catch(e){} }
   }catch(e){}
@@ -3957,7 +3978,7 @@ function yzToggleKeepAlive(){
   var b=document.getElementById('keepAliveBtn');if(b)b.textContent=D.keepAlive?'开启':'关闭';
   if(D.keepAlive){yzKeepAlive();toast('已开启后台保活');}else{try{if(_yzWakeLock)_yzWakeLock.release();}catch(e){}toast('已关闭后台保活');}
 }
-document.addEventListener('visibilitychange',function(){if(!document.hidden&&D.keepAlive){yzKeepAlive();}});
+document.addEventListener('visibilitychange',function(){ try{ if(document.hidden){ saveFlush(); } }catch(e){} if(!document.hidden&&D.keepAlive){yzKeepAlive();}});
 
 
 /* ============ 19. 主动发消息 ============ */
@@ -4614,12 +4635,23 @@ function yzMsgMenuShow(i,anchor){
     try{ if(anchor&&anchor.getBoundingClientRect)r=anchor.getBoundingClientRect(); }catch(e){}
     if(!r){ var node=document.querySelector('#chatBody .msg[data-mi="'+i+'"]'); if(node)r=node.getBoundingClientRect(); }
     var mw=el.offsetWidth, mh=el.offsetHeight;
+    var vv=window.visualViewport||null;
+    var vw=vv?vv.width:window.innerWidth;
+    var vh=vv?vv.height:window.innerHeight;
+    var voffX=vv?vv.offsetLeft:0;
+    var voffY=vv?vv.offsetTop:0;
     var left=0, top=0;
-    if(r){ left=r.left+r.width/2-mw/2; top=r.top-mh-8; }
-    else { left=(window.innerWidth-mw)/2; top=window.innerHeight/2; }
-    if(left<8)left=8;
-    if(left+mw>window.innerWidth-8)left=window.innerWidth-mw-8;
-    if(top<8)top=r?(r.bottom+8):8;
+    if(r){
+      left=r.left+r.width/2-mw/2;
+      top=r.top-mh-8;
+      if(top<voffY+8) top=r.bottom+8;
+      if(top+mh>voffY+vh-8) top=Math.max(voffY+8, voffY+vh-mh-8);
+    } else {
+      left=voffX+(vw-mw)/2; top=voffY+vh/2;
+    }
+    if(left<voffX+8)left=voffX+8;
+    if(left+mw>voffX+vw-8)left=voffX+vw-mw-8;
+    if(top<voffY+8)top=voffY+8;
     el.style.left=left+'px'; el.style.top=top+'px';
     window.__msgMenuAnchor=anchor||null;
   }catch(e){}
@@ -8235,6 +8267,9 @@ function getChatBg(){
   if(v.startsWith('http')||v.startsWith('data:'))return `linear-gradient(rgba(0,0,0,.03),rgba(0,0,0,.03)),url('${v}') center/cover no-repeat`;
   return v;
 }
+function setAvatarShape(s){ try{ D.avatarShape=(s==='square')?'square':'round'; save(); applyCustom(); yzMarkAvatarShape(); }catch(e){}
+}
+function yzMarkAvatarShape(){ try{ var r=document.getElementById('avShapeRound'), q=document.getElementById('avShapeSquare'); var v=(D.avatarShape==='square')?'square':'round'; if(r)r.classList.toggle('on',v==='round'); if(q)q.classList.toggle('on',v==='square'); }catch(e){} }
 function applyCustom(){
   try{
   const pb=(D.pageBg||'').trim(),pg=$('#phone');
@@ -8259,6 +8294,8 @@ function applyCustom(){
     if(mb.startsWith('http')||mb.startsWith('data:'))mq.style.background=`url('${mb}') center/cover no-repeat`;
     else mq.style.background=mb||'';
   }
+  try{ var _avs=(D.avatarShape==='square')?'8px':'50%'; document.documentElement.style.setProperty('--yz-av-radius',_avs); }catch(e){}
+  try{ yzMarkAvatarShape(); }catch(e){}
   try{ var _ac=(D.accentColor||'').trim(); if(_ac){ document.documentElement.style.setProperty('--accent',_ac); document.documentElement.style.setProperty('--accent-soft',_ac); } else { document.documentElement.style.removeProperty('--accent'); document.documentElement.style.removeProperty('--accent-soft'); } }catch(e){}
   const fc=(D.fontColor||'').trim();
   if(fc){document.documentElement.style.setProperty('--chat-text-color',fc);}
