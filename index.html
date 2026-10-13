@@ -5699,7 +5699,7 @@ function pushLetterByHim(){
   if(!txt)return;
   D.letters.push({id:'lt'+Date.now(),from:'him',text:letterTo(D.myNick||'我')+'\n\n'+txt,preview:txt.slice(0,20),time:nowStr(),read:false,replied:true});
   save();
-  sys((D.nick||'他')+' 给你寄了一封信');
+  try{ sys((D.nick||'他')+' 给你寄了一封信'); }catch(e){}
   if($('#letters').classList.contains('active'))renderLetters();
 }
 function yzLetterDiagShow(){
@@ -5710,16 +5710,19 @@ function yzLetterDiagShow(){
   }catch(e){ alert('自检失败：'+e.message); }
 }
 function startLetterLoop(){
-  if(letterTimer)clearTimeout(letterTimer);
-  var gap=Math.max(1,(D.letterGap||10))*60000;
+  if(letterTimer)clearInterval(letterTimer);
   if(!D._yzLetterAt) D._yzLetterAt=Date.now();
-  var left=gap-(Date.now()-D._yzLetterAt);
-  if(left<1000) left=1000;
-  letterTimer=setTimeout(function _yzLetterOnce(){
-    D._yzLetterAt=Date.now();
-    try{ var _r=(D.letterRate!==undefined?D.letterRate:100); if(Math.random()*100<_r){ pushLetterByHim(); } }catch(e){}
-    letterTimer=setTimeout(_yzLetterOnce, gap);
-  }, left);
+  /* 用 setInterval 每 15 秒检查一次"是否到点"：
+     即使某次抽签抛错，下一轮仍然会来，绝不会因为一次异常就永久停摆 */
+  letterTimer=setInterval(function(){
+    try{
+      var gap=Math.max(1,(D.letterGap||10))*60000;
+      if(Date.now()-D._yzLetterAt < gap) return;
+      D._yzLetterAt=Date.now();
+      var _r=(D.letterRate!==undefined?D.letterRate:100);
+      if(Math.random()*100<_r){ pushLetterByHim(); }
+    }catch(e){ /* 单次出错不影响后续 */ }
+  }, 15000);
 }
 
 /* ===== 一起听 ===== */
@@ -8713,6 +8716,7 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
         lastAt: D._yzLetterAt?new Date(D._yzLetterAt).toLocaleTimeString():null,
         agoMin: D._yzLetterAt? Math.round((Date.now()-D._yzLetterAt)/60000*10)/10 : null,
         timerAlive: !!letterTimer,
+        gapMs: Math.max(1,(D.letterGap||10))*60000,
         lettersCount: (D.letters||[]).length
       };
     }catch(e){ return {err:String(e)}; }
