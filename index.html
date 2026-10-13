@@ -4209,9 +4209,14 @@ function renderLetters(){
   const list=(D.letters||[]).slice().reverse();
   if(!list.length){l.innerHTML='<div class="empty">还没有来信。</div>';return;}
   list.forEach(lt=>{
+    /* 已读判定：我写的信 → 只有梦角回复了才算已读；梦角写的信 → 我看了就算已读 */
+    var _rd=(lt.from==='me')?!!lt.replied:!!lt.read;
+    var _rdColor=_rd?'var(--sub)':'var(--accent,#859ecb)';
+    var _rdWeight=_rd?'400':'700';
+    var _rdText=_rd?'已读':'未读';
     l.insertAdjacentHTML('beforeend',
       `<div class="letter-item" onclick="openLetter('${lt.id}')">
-        <div class="lh">${esc(lt.from==='me'?(D.myNick||'我')+' 写给 '+(D.nick||'他'):(D.nick||'他')+' 写给你')} · ${esc(lt.time||'')} · <span style="color:${lt.read?'var(--sub)':'var(--accent,#859ecb)'};font-weight:${lt.read?'400':'700'}">${lt.read?'已读':'未读'}</span></div>
+        <div class="lh">${esc(lt.from==='me'?(D.myNick||'我')+' 写给 '+(D.nick||'他'):(D.nick||'他')+' 写给你')} · ${esc(lt.time||'')} · <span style="color:${_rdColor};font-weight:${_rdWeight}">${_rdText}</span></div>
         <div class="lt">${esc(lt.isReply?(lt.from==='me'?('我回复了'+(D.nick||'他')+'的信'):((D.nick||'他')+'回复了你的信')):(lt.from==='him'?(D.nick||'他')+'给你写了一封信':(lt.preview||'（空信）')))}</div>
         <div class="lfav" data-favbtn="1" data-favtype="letter" data-favid="${lt.id}">☆ 收藏</div>
       </div>`);
@@ -4324,7 +4329,6 @@ function saveLetterPost(){
   D.letters.push({id:id,from:'me',text:body,preview:txt.slice(0,20),time:nowStr(),read:false,replied:false,_t:_now});
   save();go('letters');renderLetters();
   /* 10分钟未回复 → 自动标记已读 */
-  setTimeout(function(){ try{ var L=(D.letters||[]).find(function(x){return x.id===id;}); if(L&&!L.read){ L.read=true; save(); if(document.getElementById('letters')&&document.getElementById('letters').classList.contains('active'))renderLetters(); } }catch(e){} },10*60*1000);
   const gap=Math.max(0.2,(D.replyGap||5))*60000;
   setTimeout(()=>himReplyLetter(id),gap);
 }
@@ -4332,7 +4336,7 @@ function openLetter(id){
   const lt=(D.letters||[]).find(x=>x.id===id);if(!lt)return;
   window.__curLetterId=id;
   try{ var _rb=document.getElementById('letterReplyBox'); var _rt=document.getElementById('lrepText'); var _rto=document.getElementById('lrepTo'); if(_rt)_rt.value=''; if(_rto)_rto.textContent=letterTo(D.nick); if(_rb){ var _canReply=!((lt.from==='me')||lt.repliedByMe||lt.reply&&lt.reply.from==='me'); _rb.style.display=_canReply?'':'none'; _rb.__canReply=_canReply; } }catch(e){}
-  lt.read=true;save();
+  if(lt.from==='him'){ lt.read=true; save(); }
   try{ if(document.getElementById('letters')&&document.getElementById('letters').classList.contains('active'))renderLetters(); }catch(e){}
   const head=lt.from==='him'?((D.nick||'他')+' 写给你的信'):('你写给 '+(D.nick||'他')+' 的信');
   var _mine=(lt.from==='me');
@@ -4386,7 +4390,6 @@ function sendLetterReply(){
     var gap=Math.max(0.2,(D.replyGap||5))*60000;
     setTimeout(function(){ himReplyLetter(nid); },gap);
     /* 10分钟未回→已读 */
-    setTimeout(function(){ try{ var L=(D.letters||[]).find(function(x){return x.id===nid;}); if(L&&!L.read){ L.read=true; save(); if(document.getElementById('letters')&&document.getElementById('letters').classList.contains('active'))renderLetters(); } }catch(e){} },10*60*1000);
     toast('已回信');
   }catch(e){}
 }
