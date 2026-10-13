@@ -2500,6 +2500,7 @@ function tick(){
 }
 
 function go(id){
+  try{ window.__yzStampArmed=false; window.__yzStampArmedLis=false; window.__yzStampArmedGmk=false; window.__yzStampArmedTtt=false; }catch(e){}
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const el=$('#'+id);if(el)el.classList.add('active');
   if(id!=='lock'){try{yzPassGate();}catch(e){}}
@@ -2507,12 +2508,12 @@ function go(id){
   if(id==='home'){try{yzApplyHomeChara();}catch(e){}
   try{yzBindLisFloatDrag();}catch(e){}}
   if(id==='chatlist')renderChatList();
-  if(id==='chat'){D._yzChatEnterMs=Date.now();renderChat();$('#chat').style.background=getChatBg();setTimeout(scrollBottom,30);}
+  if(id==='chat'){D._yzChatEnterMs=Date.now();window.__yzStampArmed=true;renderChat();$('#chat').style.background=getChatBg();setTimeout(scrollBottom,30);}
   if(id==='cards'){try{yzBindCards();renderCardTabs();}catch(e){}renderCards();}
   if(id==='together')renderTiles();
   if(id==='settings'){fillSettings();try{yzBeautyRender();}catch(e){}try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}try{yzMarkSetStatus();}catch(e){}}
   if(id==='moments')renderMoments();
-  if(id==='listen'){ D._yzLisEnterMs=Date.now(); hideLisFloat(); try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
+  if(id==='listen'){ D._yzLisEnterMs=Date.now(); window.__yzStampArmedLis=true; hideLisFloat(); try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
   if(id!=='listen'){ try{ setTimeout(yzMaybeShowFloat,60); }catch(e){} }
   if(id==='letters')renderLetters();
   if(id==='packs')renderPacks();
@@ -2520,8 +2521,8 @@ function go(id){
   if(id==='period')renderPeriod();
   if(id==='shop')renderShop();
   if(id==='phony'){try{yzPhInit();yzPhRender();}catch(e){}}
-  if(id==='gomoku'){try{_gmk._yzEnterMs=Date.now();renderGomoku();}catch(e){}}
-  if(id==='ttt'){try{_ttt._yzEnterMs=Date.now();renderTtt();}catch(e){}}
+  if(id==='gomoku'){try{_gmk._yzEnterMs=Date.now();window.__yzStampArmedGmk=true;renderGomoku();}catch(e){}}
+  if(id==='ttt'){try{_ttt._yzEnterMs=Date.now();window.__yzStampArmedTtt=true;renderTtt();}catch(e){}}
   try{yzPhStatusIcon();}catch(e){}
   if(id==='himprofile')renderHimProfile();
   if(id==='letterWrite'){const to=$('#lwTo');if(to)to.textContent=letterTo(D.nick);}
@@ -3194,12 +3195,7 @@ function renderChat(){
     /* 时间戳分隔条：仅对新发消息显示（进入时不显示历史）*/
     try{
       var _curMs=yzMsOf(m,_yzSessMs);
-      if(m._new){
-        if(yzNeedStamp(_yzPrevMs,_curMs,_yzLastStamp,30*60*1000)){
-          b.insertAdjacentHTML('beforeend',yzStampHtml(_curMs));
-          _yzLastStamp=_curMs;
-        }
-      }
+      if(m._new){ b.insertAdjacentHTML('beforeend',yzStampHtml(_curMs)); }
       _yzPrevMs=_curMs;
     }catch(e){}
     if(m.type==='sys'){b.insertAdjacentHTML('beforeend',`<div class="sys">${esc(m.text)}</div>`);return;}
@@ -3246,7 +3242,7 @@ function renderChat(){
   window.__applyBubbleInline&&window.__applyBubbleInline();
   try{ var _hb=document.getElementById('holdBtn'); if(_hb)_hb.classList.toggle('on',!!D.sendHold); }catch(e){}
 }
-function push(m){try{if(m&&!m._dms)m._dms=Date.now();m._new=true;}catch(e){}D.msgs.push(m);save();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}if($('#chat').classList.contains('active')){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40));}}catch(e){}}
+function push(m){try{if(m&&!m._dms)m._dms=Date.now(); if(window.__yzStampArmed){ m._new=true; window.__yzStampArmed=false; } }catch(e){}D.msgs.push(m);save();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}if($('#chat').classList.contains('active')){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40));}}catch(e){}}
 function jumpMsg(i){
   const list=document.querySelectorAll('#chatBody .msg');
   const el=list[i];if(!el)return;
@@ -5679,7 +5675,7 @@ function renderListen(){
   var _lisEnter=D._yzLisEnterMs||yzNowMs();
   var _lisLast=null,_lisPrev=null;
   D.listenMsgs.forEach(m=>{
-    try{ var _cm=yzMsOf(m,_lisEnter); if(m._new&&yzNeedStamp(_lisPrev,_cm,_lisLast,30*60*1000)){ c.insertAdjacentHTML('beforeend',yzStampHtml(_cm)); _lisLast=_cm; } _lisPrev=_cm; }catch(e){}
+    try{ if(m._new){ c.insertAdjacentHTML('beforeend',yzStampHtml(yzMsOf(m,_lisEnter))); } }catch(e){}
     const isMe=m.from==='me';
     const av=isMe?D.avatarMe:D.avatarHim;
     const nm=isMe?(D.myNick||'我'):(D.nick||'他');
@@ -6390,13 +6386,13 @@ function yzProbeSong(sg,cb){
 }
 function pushListenMsg(from,text){
   D.listenMsgs=D.listenMsgs||[];
-  D.listenMsgs.push({from:from,text:text,time:clockStr(),_dms:Date.now(),_new:true});
+  D.listenMsgs.push({from:from,text:text,time:clockStr(),_dms:Date.now(),_new:(window.__yzStampArmedLis?(window.__yzStampArmedLis=false,true):false)});
   save();
   if($('#listen').classList.contains('active'))renderListen();
 }
 function pushListenImg(from,src){
   D.listenMsgs=D.listenMsgs||[];
-  D.listenMsgs.push({from:from,type:'img',src:src,time:clockStr(),_dms:Date.now(),_new:true});
+  D.listenMsgs.push({from:from,type:'img',src:src,time:clockStr(),_dms:Date.now(),_new:(window.__yzStampArmedLis?(window.__yzStampArmedLis=false,true):false)});
   save();
   if($('#listen').classList.contains('active'))renderListen();
   if(from==='me'){ try{ if(D.sendHold) return; }catch(e){} listenReply(); }
@@ -6752,7 +6748,7 @@ function gmkChatRender(){
   var _gmkEnter=_gmk._yzEnterMs||yzNowMs();
   var _gmkLast=null,_gmkPrev=null;
   (D.gmkMsgs||[]).forEach(function(m){
-    try{ var _cm=yzMsOf(m,_gmkEnter); if(m._new&&yzNeedStamp(_gmkPrev,_cm,_gmkLast,30*60*1000)){ c.insertAdjacentHTML('beforeend',yzStampHtml(_cm)); _gmkLast=_cm; } _gmkPrev=_cm; }catch(e){}
+    try{ if(m._new){ c.insertAdjacentHTML('beforeend',yzStampHtml(yzMsOf(m,_gmkEnter))); } }catch(e){}
     var isMe=m.from==='me';
     var av=isMe?D.avatarMe:gmkCurAvatar();
     var nm=isMe?(D.myNick||'我'):gmkCurName();
@@ -6769,7 +6765,7 @@ function gmkChatRender(){
 }
 function gmkPush(from,text,type,src){
   D.gmkMsgs=D.gmkMsgs||[];
-  D.gmkMsgs.push({from:from,text:text||'',type:type||'text',src:src||'',_dms:Date.now(),_new:true});
+  D.gmkMsgs.push({from:from,text:text||'',type:type||'text',src:src||'',_dms:Date.now(),_new:(window.__yzStampArmedGmk?(window.__yzStampArmedGmk=false,true):false)});
   if(D.gmkMsgs.length>300)D.gmkMsgs=D.gmkMsgs.slice(-300);
   try{save();}catch(e){}
   if($('#gomoku')&&$('#gomoku').classList.contains('active'))gmkChatRender();
@@ -7183,7 +7179,7 @@ function tttChatRender(){
   var _tttEnter=_ttt._yzEnterMs||yzNowMs();
   var _tttLast=null,_tttPrev=null;
   (D.tttMsgs||[]).forEach(function(m){
-    try{ var _cm=yzMsOf(m,_tttEnter); if(m._new&&yzNeedStamp(_tttPrev,_cm,_tttLast,30*60*1000)){ c.insertAdjacentHTML('beforeend',yzStampHtml(_cm)); _tttLast=_cm; } _tttPrev=_cm; }catch(e){}
+    try{ if(m._new){ c.insertAdjacentHTML('beforeend',yzStampHtml(yzMsOf(m,_tttEnter))); } }catch(e){}
     var isMe=m.from==='me';
     var av=isMe?D.avatarMe:tttCurAvatar();
     var nm=isMe?(D.myNick||'我'):tttCurName();
@@ -7200,7 +7196,7 @@ function tttChatRender(){
 }
 function tttPush(from,text,type,src){
   D.tttMsgs=D.tttMsgs||[];
-  D.tttMsgs.push({from:from,text:text||'',type:type||'text',src:src||'',_dms:Date.now(),_new:true});
+  D.tttMsgs.push({from:from,text:text||'',type:type||'text',src:src||'',_dms:Date.now(),_new:(window.__yzStampArmedTtt?(window.__yzStampArmedTtt=false,true):false)});
   if(D.tttMsgs.length>300)D.tttMsgs=D.tttMsgs.slice(-300);
   try{save();}catch(e){}
   if($('#ttt')&&$('#ttt').classList.contains('active'))tttChatRender();
