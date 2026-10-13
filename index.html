@@ -529,7 +529,19 @@ body{
 /* 一起听 */
 #listen{background:var(--chat-bg);}
 .listen-body{flex:1;overflow-y:auto;padding:18px 16px 14px;display:flex;flex-direction:column;}
-.listen-stage{display:flex;align-items:flex-end;justify-content:center;gap:26px;padding:16px 0 8px;}
+.listen-stage{display:flex;align-items:flex-end;justify-content:center;gap:26px;padding:16px 0 8px;transition:gap .9s cubic-bezier(.34,1.2,.5,1);}
+.listen-stage.near{gap:6px;}
+.listen-stage.near .listen-person:first-child .lav{transform:translateX(6px);}
+.listen-stage.near .listen-person:last-child .lav{transform:translateX(-6px);}
+.listen-person .lav{transition:transform .9s cubic-bezier(.34,1.2,.5,1);}
+.lis-meta{text-align:center;font-size:12px;color:var(--sub);margin:8px 0 2px;line-height:1.6;}
+.lis-meta b{color:var(--accent,#859ecb);font-weight:600;}
+.lis-pick{display:flex;flex-direction:column;gap:10px;padding:14px 18px 30px;overflow-y:auto;}
+.lis-pick .lpk{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;cursor:pointer;}
+.lis-pick .lpkav{width:44px;height:44px;flex:0 0 44px;border-radius:var(--yz-av-radius,14px);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;background:var(--icon-bg);color:var(--icon-fg);}
+.lis-pick .lpkav img{width:100%;height:100%;object-fit:cover;}
+.lis-pick .lpknm{flex:1;font-size:14.5px;font-weight:600;color:var(--text);}
+.lis-pick .lpkgo{font-size:12px;color:var(--accent,#859ecb);}
 .listen-person{display:flex;flex-direction:column;align-items:center;gap:8px;}
 .listen-person .lav{width:58px;height:58px;border-radius:20px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;background:var(--icon-bg);color:var(--icon-fg);}
 .listen-person .lav img{width:100%;height:100%;object-fit:cover;}
@@ -1291,14 +1303,18 @@ body{
 
   <div class="screen" id="listen">
     <div class="statusbar apple" id="listenBar"><span id="lisTimeTop">9:41</span><span class="right">100%</span></div>
-    <div class="navbar"><div class="back" onclick="go('home')">‹</div><div class="title">一起听</div><div class="actbtn" onclick="addSongPrompt()">＋ 点歌</div></div>
+    <div class="navbar"><div class="back" onclick="lisLeaveScreen()">‹</div><div class="title">一起听</div><div class="actbtn" style="margin-right:6px;background:#e08a8a" onclick="lisUnbindAsk()">退出一起听</div><div class="actbtn" onclick="addSongPrompt()">＋ 点歌</div></div>
     <div class="listen-body">
+      <div class="lis-pickwrap" id="lisPickWrap" style="display:none;flex:1;overflow-y:auto;">
+        <div class="lis-pick" id="lisPickList"></div>
+      </div>
       <div class="lis-pages" id="lisPages">
         <div class="lis-page" id="lisP1">
           <div class="listen-stage">
             <div class="listen-person"><div class="lav" id="lisAvHim">他</div><div class="lnm" id="lisNmHim">他</div></div>
             <div class="listen-person"><div class="lav" id="lisAvMe">我</div><div class="lnm" id="lisNmMe">我</div></div>
           </div>
+          <div class="lis-meta" id="lisMeta"></div>
           <div class="listen-now"><div class="snm" id="lisSong">还没有一起听的歌</div><div class="sby" id="lisBy">点右上角，贴一首歌的链接</div></div>
           <div class="lis-onelyric" id="lisOneLyric"></div>
           <div class="lis-progwrap"><span class="lpgt" id="lisCurTime">0:00</span><input class="lis-prog" id="lisProg" type="range" min="0" max="1000" value="0" step="1"><span class="lpgt" id="lisDur">0:00</span></div>
@@ -1638,13 +1654,16 @@ body{
         <div class="row"><div class="lab">梦角主动拍你概率（%）</div><input type="number" id="setPatRate" min="0" max="100" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
       </div>
       <div class="group">
+        <h4>一起听</h4>
+        <div class="row"><div class="lab">当前距离（自己填，如 3.2 公里）</div><input type="text" id="setLisDistance" oninput="saveLisDistance()" onchange="saveLisDistance()" onblur="saveLisDistance()" style="max-width:130px" placeholder="如 3.2 公里"></div>
+      </div>
+      <div class="group">
         <h4>来信</h4>
         <div class="row"><div class="lab">梦角回信间隔（分钟）</div><input type="number" id="setReplyGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">回信/来信最少句数</div><input type="number" id="setLetterMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">回信/来信最多句数</div><input type="number" id="setLetterMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角主动来信间隔（分钟）</div><input type="number" id="setLetterGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角回信概率（%）</div><input type="number" id="setReplyRate" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角主动来信概率（%）</div><input type="number" id="setLetterRate" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">来信自检（点一下看状态）</div><div class="chip" onclick="yzLetterDiagShow()">检查</div></div>
       </div>
       <div class="group">
         <h4>聊天显示</h4>
@@ -2536,7 +2555,7 @@ function go(id){
   if(id==='together')renderTiles();
   if(id==='settings'){fillSettings();try{yzBeautyRender();}catch(e){}try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}try{yzMarkSetStatus();}catch(e){}}
   if(id==='moments')renderMoments();
-  if(id==='listen'){ D._yzLisEnterMs=Date.now(); try{D._yzStampBaseLis=(D.listenMsgs||[]).length-1;}catch(e){} hideLisFloat(); try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
+  if(id==='listen'){ D._yzLisEnterMs=Date.now(); try{D._yzStampBaseLis=(D.listenMsgs||[]).length-1;}catch(e){} hideLisFloat(); if(!D.lisBound){ try{ lisOpenPick(); }catch(e){} } else { try{ lisShowPlayer(); }catch(e){} } try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
   if(id!=='listen'){ try{ setTimeout(yzMaybeShowFloat,60); }catch(e){} }
   if(id==='letters')renderLetters();
   if(id==='packs')renderPacks();
@@ -5702,13 +5721,6 @@ function pushLetterByHim(){
   try{ sys((D.nick||'他')+' 给你寄了一封信'); }catch(e){}
   if($('#letters').classList.contains('active'))renderLetters();
 }
-function yzLetterDiagShow(){
-  try{
-    var d=(window.__yzLetterDiag&&window.__yzLetterDiag())||{};
-    var msg='间隔(分)：'+d.gap+'\n概率(%)：'+d.rate+'\n上次抽签：'+(d.lastAt||'还没跑过')+'\n已经过(分)：'+(d.agoMin===null?'-':d.agoMin)+'\n定时器存活：'+(d.timerAlive?'是':'否（这就是问题）')+'\n已有信件数：'+d.lettersCount;
-    alert(msg);
-  }catch(e){ alert('自检失败：'+e.message); }
-}
 function startLetterLoop(){
   if(letterTimer)clearInterval(letterTimer);
   if(!D._yzLetterAt) D._yzLetterAt=Date.now();
@@ -5726,13 +5738,97 @@ function startLetterLoop(){
 }
 
 /* ===== 一起听 ===== */
+/* ===== 一起听：绑定梦角 / 计时 / 距离 / 解绑 ===== */
+function lisBoundId(){ return D.lisBound||''; }
+function lisBoundChara(){ try{ return (D.charas||[]).find(function(c){return c.id===D.lisBound;})||null; }catch(e){ return null; } }
+function lisOpenPick(){
+  var box=document.getElementById('lisPickList'); if(!box)return;
+  var list=D.charas||[];
+  if(!list.length){ box.innerHTML='<div style="padding:20px 6px;color:var(--sub);font-size:13px;text-align:center">还没有梦角，先去聊天列表添加</div>'; }
+  else{
+    box.innerHTML='';
+    list.forEach(function(c){
+      var av=c.avatar?('<img src="'+c.avatar+'">'):(((c.nick||'')[0])||'');
+      box.insertAdjacentHTML('beforeend','<div class="lpk" onclick="lisBind(\''+c.id+'\')"><div class="lpkav">'+av+'</div><div class="lpknm">'+esc(c.nick||'梦角')+'</div><div class="lpkgo">一起听 ›</div></div>');
+    });
+  }
+  document.getElementById('lisPickWrap').style.display='';
+  document.getElementById('lisPages').style.display='none';
+}
+function lisShowPlayer(){
+  document.getElementById('lisPickWrap').style.display='none';
+  document.getElementById('lisPages').style.display='';
+}
+function lisBind(id){
+  if(!id)return;
+  D.lisBound=id;
+  /* 首次绑定：开始计时；重新绑定：从上次解绑处继续（解绑期间不计时）*/
+  if(!D.lisStartAt) D.lisStartAt=Date.now();
+  D.lisAccumMs=D.lisAccumMs||0;
+  save();
+  lisShowPlayer();
+  renderListen();
+  toast('已和「'+((lisBoundChara()||{}).nick||'梦角')+'」一起听');
+}
+function lisElapsedMs(){
+  try{
+    var base=D.lisAccumMs||0;
+    if(D.lisBound && D.lisStartAt) base += (Date.now()-D.lisStartAt);
+    return base;
+  }catch(e){ return 0; }
+}
+function lisMetaText(){
+  var ch=lisBoundChara(); var nm=ch?((ch.nick)||'梦角'):'梦角';
+  var dist=(D.lisDistance||'').trim();
+  var ms=lisElapsedMs();
+  var mins=Math.floor(ms/60000);
+  var dpart = dist? ('当前距离'+nm+' '+dist+'，') : '';
+  return dpart+'已一起听 '+nm+' <b>'+mins+'</b> 分钟';
+}
+function yzLisTickMeta(){
+  try{
+    var el=document.getElementById('lisMeta');
+    if(!el)return;
+    if(!D.lisBound){ el.textContent=''; return; }
+    el.innerHTML=lisMetaText();
+  }catch(e){}
+}
+function lisUnbindAsk(){
+  var ch=lisBoundChara(); var nm=ch?((ch.nick)||'梦角'):'梦角';
+  if(!D.lisBound){ toast('还没有和谁一起听'); return; }
+  askConfirm('确认和「'+nm+'」解除一起听吗？',function(){
+    /* 累计已听时长；解绑期间不再计时 */
+    D.lisAccumMs=lisElapsedMs();
+    D.lisBound=''; D.lisStartAt=0;
+    save();
+    lisOpenPick();
+    yzLisTickMeta();
+    toast('已和「'+nm+'」解除一起听');
+  });
+}
+function lisLeaveScreen(){ go('home'); }
+window.lisBind=lisBind;window.lisUnbindAsk=lisUnbindAsk;window.lisLeaveScreen=lisLeaveScreen;
+
 function renderListen(){
   D.listenSongs=D.listenSongs||[];D.listenMsgs=D.listenMsgs||[];
   const him=$('#lisAvHim'),me=$('#lisAvMe');
   if(him)him.innerHTML=D.avatarHim?`<img src="${D.avatarHim}">`:(D.nick||'他')[0];
   if(me)me.innerHTML=D.avatarMe?`<img src="${D.avatarMe}">`:(D.myNick||'我')[0];
-  if($('#lisNmHim'))$('#lisNmHim').textContent=D.nick||'他';
-  if($('#lisNmMe'))$('#lisNmMe').textContent=D.myNick||'我';
+  /* 绑定梦角的头像与昵称 */
+  try{
+    var _bc=lisBoundChara();
+    var _bnm=_bc?(_bc.nick||'梦角'):'梦角';
+    if($('#lisNmHim'))$('#lisNmHim').textContent=_bnm;
+    if(him){
+      if(_bc&&_bc.avatar){ him.innerHTML='<img src="'+_bc.avatar+'">'; }
+      else{ him.innerHTML=(_bnm[0]||'他'); }
+    }
+    if($('#lisNmMe'))$('#lisNmMe').textContent=D.myNick||'我';
+    /* 头像慢慢挨在一起 */
+    var _st=document.querySelector('.listen-stage');
+    if(_st){ if(D.lisBound){ setTimeout(function(){ _st.classList.add('near'); },350); } else { _st.classList.remove('near'); } }
+    yzLisTickMeta();
+  }catch(e){}
   const cur=D.listenSongs.length?D.listenSongs[D.listenSongs.length-1]:null;
   if($('#lisSong')){
     if(cur){$('#lisSong').textContent=cur.title||'正在一起听';$('#lisBy').textContent=cur.by?('— '+cur.by):'';}
@@ -7920,6 +8016,7 @@ function fillSettings(){
   if($('#setTranAmts'))$('#setTranAmts').value=(D.tranAmts||[]).join('\n');
   if($('#setTranNotes'))$('#setTranNotes').value=(D.tranNotes||[]).join('\n');
   if($('#setReplyGap'))$('#setReplyGap').value=D.replyGap!==undefined?D.replyGap:5;
+  try{ if($('#setLisDistance'))$('#setLisDistance').value=D.lisDistance||''; }catch(e){}
   if($('#setLetterGap'))$('#setLetterGap').value=D.letterGap!==undefined?D.letterGap:10;
   if($('#setReplyRate'))$('#setReplyRate').value=D.replyRate!==undefined?D.replyRate:100;
   if($('#setLetterRate'))$('#setLetterRate').value=D.letterRate!==undefined?D.letterRate:100;
@@ -8275,6 +8372,8 @@ function getChatBg(){
   if(v.startsWith('http')||v.startsWith('data:'))return `linear-gradient(rgba(0,0,0,.03),rgba(0,0,0,.03)),url('${v}') center/cover no-repeat`;
   return v;
 }
+function saveLisDistance(){ try{ var el=document.getElementById('setLisDistance'); if(el){ D.lisDistance=String(el.value||'').trim(); save(); yzLisTickMeta(); } }catch(e){} }
+function fillLisDistance(){ try{ var el=document.getElementById('setLisDistance'); if(el)el.value=D.lisDistance||''; if($('#setLisDistance')&&!$('#setLisDistance').value)$('#setLisDistance').value=D.lisDistance||''; }catch(e){} }
 function setAvatarShape(s){ try{ D.avatarShape=(s==='square')?'square':'round'; save(); applyCustom(); yzMarkAvatarShape(); }catch(e){}
 }
 function yzMarkAvatarShape(){ try{ var r=document.getElementById('avShapeRound'), q=document.getElementById('avShapeSquare'); var v=(D.avatarShape==='square')?'square':'round'; if(r)r.classList.toggle('on',v==='round'); if(q)q.classList.toggle('on',v==='square'); }catch(e){} }
@@ -8697,6 +8796,7 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
   if(!D.packs)D.packs=[];
   try{startProactiveLoop();}catch(e){}
   try{setTimeout(yzCheckVersion,2500);}catch(e){}
+  try{ if(!window._yzLisMetaTimer){ window._yzLisMetaTimer=setInterval(function(){ try{ var l=document.getElementById('listen'); if(l&&l.classList.contains('active')){ yzLisTickMeta(); } }catch(e){} }, 1000); } }catch(e){}
   try{ if(!window._yzStampTimer){ window._yzStampTimer=setInterval(function(){ try{ var c=document.getElementById("chat"); if(c&&c.classList.contains("active")){ renderChat(); } }catch(e){} }, 1800000); } }catch(e){}
   try{yzApplyHomeChara();}catch(e){}
   try{ if(location.search.indexOf('v=')>=0){ history.replaceState(null,'',location.pathname); } }catch(e){}
