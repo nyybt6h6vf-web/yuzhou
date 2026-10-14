@@ -3520,6 +3520,60 @@ function pickMultiCards(){
   if(out.length<=1)return out[0]||pickCard();
   return out.join('');
 }
+/* ===== 通用：按设置的概率生成一轮回复计划 plan =====
+   规则：
+   1) 总条数 n = sendMin~sendMax 随机
+   2) 先掷主字卡：中则主字卡发 k 条（k 也= sendMin~sendMax 随机，最多 n）
+   3) 有空位：表情包/颜文字/语音 同时掷，谁中谁发，顺序随机；超出位则随机抽到不超
+   4) 不足最小条数：不看概率随机抽四方补到 = sendMin
+   5) 所有消息总数不超 sendMax
+   opt: {cid}
+   返回： plan = [{kind:'main'|'img'|'kao'|'voice', text/src, sec}] */
+function yzBuildPlan(opt){
+  var _cid=(opt&&opt.cid)?opt.cid:((typeof yzCurKaoCharId==='function')?yzCurKaoCharId():'');
+  var _mainP=yzMainRate();
+  var _vP=Math.max(0,parseFloat(D.voiceRate)||0);
+  var _packP=Math.max(0,parseFloat(D.packRate)||0);
+  var _kaoP=(typeof yzCurKaoRate==='function')?yzCurKaoRate():0;
+  var _packs=(D.packs||[]);
+  var _kaoPool=yzKaoPoolFor(_cid);
+  var _minN=Math.max(1,parseInt(D.sendMin)||1);
+  var _maxN=Math.max(_minN,parseInt(D.sendMax)||1);
+  function _roll(pr){ if(!(pr>0))return false; if(pr>=100)return true; return Math.random()*100<pr; }
+  function _mkMain(){ var t=pickMultiCardsFor(_cid); return t?{kind:'main',text:yzMaybeMixEmoji(t,_cid)}:null; }
+  function _mkPack(){ return _packs.length?{kind:'img',src:_packs[Math.floor(Math.random()*_packs.length)]}:null; }
+  function _mkKao(){ return _kaoPool.length?{kind:'kao',text:_kaoPool[Math.floor(Math.random()*_kaoPool.length)]}:null; }
+  function _mkVoice(){ var t=pickMultiCardsFor(_cid); return t?{kind:'voice',text:t,sec:1+Math.floor(Math.random()*10)}:null; }
+  function _mkRandom(){
+    var pool=[function(){return _mkMain();}];
+    if(_packs.length)pool.push(function(){return _mkPack();});
+    if(_kaoPool.length)pool.push(function(){return _mkKao();});
+    pool.push(function(){return _mkVoice();});
+    for(var _g=0;_g<8;_g++){ var f=pool[Math.floor(Math.random()*pool.length)]; var r=f(); if(r)return r; }
+    return _mkMain();
+  }
+  var n=_minN+Math.floor(Math.random()*(_maxN-_minN+1));
+  var plan=[]; var used=0;
+  if(_roll(_mainP)){
+    var k=_minN+Math.floor(Math.random()*(_maxN-_minN+1));
+    if(k>n)k=n;
+    for(var _i=0;_i<k;_i++){ var mm=_mkMain(); if(mm){ plan.push(mm); used++; } }
+  }
+  var _rest=n-used;
+  if(_rest>0){
+    var hits=[];
+    if(_roll(_packP)){ var pk=_mkPack(); if(pk)hits.push(pk); }
+    if(_roll(_kaoP)){ var kj=_mkKao(); if(kj)hits.push(kj); }
+    if(_roll(_vP)){ var vc=_mkVoice(); if(vc)hits.push(vc); }
+    hits.sort(function(){return Math.random()-0.5;});
+    while(hits.length>_rest){ hits.splice(Math.floor(Math.random()*hits.length),1); }
+    for(var _h=0;_h<hits.length;_h++){ plan.push(hits[_h]); used++; }
+  }
+  while(plan.length<_minN){ var rb=_mkRandom(); if(rb){ plan.push(rb); } else { break; } }
+  if(!plan.length){ var fb=_mkMain()||_mkVoice(); if(fb)plan.push(fb); }
+  if(plan.length>_maxN)plan=plan.slice(0,_maxN);
+  return plan;
+}
 function respond(){
   // 实时读设置框，避免 D.delay 被 fillSettings 旧值覆盖导致时长不符
   try{ yzReadChatSettingsLive(); }catch(e){}
@@ -3531,50 +3585,9 @@ function respond(){
   var _cv=yzCurConv();
   if(_cv&&_cv.type==='group'){ respondGroup(_cv); return; }
   const delay=replyDelayMs();
-  const maxN=Math.max(1,parseInt(D.sendMax)||1);
-  var n=nextCount();
-  if(n>maxN)n=maxN;
   const gap=sendGapMs();
-  /* ===== mainRate：本轮是否保证“至少一条主字卡”（不是每条都是主字卡）
-     voiceRate/packRate/kaoRate：在本轮基础上“额外追加”，不抢占主字卡 位置 */
-  var _cid=(typeof yzCurKaoCharId==='function')?yzCurKaoCharId():'';
-  var _mainP=yzMainRate();
-  var _vP=Math.max(0,parseFloat(D.voiceRate)||0);
-  var _packP=Math.max(0,parseFloat(D.packRate)||0);
-  var _kaoP=(typeof yzCurKaoRate==='function')?yzCurKaoRate():0;
-  var _packs=(D.packs||[]);
-  var _kaoPool=yzKaoPoolFor(_cid);
-  var plan=[];
-  var _mainHit=(_mainP>0 && Math.random()*100<_mainP);
-  var _mainBase=_mainHit?1:0;
-  for(var _i=0;_i<n;_i++){
-    if(_i<_mainBase){ plan.push({kind:'main',text:yzMaybeMixEmoji(pickMultiCardsFor(_cid),_cid)}); }
-    else { plan.push(null); }
-  }
-  for(var _j=0;_j<plan.length;_j++){
-    if(plan[_j]) continue;
-    if(_mainP>0 && Math.random()*100<_mainP){
-      var _mt2=pickMultiCardsFor(_cid);
-      if(_mt2){ plan[_j]={kind:'main',text:yzMaybeMixEmoji(_mt2,_cid)}; continue; }
-    }
-    if(_packP>0 && _packs.length && Math.random()*100<_packP){
-      plan[_j]={kind:'img',src:_packs[Math.floor(Math.random()*_packs.length)]}; continue;
-    }
-    if(_kaoP>0 && _kaoPool.length && Math.random()*100<_kaoP){
-      plan[_j]={kind:'kao',text:_kaoPool[Math.floor(Math.random()*_kaoPool.length)]}; continue;
-    }
-    if(_mainP>0){ plan[_j]={kind:'main',text:yzMaybeMixEmoji(pickMultiCardsFor(_cid),_cid)}; }
-  }
-  plan=plan.filter(function(x){return !!x;});
-  if(!plan.length){ plan.push({kind:'main',text:yzMaybeMixEmoji(pickMultiCardsFor(_cid),_cid)}); }
-  if(plan.length>maxN)plan=plan.slice(0,maxN);
-  /* 语音：额外追加，不占 maxN 名额（否则主字卡填满时会被砍掉，永远发不出） */
-  if(_vP>0 && Math.random()*100<_vP){
-    var _vt=pickMultiCardsFor(_cid);
-    if(_vt) plan.push({kind:'voice',text:_vt,sec:1+Math.floor(Math.random()*10)});
-  }
-
-  function _emit(item,isFirst){
+  var plan=yzBuildPlan({cid:yzCurKaoCharId()});
+  function _emit(item){
     try{
       if(item.kind==='voice'){ push({from:'him',type:'voice',sec:item.sec||3,text:item.text,_t:clockStr()}); }
       else if(item.kind==='img'){ push({from:'him',type:'img',src:item.src,_t:clockStr()}); }
@@ -3586,9 +3599,9 @@ function respond(){
   plan.forEach(function(item,idx){
     var t=delay+gap*idx;
     if(idx===_last){
-      setTimeout(function(){ setTyping(false); if(idx===0)markRead(); _emit(item,idx===0); },t);
+      setTimeout(function(){ setTyping(false); if(idx===0)markRead(); _emit(item); },t);
     }else{
-      setTimeout(function(){ _emit(item,idx===0); },t);
+      setTimeout(function(){ _emit(item); },t);
     }
   });
 }
@@ -3703,24 +3716,24 @@ function pickQuoteRefFrom(arr){
 function himSayFor(who,opt){
   /* 连发（免打扰）模式：梦角一条也不发 */
   try{ if(D.sendHold) return; }catch(e){}
-  /* 其他场景（主动消息/群聊等）：先主字卡，再最多追一条表情包或颜文字 */
-  himSayMain(who,opt);
   var _p=(opt&&opt.push)?opt.push:push;
   var _cid=(opt&&opt.cid)?opt.cid:(who||null);
-  var picked=false;
-  var pr=parseFloat(D.packRate)||0;
-  if(pr>0&&(D.packs||[]).length&&Math.random()*100<pr){
-    var p=D.packs[Math.floor(Math.random()*D.packs.length)];
-    (function(P){setTimeout(function(){var m={from:'him',type:'img',src:P,_t:clockStr()};if(who)m.who=who;_p(m);},700+Math.random()*600);})(p);
-    picked=true;
-  }
-  if(!picked){
-    var id=_cid||(typeof yzCurKaoCharId==='function'?yzCurKaoCharId():'');
-    var km=(typeof yzMaybeKaomojiFor==='function')?yzMaybeKaomojiFor(id):'';
-    if(km){ setTimeout(function(){ var m={from:'him',text:km,type:'text',_t:clockStr()}; if(who)m.who=who; _p(m); },600+Math.random()*500); }
-  }
+  var delay=replyDelayMs();
+  var gap=sendGapMs();
+  var plan=yzBuildPlan({cid:_cid});
+  plan.forEach(function(item,idx){
+    var t=delay+gap*idx;
+    (function(it){
+      setTimeout(function(){
+        try{
+          if(it.kind==='voice'){ var m={from:'him',type:'voice',sec:it.sec||3,text:it.text,_t:clockStr()}; if(who)m.who=who; _p(m); }
+          else if(it.kind==='img'){ var m2={from:'him',type:'img',src:it.src,_t:clockStr()}; if(who)m2.who=who; _p(m2); }
+          else { var m3={from:'him',text:it.text,type:'text',_t:clockStr()}; if(who)m3.who=who; _p(m3); }
+        }catch(e){}
+      },t);
+    })(item);
+  });
 }
-
 function himPat(){
   try{ if(D.sendHold) return; }catch(e){}
   const ps=(D.pats||[]);
@@ -6580,20 +6593,21 @@ function listenReply(){
   var gap=(typeof sendGapMs==='function')?sendGapMs():delay;
   D._ltyping=true;
   if($('#listen').classList.contains('active'))renderListen();
-  setTimeout(function(){
-    D._ltyping=false;
-    if($('#listen').classList.contains('active'))renderListen();
-    himSayMain(opt.cid,opt);
-    for(var i=1;i<n;i++){ (function(k){ setTimeout(function(){ himSayMain(opt.cid,opt); },gap*k); })(i); }
-    var left=maxN-n;
-    if(left>0){
-      var idx=0;
-      var hitPack=(parseFloat(D.packRate)||0)>0 && (D.packs||[]).length && Math.random()*100<(parseFloat(D.packRate)||0);
-      var _km=(typeof yzMaybeKaomojiFor==='function')?yzMaybeKaomojiFor(opt.cid):'';
-      if(hitPack){ idx++; var _pp=D.packs[Math.floor(Math.random()*D.packs.length)]; (function(P){setTimeout(function(){ pushListenMsg('him','','img',P); },gap*(n+idx-1));})(_pp); }
-      if(_km && (left-idx)>0){ idx++; (function(K){setTimeout(function(){ pushListenMsg('him',K,'text',''); },gap*(n+idx-1));})(_km); }
-    }
-  },delay);
+  var _plan=(typeof yzBuildPlan==='function')?yzBuildPlan({cid:opt.cid}):[];
+  var _off=0;
+  _plan.forEach(function(item,idx){
+    (function(it,k){
+      setTimeout(function(){
+        if(k===0){ D._ltyping=false; if($('#listen').classList.contains('active'))renderListen(); }
+        try{
+          if(it.kind==='voice'){ pushListenMsg('him',it.text,'voice',''); }
+          else if(it.kind==='img'){ pushListenMsg('him','','img',it.src); }
+          else { pushListenMsg('him',it.text,'text',''); }
+        }catch(e){}
+      },delay+gap*k);
+    })(item,idx);
+  });
+  if(!_plan.length){ D._ltyping=false; if($('#listen').classList.contains('active'))renderListen(); }
 }
 function sendListen(){
   const i=$('#lisInput'),v=i.value.trim();if(!v)return;
@@ -6954,21 +6968,20 @@ function gmkReplyLater(){
   var gap=(typeof sendGapMs==='function')?sendGapMs():delay;
   _gmk.typing=true; if($('#gomoku')&&$('#gomoku').classList.contains('active'))gmkChatRender();
   setTimeout(function(){
-    himSayMain(_gmk.cid,opt);
-    for(var i=1;i<n;i++){
-      (function(k){ setTimeout(function(){ himSayMain(_gmk.cid,opt); },gap*k); })(i);
-    }
-    setTimeout(function(){ _gmk.typing=false; if($('#gomoku')&&$('#gomoku').classList.contains('active'))gmkChatRender(); }, gap*(n-1)+600);
-    /* 剩余坑：最多再给 1 条表情包、1 条颜文字 */
-    var left=maxN-n;
-    if(left>0){
-      var idx=0;
-      var hitPack=(parseFloat(D.packRate)||0)>0 && (D.packs||[]).length && Math.random()*100<(parseFloat(D.packRate)||0);
-      var _km=(typeof yzMaybeKaomojiFor==='function')?yzMaybeKaomojiFor(_gmk.cid):'';
-      var hitKm=!!_km;
-      if(hitPack){ idx++; var _pp=D.packs[Math.floor(Math.random()*D.packs.length)]; (function(P){setTimeout(function(){ gmkPush('him','','img',P); },gap*(n+idx-1));})(_pp); }
-      if(hitKm && (left-idx)>0){ idx++; (function(K){setTimeout(function(){ gmkPush('him',K,'text',''); },gap*(n+idx-1));})(_km); }
-    }
+    var _plan=(typeof yzBuildPlan==='function')?yzBuildPlan({cid:_gmk.cid}):[];
+    _plan.forEach(function(item,idx){
+      (function(it,k){
+        setTimeout(function(){
+          if(k===0){ _gmk.typing=false; if($('#gomoku')&&$('#gomoku').classList.contains('active'))gmkChatRender(); }
+          try{
+            if(it.kind==='voice'){ gmkPush('him',it.text,'voice',''); }
+            else if(it.kind==='img'){ gmkPush('him','','img',it.src); }
+            else { gmkPush('him',it.text,'text',''); }
+          }catch(e){}
+        },gap*k);
+      })(item,idx);
+    });
+    if(!_plan.length){ _gmk.typing=false; if($('#gomoku')&&$('#gomoku').classList.contains('active'))gmkChatRender(); }
   },delay);
 }
 
@@ -7382,18 +7395,20 @@ function tttReplyLater(){
   var gap=(typeof sendGapMs==='function')?sendGapMs():delay;
   _ttt.typing=true; if($('#ttt')&&$('#ttt').classList.contains('active'))tttChatRender();
   setTimeout(function(){
-    himSayMain(_ttt.cid,opt);
-    for(var i=1;i<n;i++){ (function(k){ setTimeout(function(){ himSayMain(_ttt.cid,opt); },gap*k); })(i); }
-    setTimeout(function(){ _ttt.typing=false; if($('#ttt')&&$('#ttt').classList.contains('active'))tttChatRender(); }, gap*(n-1)+600);
-    var left=maxN-n;
-    if(left>0){
-      var idx=0;
-      var hitPack=(parseFloat(D.packRate)||0)>0 && (D.packs||[]).length && Math.random()*100<(parseFloat(D.packRate)||0);
-      var _km=(typeof yzMaybeKaomojiFor==='function')?yzMaybeKaomojiFor(_ttt.cid):'';
-      var hitKm=!!_km;
-      if(hitPack){ idx++; var _pp=D.packs[Math.floor(Math.random()*D.packs.length)]; (function(P){setTimeout(function(){ tttPush('him','','img',P); },gap*(n+idx-1));})(_pp); }
-      if(hitKm && (left-idx)>0){ idx++; (function(K){setTimeout(function(){ tttPush('him',K,'text',''); },gap*(n+idx-1));})(_km); }
-    }
+    var _plan=(typeof yzBuildPlan==='function')?yzBuildPlan({cid:_ttt.cid}):[];
+    _plan.forEach(function(item,idx){
+      (function(it,k){
+        setTimeout(function(){
+          if(k===0){ _ttt.typing=false; if($('#ttt')&&$('#ttt').classList.contains('active'))tttChatRender(); }
+          try{
+            if(it.kind==='voice'){ tttPush('him',it.text,'voice',''); }
+            else if(it.kind==='img'){ tttPush('him','','img',it.src); }
+            else { tttPush('him',it.text,'text',''); }
+          }catch(e){}
+        },gap*k);
+      })(item,idx);
+    });
+    if(!_plan.length){ _ttt.typing=false; if($('#ttt')&&$('#ttt').classList.contains('active'))tttChatRender(); }
   },delay);
 }
 function tttSend(){
