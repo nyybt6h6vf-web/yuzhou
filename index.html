@@ -3565,13 +3565,14 @@ function respond(){
     }
     if(_mainP>0){ plan[_j]={kind:'main',text:yzMaybeMixEmoji(pickMultiCardsFor(_cid),_cid)}; }
   }
+  plan=plan.filter(function(x){return !!x;});
+  if(!plan.length){ plan.push({kind:'main',text:yzMaybeMixEmoji(pickMultiCardsFor(_cid),_cid)}); }
+  if(plan.length>maxN)plan=plan.slice(0,maxN);
+  /* 语音：额外追加，不占 maxN 名额（否则主字卡填满时会被砍掉，永远发不出） */
   if(_vP>0 && Math.random()*100<_vP){
     var _vt=pickMultiCardsFor(_cid);
     if(_vt) plan.push({kind:'voice',text:_vt,sec:1+Math.floor(Math.random()*10)});
   }
-  plan=plan.filter(function(x){return !!x;});
-  if(!plan.length){ plan.push({kind:'main',text:yzMaybeMixEmoji(pickMultiCardsFor(_cid),_cid)}); }
-  if(plan.length>maxN)plan=plan.slice(0,maxN);
 
   function _emit(item,isFirst){
     try{
@@ -3664,17 +3665,6 @@ function himSayMain(who,opt){
   var _txt;
   if(_cid){ _txt=pickMultiCardsFor(_cid); }
   else { _txt=pickMultiCards(); }
-  /* 语音消息：按概率把这条文字转成语音（带转文字） */
-  try{
-    var _vr=parseFloat(D.voiceRate)||0;
-    if(_vr>0 && _txt && Math.random()*100<_vr){
-      var _sec=1+Math.floor(Math.random()*10); /* 1~15 秒 */
-      var vmsg={from:'him',type:'voice',sec:_sec,text:_txt,_t:clockStr()};
-      if(who)vmsg.who=who;
-      _p(vmsg);
-      return;
-    }
-  }catch(e){}
   /* emoji 混入主字卡（充鼙从字卡库抄） */
   try{ _txt=yzMaybeMixEmoji(_txt,_cid); }catch(e){}
   var msg={from:'him',text:_txt,type:'text',_t:clockStr()};
@@ -3687,6 +3677,16 @@ function himSayMain(who,opt){
   }
   if(who)msg.who=who;
   _p(msg);
+  /* 语音：额外追加，不抢主字卡位置 */
+  try{
+    var _vr=parseFloat(D.voiceRate)||0;
+    if(_vr>0 && Math.random()*100<_vr){
+      var _vsec=1+Math.floor(Math.random()*10);
+      var _vmsg={from:'him',type:'voice',sec:_vsec,text:(_cid?pickMultiCardsFor(_cid):pickMultiCards()),_t:clockStr()};
+      if(who)_vmsg.who=who;
+      setTimeout(function(){ _p(_vmsg); },600+Math.random()*400);
+    }
+  }catch(e){}
 }
 function pickQuoteRefFrom(arr){
   var N=10; var start=Math.max(0,(arr||[]).length-N); var pool=[];
