@@ -93,6 +93,8 @@ body.perf-lite .cbtn.yes,body.perf-lite .gmk-startbtn,body.perf-lite .ttt-startb
 .app:active{transform:scale(.86);}
 .icon{width:56px;height:56px;border-radius:19px;display:flex;align-items:center;justify-content:center;background:var(--icon-bg);color:var(--icon-fg);box-shadow:0 6px 18px rgba(0,0,0,.10),inset 0 1px 1px rgba(255,255,255,.25);}
 .icon svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+svg [fill="currentColor"]{stroke:none;}
 .app span{font-size:11.5px;color:var(--text);opacity:.82;}
 .j1{background:var(--icon-bg);color:var(--icon-fg);}
 .j2{background:var(--icon-bg);color:var(--icon-fg);}
@@ -294,6 +296,8 @@ body.perf-lite .cbtn.yes,body.perf-lite .gmk-startbtn,body.perf-lite .ttt-startb
 .plusitem:active{transform:scale(.92);}
 .plusitem .pi{width:58px;height:58px;border-radius:20px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,var(--icon-bg),var(--card));color:var(--icon-fg);box-shadow:0 4px 14px rgba(120,130,200,.16);}
 .plusitem .pi svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+/* 全局：所有内联图标 SVG 统一空心细线风（内联 fill/stroke 仍优先） */
+.moact svg,.moc svg,.drow svg,.mo svg,.letter-item svg,.diaryitem svg,.scIc svg,.auto-dot + svg,.ib svg,.cbtn svg,.phbtn svg,.phmini svg,.phbootlogo svg,.phchg svg{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;vertical-align:-0.12em;}
 .plusitem span{font-size:11.5px;color:var(--sub);letter-spacing:.3px;}
 .mask{position:absolute;inset:0;background:rgba(10,12,25,.35);opacity:0;pointer-events:none;transition:.25s;z-index:15;}
 .mask.show{opacity:1;pointer-events:auto;}
@@ -2075,7 +2079,7 @@ const ICONS={
  album:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-6 6-3-3-4 4"/></svg>',
  poke:'<svg viewBox="0 0 24 24"><path d="M12 21s-7-4.5-9.3-8.5A5 5 0 0 1 12 6a5 5 0 0 1 9.3 6.5C19 16.5 12 21 12 21z"/><path d="M12 9.5v4.5"/><path d="M9.8 11.5h4.4"/></svg>',
  shop:'<svg viewBox="0 0 24 24"><path d="M4 8h16l-1.5 11H5.5z"/><path d="M8.5 8V6a3.5 3.5 0 0 1 7 0v2"/></svg>',
- wallet:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1.3" fill="currentColor" stroke="none"/></svg>',
+ wallet:'<svg viewBox="0 0 24 24"><rect x="6" y="4" width="14" height="9" rx="1.6"/><rect x="4" y="7.5" width="14" height="9" rx="1.6"/><rect x="2" y="11" width="14" height="9" rx="1.6"/><circle cx="9" cy="15.5" r="2"/></svg>',
  diary:'<svg viewBox="0 0 24 24"><path d="M6 3h11a2 2 0 0 1 2 2v16H8a2 2 0 0 1-2-2z"/><path d="M6 3v16"/><path d="M10 8h6"/><path d="M10 12h6"/></svg>',
  period:'<svg viewBox="0 0 24 24"><path d="M12 21s-7-5-7-10a7 7 0 0 1 14 0c0 5-7 10-7 10z"/><circle cx="12" cy="11" r="2.5"/></svg>',
  moment:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/></svg>',
