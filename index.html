@@ -1679,6 +1679,7 @@ svg [fill="currentColor"]{stroke:none;}
         <div class="row"><div class="lab">一起听邀请间隔（分钟）</div><input type="number" id="setLisAskGap" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">转账收款概率（%）</div><input type="number" id="setTran" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角主动转账概率（%）</div><input type="number" id="setTranTo" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角转账检查间隔（分钟）</div><input type="number" id="setTranGap" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row" style="flex-direction:column;align-items:stretch">
            <div class="lab" style="margin-bottom:8px">转账金额（每行一个，随机抽一个）</div>
            <textarea id="setTranAmts" placeholder="13.14&#10;52&#10;520" oninput="saveTrans()"></textarea>
@@ -2512,6 +2513,7 @@ if(o.lisAskGap===undefined)o.lisAskGap=20;
     if(o.letterGap===undefined)o.letterGap=10;
     if(o.heroImg===undefined)o.heroImg='';
     if(o.tranTo===undefined)o.tranTo=10;
+if(o.tranGap===undefined)o.tranGap=30;
     if(o.packRate===undefined)o.packRate=25;
     o.packRateLis=o.packRate;o.packRateMom=o.packRate;
     if(o.patRate===undefined)o.patRate=15;
@@ -2744,6 +2746,7 @@ function yzPhTick(){
     try{ yzGiftTick(dt); }catch(e){} /* 送东西累计计时 */
     try{ yzLisAskTick(dt); }catch(e){} /* 一起听邀请累计计时 */
     try{ yzProactiveTick(dt); }catch(e){} /* 主动发消息累计计时 */
+    try{ yzTranTick(dt); }catch(e){} /* 主动转账累计计时 */
     /* 电量没变就不写库：避免每秒全量序列化 → 越用越卡 */
     var _phSig=D.ph.my+'/'+D.ph.him+'/'+(D.ph.myCharging?1:0)+'/'+(D.ph.himCharging?1:0)+'/'+(D.ph.himPower?1:0);
     if(window.__yzPhSig!==_phSig){ window.__yzPhSig=_phSig; save(); }
@@ -3918,7 +3921,7 @@ function himPat(){
   const t=ps[Math.floor(Math.random()*ps.length)];
   var _hn=(typeof yzPhHimName==='function')?yzPhHimName():(D.nick||'他');
   if(!_hn)_hn=(D.nick||'他');
-  push({from:'him',type:'pat',text:_hn+t,_t:clockStr()});
+  push({from:'him',type:'pat',text:_hn+t,auto:true,_t:clockStr()});
 }
 function pickCard(){
   /* 始终取主字卡池，不受字卡库当前 tab（如颜文字）影响 */
@@ -8451,6 +8454,7 @@ function fillSettings(){
   if($('#setSendGap'))$('#setSendGap').value=(D.sendGap!==undefined?D.sendGap:D.delay);
   $('#setTran').value=D.tran;$('#setCall').value=D.callRate;try{if($('#setPatRate'))$('#setPatRate').value=(D.patRate!==undefined?D.patRate:15);}catch(e){}try{if($('#setVoiceRate'))$('#setVoiceRate').value=(D.voiceRate!==undefined?D.voiceRate:0);}catch(e){}
   if($('#setTranTo'))$('#setTranTo').value=D.tranTo;
+  if($('#setTranGap'))$('#setTranGap').value=(D.tranGap===undefined?30:D.tranGap);
   if($('#setPackRate'))$('#setPackRate').value=(D.packRate===undefined?25:D.packRate);
   if($('#setMomLikeRate'))$('#setMomLikeRate').value=(D.momLikeRate===undefined?50:D.momLikeRate);
   if($('#setFavLetter'))$('#setFavLetter').value=(D.favLetterRate===undefined?30:D.favLetterRate);
@@ -8770,6 +8774,7 @@ function saveProfile(){
   D.tran=parseFloat($('#setTran').value)||0;D.callRate=parseFloat($('#setCall').value)||0;
   if($('#setVoiceRate')&&String($('#setVoiceRate').value).trim()!=='')D.voiceRate=Math.max(0,Math.min(100,parseFloat($('#setVoiceRate').value)||0));
   if($('#setTranTo'))D.tranTo=parseFloat($('#setTranTo').value)||0;
+  if($('#setTranGap'))D.tranGap=Math.max(1,parseFloat($('#setTranGap').value)||30);
   if($('#setPackRate')){D.packRate=parseFloat($('#setPackRate').value)||0;D.packRateLis=D.packRate;D.packRateMom=D.packRate;}
   if($('#setMomLikeRate'))D.momLikeRate=Math.max(0,Math.min(100,parseFloat($('#setMomLikeRate').value)||0));
   if($('#setFavLetter'))D.favLetterRate=Math.max(0,Math.min(100,parseFloat($('#setFavLetter').value)||0));
@@ -9235,12 +9240,21 @@ function yzPassGate(){
 }
 let giftTimer=null;
 function startGiftLoop(){
-  if(giftTimer)clearInterval(giftTimer);
-  giftTimer=setInterval(()=>{
-    const r=parseFloat(D.tranTo)||0;
-    if(r<=0)return;
-    if(Math.random()*100<r)himTransfer();
-  },60000);
+  if(giftTimer){clearInterval(giftTimer);giftTimer=null;}
+  /* 改为累计计时：进网站才累加，按“转账检查间隔”到点才掷概率 */
+}
+function yzTranTick(dt){
+  try{
+    if(document.hidden)return;
+    if(dt<0)dt=0; if(dt>300000)dt=300000;
+    D.tranAcc=(D.tranAcc||0)+dt;
+    var gap=Math.max(1,parseFloat(D.tranGap)||30)*60000;
+    while(D.tranAcc>=gap){
+      D.tranAcc-=gap;
+      var r=parseFloat(D.tranTo)||0;
+      if(r>0 && Math.random()*100<r){ try{ himTransfer(); }catch(e){} }
+    }
+  }catch(e){}
 }
 
 document.addEventListener('click',function(e){
