@@ -141,6 +141,12 @@ body{
 .yz-timebar{display:flex;justify-content:center;margin:10px 0 6px;}
 .yz-timebar span{background:rgba(140,145,175,.18);color:var(--sub);font-size:11px;border-radius:10px;padding:3px 12px;text-align:center;max-width:86%;}
 .gmk-chat .yz-timebar,.gb-chat .yz-timebar{margin:8px 0 4px;}
+/* 主动消息标记：左侧雾蓝竖线 + 左上角小圆点 */
+.msg.yz-auto{position:relative;}
+.msg.yz-auto::before{content:"";position:absolute;left:2px;top:8px;bottom:6px;width:2px;border-radius:2px;background:var(--accent,#859ecb);opacity:.55;}
+.msg.yz-auto .bubwrap{position:relative;}
+.msg.yz-auto .bubwrap::before{content:"";position:absolute;left:-7px;top:6px;width:6px;height:6px;border-radius:50%;background:var(--accent,#859ecb);}
+
 #listenChat .yz-timebar{margin:8px 0 4px;}
 .bubble.voice{display:flex;align-items:center;gap:8px;min-width:110px;}
 .vtt{font-size:12.5px;color:inherit;opacity:.85;margin-top:5px;padding:6px 10px;background:rgba(128,128,128,.12);border-radius:10px;line-height:1.5;white-space:pre-wrap;}
@@ -2146,7 +2152,7 @@ function yzOpenConv(id){
     if(ch){ var now=Date.now(); if(!ch.firstChat)ch.firstChat=now; ch.lastChat=now; }
   }
   save();
-  try{ D._yzStampBase=((cv&&cv.msgs)?cv.msgs.length:D.msgs.length)-1; }catch(e){}
+  try{ window.__yzStampArmed=true; }catch(e){}
   renderChat();
   go('chat');
 }
@@ -2550,12 +2556,12 @@ function go(id){
   if(id==='home'){try{yzApplyHomeChara();}catch(e){}
   try{yzBindLisFloatDrag();}catch(e){}}
   if(id==='chatlist')renderChatList();
-  if(id==='chat'){D._yzChatEnterMs=Date.now(); try{D._yzStampBase=(D.msgs||[]).length-1;}catch(e){} renderChat();$('#chat').style.background=getChatBg();setTimeout(scrollBottom,30);}
+  if(id==='chat'){D._yzChatEnterMs=Date.now(); try{window.__yzStampArmed=true;}catch(e){} renderChat();$('#chat').style.background=getChatBg();setTimeout(scrollBottom,30);}
   if(id==='cards'){try{yzBindCards();renderCardTabs();}catch(e){}renderCards();}
   if(id==='together')renderTiles();
   if(id==='settings'){fillSettings();try{yzBeautyRender();}catch(e){}try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}try{yzMarkSetStatus();}catch(e){}}
   if(id==='moments')renderMoments();
-  if(id==='listen'){ D._yzLisEnterMs=Date.now(); try{D._yzStampBaseLis=(D.listenMsgs||[]).length-1;}catch(e){} hideLisFloat(); if(!D.lisBound){ try{ lisOpenPick(); }catch(e){} } else { try{ lisShowPlayer(); }catch(e){} } try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
+  if(id==='listen'){ D._yzLisEnterMs=Date.now(); try{window.__yzStampArmedLis=true;}catch(e){} hideLisFloat(); if(!D.lisBound){ try{ lisOpenPick(); }catch(e){} } else { try{ lisShowPlayer(); }catch(e){} } try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
   if(id!=='listen'){ try{ setTimeout(yzMaybeShowFloat,60); }catch(e){} }
   if(id==='letters')renderLetters();
   if(id==='packs')renderPacks();
@@ -2563,8 +2569,8 @@ function go(id){
   if(id==='period')renderPeriod();
   if(id==='shop')renderShop();
   if(id==='phony'){try{yzPhInit();yzPhRender();}catch(e){}}
-  if(id==='gomoku'){try{_gmk._yzEnterMs=Date.now();D._yzStampBaseGmk=(D.gmkMsgs||[]).length-1;renderGomoku();}catch(e){}}
-  if(id==='ttt'){try{_ttt._yzEnterMs=Date.now();D._yzStampBaseTtt=(D.tttMsgs||[]).length-1;renderTtt();}catch(e){}}
+  if(id==='gomoku'){try{_gmk._yzEnterMs=Date.now();window.__yzStampArmedGmk=true;renderGomoku();}catch(e){}}
+  if(id==='ttt'){try{_ttt._yzEnterMs=Date.now();window.__yzStampArmedTtt=true;renderTtt();}catch(e){}}
   try{yzPhStatusIcon();}catch(e){}
   if(id==='himprofile')renderHimProfile();
   if(id==='letterWrite'){const to=$('#lwTo');if(to)to.textContent=letterTo(D.nick);}
@@ -3231,17 +3237,9 @@ function renderChat(){
   if(cf){const t=curFeeling();cf.textContent=t||'';cf.style.display=t?'':'none';}
   if(!D.msgs.length){b.innerHTML='';}
   var _yzSessMs=D._yzChatEnterMs||yzNowMs();
-  var _yzStampBase=(D._yzStampBase===undefined?-1:D._yzStampBase);
-  var _yzStampDone=false;
   D.msgs.forEach((m,i)=>{
-    /* 时间戳：进入/重进后，仅第一条新消息显示 */
-    try{
-      var _curMs=yzMsOf(m,_yzSessMs);
-      if(i>_yzStampBase && !_yzStampDone){
-        b.insertAdjacentHTML('beforeend',yzStampHtml(_curMs));
-        _yzStampDone=true;
-      }
-    }catch(e){}
+    /* 时间戳：已作为真实消息存在记录里，永久保留 */
+    if(m&&m.type==='sept'){ b.insertAdjacentHTML('beforeend',yzStampHtml(yzMsOf(m,_yzSessMs))); return; }
     if(m.type==='sys'){b.insertAdjacentHTML('beforeend',`<div class="sys">${esc(m.text)}</div>`);return;}
     if(m.type==='pat'){b.insertAdjacentHTML('beforeend',`<div class="msg patrow"><div class="patline">${esc(m.text)}</div></div>`);return;}
     const me=m.from==='me';
@@ -3276,7 +3274,7 @@ function renderChat(){
       var _qw=''; try{ var _qm2=D.msgs[m.quote.i]; if(_qm2)_qw=quoteWho(_qm2)+'：'; }catch(e){}
       quoteHtml='<div class="qbox" onclick="jumpMsg('+(m.quote.i)+')">'+qsrc+'<div class="qtxt">'+esc(_qw)+((m.quote.type==='img')?'[图片]':esc(m.quote.brief))+'</div></div>';
     }
-    b.insertAdjacentHTML('beforeend',`<div class="msg ${me?'me':'him'}" data-mi="${i}">${avHTML(me?'me':'him',m.who)}<div class="bubwrap">${nameHtml}${quoteHtml}${bubbleHTML(m,i)}${readHtml}${himStamp}${meStamp}</div></div>`);
+    b.insertAdjacentHTML('beforeend',`<div class="msg ${me?'me':'him'}${(!me&&m.auto)?' yz-auto':''}" data-mi="${i}">${avHTML(me?'me':'him',m.who)}<div class="bubwrap">${nameHtml}${quoteHtml}${bubbleHTML(m,i)}${readHtml}${himStamp}${meStamp}</div></div>`);
   });
   if(D.typingOn&&D._typing&&$('#chat').classList.contains('active')){
     b.insertAdjacentHTML('beforeend',`<div class="typing-ind"><span>对方正在输入中</span><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div>`);
@@ -3285,7 +3283,7 @@ function renderChat(){
   window.__applyBubbleInline&&window.__applyBubbleInline();
   try{ var _hb=document.getElementById('holdBtn'); if(_hb)_hb.classList.toggle('on',!!D.sendHold); }catch(e){}
 }
-function push(m){try{if(m&&!m._dms)m._dms=Date.now();}catch(e){}D.msgs.push(m);save();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}if($('#chat').classList.contains('active')){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40));}}catch(e){}}
+function push(m){try{if(m&&!m._dms)m._dms=Date.now();}catch(e){}try{if(window.__yzStampArmed&&m&&m.type!=='sept'){D.msgs.push({type:'sept',_dms:Date.now()});window.__yzStampArmed=false;}}catch(e){}try{if(window.__yzActiveMsg&&m&&m.from==='him'&&m.type!=='sept'){m.auto=true;}}catch(e){}D.msgs.push(m);save();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}if($('#chat').classList.contains('active')){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40));}}catch(e){}}
 function jumpMsg(i){
   const list=document.querySelectorAll('#chatBody .msg');
   const el=list[i];if(!el)return;
@@ -4013,7 +4011,9 @@ function startProactiveLoop(){
       var target=cv;
       var oldCur=D.curConv,_oldMsgs=D.msgs;
       D.msgs=target.msgs=target.msgs||[];
+      window.__yzActiveMsg=true;
       himSay();
+      setTimeout(function(){window.__yzActiveMsg=false;},1500);
       D.msgs=_oldMsgs; D.curConv=oldCur;
       save();
       if(document.hidden){yzNotify(yzConvTitle(target),'给你发消息了');}
@@ -5841,10 +5841,9 @@ function renderListen(){
   try{ yzSyncOneLyric(); }catch(e){} /* 一起听页不显示悬浮卡片 */
   const c=$('#listenChat');if(!c)return;c.innerHTML='';
   var _lisEnter=D._yzLisEnterMs||yzNowMs();
-  var _lisBase=(D._yzStampBaseLis===undefined?-1:D._yzStampBaseLis);
   var _lisDone=false;
   (D.listenMsgs||[]).forEach(function(m,_li){
-    try{ if(_li>_lisBase && !_lisDone){ c.insertAdjacentHTML('beforeend',yzStampHtml(yzMsOf(m,_lisEnter))); _lisDone=true; } }catch(e){}
+    if(m&&m.type==='sept'){ c.insertAdjacentHTML('beforeend',yzStampHtml(yzMsOf(m,_lisEnter))); return; }
     const isMe=m.from==='me';
     const av=isMe?D.avatarMe:D.avatarHim;
     const nm=isMe?(D.myNick||'我'):(D.nick||'他');
@@ -6554,6 +6553,7 @@ function yzProbeSong(sg,cb){
 }
 function pushListenMsg(from,text){
   D.listenMsgs=D.listenMsgs||[];
+  try{if(window.__yzStampArmedLis){D.listenMsgs.push({type:'sept',_dms:Date.now()});window.__yzStampArmedLis=false;}}catch(e){}
   D.listenMsgs.push({from:from,text:text,time:clockStr(),_dms:Date.now()});
   save();
   if($('#listen').classList.contains('active'))renderListen();
@@ -6914,10 +6914,9 @@ function gmkChatRender(){
   var c=$('#gmkChat'); if(!c)return;
   c.innerHTML='';
   var _gmkEnter=_gmk._yzEnterMs||yzNowMs();
-  var _gmkBase=(D._yzStampBaseGmk===undefined?-1:D._yzStampBaseGmk);
   var _gmkDone=false;
   (D.gmkMsgs||[]).forEach(function(m,_gi){
-    try{ if(_gi>_gmkBase && !_gmkDone){ c.insertAdjacentHTML('beforeend',yzStampHtml(yzMsOf(m,_gmkEnter))); _gmkDone=true; } }catch(e){}
+    if(m&&m.type==='sept'){ c.insertAdjacentHTML('beforeend',yzStampHtml(yzMsOf(m,_gmkEnter))); return; }
     var isMe=m.from==='me';
     var av=isMe?D.avatarMe:gmkCurAvatar();
     var nm=isMe?(D.myNick||'我'):gmkCurName();
@@ -6933,6 +6932,7 @@ function gmkChatRender(){
 }
 function gmkPush(from,text,type,src){
   D.gmkMsgs=D.gmkMsgs||[];
+  try{if(window.__yzStampArmedGmk){D.gmkMsgs.push({type:'sept',_dms:Date.now()});window.__yzStampArmedGmk=false;}}catch(e){}
   D.gmkMsgs.push({from:from,text:text||'',type:type||'text',src:src||'',_dms:Date.now()});
   if(D.gmkMsgs.length>300)D.gmkMsgs=D.gmkMsgs.slice(-300);
   try{save();}catch(e){}
@@ -7345,10 +7345,9 @@ function tttChatRender(){
   var c=$('#tttChat'); if(!c)return;
   c.innerHTML='';
   var _tttEnter=_ttt._yzEnterMs||yzNowMs();
-  var _tttBase=(D._yzStampBaseTtt===undefined?-1:D._yzStampBaseTtt);
   var _tttDone=false;
   (D.tttMsgs||[]).forEach(function(m,_ti){
-    try{ if(_ti>_tttBase && !_tttDone){ c.insertAdjacentHTML('beforeend',yzStampHtml(yzMsOf(m,_tttEnter))); _tttDone=true; } }catch(e){}
+    if(m&&m.type==='sept'){ c.insertAdjacentHTML('beforeend',yzStampHtml(yzMsOf(m,_tttEnter))); return; }
     var isMe=m.from==='me';
     var av=isMe?D.avatarMe:tttCurAvatar();
     var nm=isMe?(D.myNick||'我'):tttCurName();
@@ -7364,6 +7363,7 @@ function tttChatRender(){
 }
 function tttPush(from,text,type,src){
   D.tttMsgs=D.tttMsgs||[];
+  try{if(window.__yzStampArmedTtt){D.tttMsgs.push({type:'sept',_dms:Date.now()});window.__yzStampArmedTtt=false;}}catch(e){}
   D.tttMsgs.push({from:from,text:text||'',type:type||'text',src:src||'',_dms:Date.now()});
   if(D.tttMsgs.length>300)D.tttMsgs=D.tttMsgs.slice(-300);
   try{save();}catch(e){}
