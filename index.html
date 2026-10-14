@@ -753,6 +753,8 @@ body.perf-lite .cbtn.yes,body.perf-lite .gmk-startbtn,body.perf-lite .ttt-startb
 .qbox .qimg{width:34px;height:34px;border-radius:6px;object-fit:cover;margin-right:6px;vertical-align:middle;float:left;}
 .flashmsg{animation:yflash 1.2s ease;}
 @keyframes yflash{0%,100%{background:transparent;}30%{background:rgba(133,158,203,.22);}}
+.mo.mo-flash{animation:yflash 1.4s ease;}
+.mo.mo-flash .moc{border-radius:14px;}
 
 /* ==== 问卷 ==== */
 .askdlg{max-height:76vh;overflow:auto;}
@@ -5456,11 +5458,12 @@ function himWriteDiary(){
   if(!txt)return;
   const fl=(D.feelings||[]).filter(Boolean);
   const mood=fl.length?fl[Math.floor(Math.random()*fl.length)]:'';
-  D.diaries.push({id:'dy'+Date.now(),from:'him',title:'',mood:mood,date:dFull(),text:txt,comments:[],read:false,time:new Date().toISOString()});
+  var _did='dy'+Date.now();
+  D.diaries.push({id:_did,from:'him',title:'',mood:mood,date:dFull(),text:txt,comments:[],read:false,time:new Date().toISOString()});
   save();
   sys((D.nick||'他')+' 写了一篇日记');
   try{renderHome();}catch(e){}
-  try{ yzTopNotice((D.nick||'他')+' 写了一篇日记',(txt||'').slice(0,40),function(){ try{ go('diary'); }catch(e){} }); }catch(e){}
+  try{ yzTopNotice((D.nick||'他')+' 写了一篇日记',(txt||'').slice(0,40),function(){ try{ openDiary(_did); }catch(e){} }); }catch(e){}
   if($('#diary').classList.contains('active'))renderDiary();
   if($('#himprofile')&&$('#himprofile').classList.contains('active'))renderHimProfile();
 }
@@ -5979,7 +5982,7 @@ function renderMoments(){
       comments+=`<div class="mocm" onclick="commentMoment('${m.id}',${ci})"><b>${rep}</b>${esc(c.text)}</div>`;
     });
     b.insertAdjacentHTML('beforeend',
-      `<div class="mo">
+      `<div class="mo" data-moid="${m.id}">
         <div class="moh"><div class="moav">${avatar}</div><div class="monm">${esc(nm)}</div><div class="motm">${esc(m.time||'')}</div></div>
         <div class="moc">${esc(m.text)}${img}</div>
         <div class="moact">
@@ -5994,6 +5997,17 @@ function renderMoments(){
       </div>`);
   });
   try{yzFavBtnSyncAll(document.getElementById('momList')||document);}catch(e){}
+}
+function openMoment(id){
+  try{
+    go('moments');
+    setTimeout(function(){
+      try{
+        var el=document.querySelector('#momentsBody .mo[data-moid="'+id+'"]');
+        if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.classList.add('mo-flash'); setTimeout(function(){ try{el.classList.remove('mo-flash');}catch(e){} },1400); }
+      }catch(e){}
+    },120);
+  }catch(e){}
 }
 function favMomentById(id){
   try{ var m=(D.moments||[]).find(function(x){return x.id===id;}); if(!m)return;
@@ -6056,9 +6070,12 @@ function pushMomentByHim(){
   let himImg='';
   const pr=parseFloat(D.packRate)||0;
   if(pr>0&&(D.packs||[]).length&&Math.random()*100<pr)himImg=D.packs[Math.floor(Math.random()*D.packs.length)];
-  D.moments.push({id:'m'+Date.now(),from:'him',text:pickByRange(D.momMin,D.momMax),img:himImg,time:nowStr(),likedBy:[],comments:[],read:false});
+  var _mid='m'+Date.now();
+  var _mtxt=pickByRange(D.momMin,D.momMax);
+  D.moments.push({id:_mid,from:'him',text:_mtxt,img:himImg,time:nowStr(),likedBy:[],comments:[],read:false});
   save();if($('#moments').classList.contains('active'))renderMoments();
   try{scheduleHomeBadges();}catch(e){}
+  try{ yzTopNotice((D.nick||'他')+' 发了一条动态',(_mtxt||'').replace(/\n/g,' '),function(){ try{ openMoment(_mid); }catch(e){} }); }catch(e){}
 }
 /* 他回复评论 / 点赞你的动态 */
 function momReply(m){
@@ -6116,11 +6133,12 @@ function pushLetterByHim(){
   D.letters=D.letters||[];
   var txt=pickByRange(parseInt((D.letterSent||"1-2").split("-")[0])||1,parseInt((D.letterSent||"1-2").split("-")[1])||2);
   if(!txt)return;
-  D.letters.push({id:'lt'+Date.now(),from:'him',text:letterTo(D.myNick||'我')+'\n\n'+txt,preview:txt.slice(0,20),time:nowStr(),read:false,replied:true});
+  var _lid='lt'+Date.now();
+  D.letters.push({id:_lid,from:'him',text:letterTo(D.myNick||'我')+'\n\n'+txt,preview:txt.slice(0,20),time:nowStr(),read:false,replied:true});
   save();
   try{ sys((D.nick||'他')+' 给你寄了一封信'); }catch(e){}
   try{renderHome();}catch(e){}
-  try{ yzTopNotice((D.nick||'他')+' 给你寄了一封信',(txt||'').slice(0,40),function(){ try{ go('letters'); }catch(e){} }); }catch(e){}
+  try{ yzTopNotice((D.nick||'他')+' 给你寄了一封信',(txt||'').slice(0,40),function(){ try{ openLetter(_lid); }catch(e){} }); }catch(e){}
   if($('#letters').classList.contains('active'))renderLetters();
 }
 function startLetterLoop(){
