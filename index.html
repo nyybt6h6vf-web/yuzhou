@@ -3537,8 +3537,8 @@ function respond(){
   var n=nextCount();
   if(n>maxN)n=maxN;
   const gap=sendGapMs();
-  /* ===== 全概率抽取：每个条数都独立掷骰子，没有谁“必须”出 =====
-     顺序：语音 > 主字卡 > 表情包 > 颜文字（各按自己的概率），总数不超 maxN */
+  /* ===== mainRate：本轮是否保证“至少一条主字卡”（不是每条都是主字卡）
+     voiceRate/packRate/kaoRate：在本轮基础上“额外追加”，不抢占主字卡 位置 */
   var _cid=(typeof yzCurKaoCharId==='function')?yzCurKaoCharId():'';
   var _mainP=yzMainRate();
   var _vP=Math.max(0,parseFloat(D.voiceRate)||0);
@@ -3546,31 +3546,32 @@ function respond(){
   var _kaoP=(typeof yzCurKaoRate==='function')?yzCurKaoRate():0;
   var _packs=(D.packs||[]);
   var _kaoPool=yzKaoPoolFor(_cid);
-
-  var plan=[];  /* 每条：{kind:'voice'|'main'|'img'|'kao', text/src} */
+  var plan=[];
+  var _mainHit=(_mainP>0 && Math.random()*100<_mainP);
+  var _mainBase=_mainHit?1:0;
   for(var _i=0;_i<n;_i++){
-    /* 先擤语音 */
-    if(_vP>0 && Math.random()*100<_vP){
-      var _vt=pickMultiCardsFor(_cid);
-      if(_vt){ plan.push({kind:'voice',text:_vt,sec:1+Math.floor(Math.random()*10)}); continue; }
-    }
-    /* 再擤主字卡 */
-    if(_mainP>0 && Math.random()*100<_mainP){
-      var _mt=pickMultiCardsFor(_cid);
-      if(_mt){ plan.push({kind:'main',text:yzMaybeMixEmoji(_mt,_cid)}); continue; }
-    }
-    /* 再擤表情包 */
-    if(_packP>0 && _packs.length && Math.random()*100<_packP){
-      plan.push({kind:'img',src:_packs[Math.floor(Math.random()*_packs.length)]}); continue;
-    }
-    /* 最后擤颜文字 */
-    if(_kaoP>0 && _kaoPool.length && Math.random()*100<_kaoP){
-      plan.push({kind:'kao',text:_kaoPool[Math.floor(Math.random()*_kaoPool.length)]}); continue;
-    }
-    /* 都没中：如果主字卡概率不是0，就补一张主字卡（保证不空回） */
-    if(_mainP>0){ plan.push({kind:'main',text:yzMaybeMixEmoji(pickMultiCardsFor(_cid),_cid)}); }
+    if(_i<_mainBase){ plan.push({kind:'main',text:yzMaybeMixEmoji(pickMultiCardsFor(_cid),_cid)}); }
+    else { plan.push(null); }
   }
-  /* 若因为概率都是0导致空白，则至少一张主字卡（避免梦角完全不回话） */
+  for(var _j=0;_j<plan.length;_j++){
+    if(plan[_j]) continue;
+    if(_mainP>0 && Math.random()*100<_mainP){
+      var _mt2=pickMultiCardsFor(_cid);
+      if(_mt2){ plan[_j]={kind:'main',text:yzMaybeMixEmoji(_mt2,_cid)}; continue; }
+    }
+    if(_packP>0 && _packs.length && Math.random()*100<_packP){
+      plan[_j]={kind:'img',src:_packs[Math.floor(Math.random()*_packs.length)]}; continue;
+    }
+    if(_kaoP>0 && _kaoPool.length && Math.random()*100<_kaoP){
+      plan[_j]={kind:'kao',text:_kaoPool[Math.floor(Math.random()*_kaoPool.length)]}; continue;
+    }
+    if(_mainP>0){ plan[_j]={kind:'main',text:yzMaybeMixEmoji(pickMultiCardsFor(_cid),_cid)}; }
+  }
+  if(_vP>0 && Math.random()*100<_vP){
+    var _vt=pickMultiCardsFor(_cid);
+    if(_vt) plan.push({kind:'voice',text:_vt,sec:1+Math.floor(Math.random()*10)});
+  }
+  plan=plan.filter(function(x){return !!x;});
   if(!plan.length){ plan.push({kind:'main',text:yzMaybeMixEmoji(pickMultiCardsFor(_cid),_cid)}); }
   if(plan.length>maxN)plan=plan.slice(0,maxN);
 
