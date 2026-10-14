@@ -3283,7 +3283,7 @@ function renderChat(){
   window.__applyBubbleInline&&window.__applyBubbleInline();
   try{ var _hb=document.getElementById('holdBtn'); if(_hb)_hb.classList.toggle('on',!!D.sendHold); }catch(e){}
 }
-function push(m){try{if(m&&!m._dms)m._dms=Date.now();}catch(e){}try{if(window.__yzStampArmed&&m&&m.type!=='sept'){D.msgs.push({type:'sept',_dms:Date.now()});window.__yzStampArmed=false;}}catch(e){}try{if(window.__yzActiveMsg&&m&&m.from==='him'&&m.type!=='sept'){m.auto=true;}}catch(e){}D.msgs.push(m);save();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}if($('#chat').classList.contains('active')){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40));}}catch(e){}}
+function push(m){try{if(m&&!m._dms)m._dms=Date.now();}catch(e){}try{if(window.__yzStampArmed&&m&&m.type!=='sept'){D.msgs.push({type:'sept',_dms:Date.now()});window.__yzStampArmed=false;}}catch(e){}try{if(m&&m.from==='him'&&m.type!=='sept'&&(window.__yzActiveMsg||(window.__yzActiveMsgUntil&&Date.now()<window.__yzActiveMsgUntil))){m.auto=true;}}catch(e){}D.msgs.push(m);save();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}if($('#chat').classList.contains('active')){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40));}}catch(e){}}
 function jumpMsg(i){
   const list=document.querySelectorAll('#chatBody .msg');
   const el=list[i];if(!el)return;
@@ -4025,8 +4025,8 @@ function startProactiveLoop(){
       var oldCur=D.curConv,_oldMsgs=D.msgs;
       D.msgs=target.msgs=target.msgs||[];
       window.__yzActiveMsg=true;
+      try{ window.__yzActiveMsgUntil=Date.now()+30000; }catch(e){}
       himSay();
-      setTimeout(function(){window.__yzActiveMsg=false;},1500);
       D.msgs=_oldMsgs; D.curConv=oldCur;
       save();
       if(document.hidden){yzNotify(yzConvTitle(target),'给你发消息了');}
