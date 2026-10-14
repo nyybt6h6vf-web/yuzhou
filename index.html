@@ -5987,7 +5987,7 @@ function renderMoments(){
         <div class="moc">${esc(m.text)}${img}</div>
         <div class="moact">
           <div class="${liked?'on':''}" onclick="toggleLike('${m.id}')">♡ ${(m.likedBy||[]).length}</div>
-          <div onclick="momentCmtToggle('${m.id}')">'+yzi('comment',13)+' 评论</div>
+          <div onclick="momentCmtToggle('${m.id}')">${yzi('comment',13)} 评论</div>
           <div><span class="favbtn" data-favbtn="1" data-favtype="moment" data-favid="${m.id}">☆ 收藏</span></div>
           <div onclick="delMoment('${m.id}')">删除</div>
         </div>
@@ -6267,7 +6267,7 @@ function renderListen(){
     const av=isMe?D.avatarMe:D.avatarHim;
     const nm=isMe?(D.myNick||'我'):(D.nick||'他');
     const avh=av?`<img src="${av}">`:esc(nm[0]||'');
-    const inner=(m.type==='img')?`<div class="lb lbimg"><img src="${esc(m.src||'')}"></div>`:((m.type==='voice')?`<div class="lb voice">'+yzi('mic',13)+' <span>${esc(m.sec||'')}″</span></div>${m.text?('<div class="vtt">'+esc(m.text)+'</div>'):''}`:`<div class="lb">${esc(m.text)}</div>`);
+    const inner=(m.type==='img')?`<div class="lb lbimg"><img src="${esc(m.src||'')}"></div>`:((m.type==='voice')?`<div class="lb voice">${yzi('mic',13)} <span>${esc(m.sec||'')}″</span></div>${m.text?('<div class="vtt">'+esc(m.text)+'</div>'):''}`:`<div class="lb">${esc(m.text)}</div>`);
     c.insertAdjacentHTML('beforeend',`<div class="lm ${isMe?'me':''}"><div class="lav">${avh}</div><div>${inner}<div class="lts ${isMe?'ltsme':''}">${esc(m.time||'')}</div></div></div>`);
   });
   if(D.typingOn&&D._ltyping){
