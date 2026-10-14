@@ -2449,6 +2449,8 @@ if(o.diaryMin===undefined)o.diaryMin=2;
 if(o.diaryMax===undefined)o.diaryMax=4;
 if(!o.goods)o.goods=[]; /* 不在 load 里引用尚未初始化的 DEFAULT_GOODS */
 if(o.balance===undefined)o.balance=5200;
+if(o.proactive===undefined)o.proactive=false;
+if(o.proactiveGap===undefined)o.proactiveGap=10;
 if(o.daifuDelay===undefined)o.daifuDelay=8;
 if(o.daifuRate===undefined)o.daifuRate=20;
 if(o.daifuGap===undefined)o.daifuGap=20;
@@ -3841,7 +3843,7 @@ function himPat(){
   const t=ps[Math.floor(Math.random()*ps.length)];
   var _hn=(typeof yzPhHimName==='function')?yzPhHimName():(D.nick||'他');
   if(!_hn)_hn=(D.nick||'他');
-  push({from:'him',type:'pat',text:_hn+t,_t:clockStr()});
+  push({from:'him',type:'pat',text:_hn+t,auto:true,_t:clockStr()});
 }
 function pickCard(){
   /* 始终取主字卡池，不受字卡库当前 tab（如颜文字）影响 */
@@ -4384,8 +4386,8 @@ function himTransfer(){
   const notes=(D.tranNotes&&D.tranNotes.length)?D.tranNotes:['给你的'];
   const amt=amts[Math.floor(Math.random()*amts.length)];
   const note=notes[Math.floor(Math.random()*notes.length)];
-  push({from:'him',type:'transfer',amt:amt,note:note});
-  setTimeout(()=>himSay(),Math.max(600,sendGapMs()));
+  push({from:'him',type:'transfer',amt:amt,note:note,auto:true});
+  setTimeout(()=>himSay({auto:true}),Math.max(600,sendGapMs()));
 }
 /* ===== 来信 ===== */
 function renderLetters(){
@@ -4984,7 +4986,7 @@ function himGiftMe(){
   var list=goodsList(); if(!list.length)return;
   var g=list[Math.floor(Math.random()*list.length)];
   if(!g)return;
-  push({from:'him',type:'gift',text:'亲爱的，送你个东西～',gname:g.name,gprice:g.price,gimg:g.img,st:'wait',_t:clockStr()});
+  push({from:'him',type:'gift',text:'亲爱的，送你个东西～',gname:g.name,gprice:g.price,gimg:g.img,st:'wait',auto:true,_t:clockStr()});
   toast('他送你一件东西');
   try{ yzTopNotice((D.nick||'他')+' 送你一件东西','「'+g.name+'」¥'+g.price+'，点开收下',function(){ try{ yzOpenConv(D.curConv); }catch(e){} }); }catch(e){}
 }
@@ -5015,7 +5017,7 @@ function yzHimSendListenCard(){
     var ch=yzCurChara();
     var sg=pl[Math.floor(Math.random()*pl.length)];
     if(!sg)return false;
-    push({from:'him',type:'songcard',title:sg.title||'',by:sg.by||'',url:sg.url||'',charaId:(ch?ch.id:''),charNick:(ch?(ch.nick||'梦角'):'梦角'),_t:clockStr()});
+    push({from:'him',type:'songcard',title:sg.title||'',by:sg.by||'',url:sg.url||'',charaId:(ch?ch.id:''),charNick:(ch?(ch.nick||'梦角'):'梦角'),auto:true,_t:clockStr()});
     try{ var _sn=(ch?(ch.nick||'梦角'):'梦角'); yzTopNotice(_sn+' 想和你一起听','「'+(sg.title||'')+'」，点开一起听',function(){ try{ openListenCard(D.msgs.length-1); }catch(e){} }); }catch(e){}
     return true;
   }catch(e){ return false; }
@@ -5134,7 +5136,7 @@ function himAskMePay(){
   try{ if(D.sendHold) return; }catch(e){}
   const g=goodsList()[Math.floor(Math.random()*goodsList().length)];
   if(!g)return;
-  push({from:'him',type:'daifu',text:'亲爱的，帮我买这个吧～',gname:g.name,gprice:g.price,gimg:g.img,st:'wait',mine:false,_t:clockStr()});
+  push({from:'him',type:'daifu',text:'亲爱的，帮我买这个吧～',gname:g.name,gprice:g.price,gimg:g.img,st:'wait',mine:false,auto:true,_t:clockStr()});
   toast('他在找你代付');
   try{ yzTopNotice((D.nick||'他')+' 找你代付','「'+g.name+'」¥'+g.price+'，点开处理',function(){ try{ yzOpenConv(D.curConv); }catch(e){} }); }catch(e){}
 }
