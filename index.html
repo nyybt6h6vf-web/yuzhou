@@ -722,12 +722,16 @@ body{
 .carditem.sel{background:rgba(133,158,203,.12);}
 .cchk{flex:0 0 auto;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--sub);display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;}
 .cchk.on{background:var(--accent,#859ecb);border-color:var(--accent,#859ecb);color:#fff;}
+.icon{position:relative;}
+.yz-badge{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--app-bg,#fff);border:1.6px solid var(--accent,#859ecb);color:var(--accent,#859ecb);font-size:10.5px;font-weight:800;line-height:15px;text-align:center;box-sizing:border-box;z-index:5;pointer-events:none;}
+.convitem{position:relative;}
+.yz-badge.conv-badge{top:50%;right:12px;transform:translateY(-50%);}
 #yzToast{position:fixed;left:50%;bottom:12%;transform:translate(-50%,10px);background:rgba(0,0,0,.82);color:#fff;font-size:13px;padding:9px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:.22s;z-index:99999;max-width:76%;text-align:center;}
 #yzToast.show{opacity:1;transform:translate(-50%,0);}
 #yzTopNotice{position:fixed;left:50%;top:8px;transform:translate(-50%,-140%);width:92%;max-width:420px;background:rgba(28,30,36,.96);color:#fff;border-radius:16px;padding:12px 14px 13px;box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:100000;transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .3s;opacity:0;cursor:pointer;touch-action:pan-y;}
 #yzTopNotice.show{transform:translate(-50%,0);opacity:1;}
 #yzTopNotice .ytn-t{font-size:13.5px;font-weight:800;letter-spacing:.3px;display:flex;align-items:center;gap:6px;}
-#yzTopNotice .ytn-c{font-size:12.8px;color:rgba(255,255,255,.82);margin-top:5px;line-height:1.5;max-height:38px;overflow:hidden;}
+#yzTopNotice .ytn-c{font-size:12.8px;color:rgba(255,255,255,.82);margin-top:5px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 #yzTopNotice .ytn-x{position:absolute;top:8px;right:10px;font-size:14px;opacity:.7;}
 
 /* ==== 引用回复 ==== */
@@ -1267,7 +1271,7 @@ body{
     <div class="quotebar" id="quoteBar" style="display:none"><div class="qb-txt" id="quoteBarTxt"></div><div class="qb-x" onclick="clearQuote()">✕</div></div>
     <div class="inputbar">
       <div class="ib" onclick="togglePlus()">＋</div>
-      <div class="ib holdbtn" id="holdBtn" onclick="toggleSendHold()" title="连发（梦角暂不回复）">🗨</div>
+      <div class="ib holdbtn" id="holdBtn" onclick="toggleSendHold()" title="连发（梦角暂不回复）"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
       <input id="msgInput" type="text" placeholder="说点什么…" onkeydown="if(event.key==='Enter')sendText()">
       <button class="send" onclick="sendText()">发送</button>
     </div>
@@ -1544,7 +1548,7 @@ body{
   <div class="screen" id="shop">
     <div class="statusbar"><span id="sTimeTop">9:41</span><span class="right">●●● 100%</span></div>
     <div class="navbar"><div class="back" onclick="go('home')">‹</div><div class="title">商城</div><div class="act" onclick="addGoodsPrompt()">＋ 添加商品</div></div>
-    <div class="shopbal"><span class="gwb" onclick="openGiftWall()">🎁 礼物墙</span></div>
+    <div class="shopbal"><span class="gwb" onclick="openGiftWall()"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 12h18"/><path d="M12 8v13"/><path d="M12 8s-1.5-4-4-4a2 2 0 0 0 0 4z"/><path d="M12 8s1.5-4 4-4a2 2 0 0 1 0 4z"/></svg> 礼物墙</span></div>
     <div class="shopbody" id="shopBody"></div>
   </div>
   <div class="screen" id="giftwall">
@@ -2057,8 +2061,13 @@ const ICONS={
  wallet:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1.3" fill="currentColor" stroke="none"/></svg>',
  diary:'<svg viewBox="0 0 24 24"><path d="M6 3h11a2 2 0 0 1 2 2v16H8a2 2 0 0 1-2-2z"/><path d="M6 3v16"/><path d="M10 8h6"/><path d="M10 12h6"/></svg>',
  period:'<svg viewBox="0 0 24 24"><path d="M12 21s-7-5-7-10a7 7 0 0 1 14 0c0 5-7 10-7 10z"/><circle cx="12" cy="11" r="2.5"/></svg>',
- moment:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/></svg>'
+ moment:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/></svg>',
+ gift:'<svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 12h18"/><path d="M12 8v13"/><path d="M12 8s-1.5-4-4-4a2 2 0 0 0 0 4z"/><path d="M12 8s1.5-4 4-4a2 2 0 0 1 0 4z"/></svg>',
+ bolt:'<svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>',
+ comment:'<svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H8l-4 3v-6a8 8 0 0 1 8-9h1a8 8 0 0 1 8 8z"/><path d="M9 11h6"/><path d="M9 14h4"/></svg>',
+ apple:'<svg viewBox="0 0 24 24"><path d="M12 7c-3-3-7-2-7 3 0 4 3 9 5 9 1 0 1.5-.6 2-.6s1 .6 2 .6c2 0 5-5 5-9 0-5-4-6-7-3z"/><path d="M12 7c0-2 1-3.5 3-4"/></svg>'
 };
+function yzi(name,size){ try{ var sv=ICONS[name]||''; if(!size)return sv; return sv.replace('<svg ','<svg width="'+size+'" height="'+size+'" '); }catch(e){ return ''; } }
 const HOME_APPS=[
  {act:'chatlist',ic:'chat',name:'聊天'},
  {act:'listen',ic:'listen',name:'一起听'},
@@ -2291,7 +2300,7 @@ function renderChatList(){
         '</div>'+
         '<div class="convitem" onclick="yzOpenConv(\''+cv.id+'\')">'+
           '<div class="cav">'+av+'</div>'+
-          '<div class="cinfo"><div class="cnm">'+pinn+esc(title)+'</div><div class="clast">'+esc(last.slice(0,20))+'</div></div>'+
+          '<div class="cinfo"><div class="cnm">'+pinn+esc(title)+'</div><div class="clast">'+esc(last.slice(0,20))+'</div></div>'+((yzHisCount(cv)>0)?'<span class="yz-badge conv-badge">'+(yzHisCount(cv)>99?'99+':yzHisCount(cv))+'</span>':'')+
         '</div>'+
       '</div>');
   });
@@ -2631,11 +2640,11 @@ function go(id){
   if(id==='home'){try{yzApplyHomeChara();}catch(e){}
   try{yzBindLisFloatDrag();}catch(e){}}
   if(id==='chatlist')renderChatList();
-  if(id==='chat'){D._yzChatEnterMs=Date.now(); try{window.__yzStampArmed=true;}catch(e){} renderChat();$('#chat').style.background=getChatBg();setTimeout(scrollBottom,30);}
+  if(id==='chat'){D._yzChatEnterMs=Date.now(); try{window.__yzStampArmed=true;}catch(e){} renderChat();$('#chat').style.background=getChatBg();setTimeout(scrollBottom,30); try{var _cv=yzCurConv(); if(_cv){_cv._readLen=(_cv.msgs||[]).length; save();}}catch(e){} try{renderHome();}catch(e){}}
   if(id==='cards'){try{yzBindCards();renderCardTabs();}catch(e){}renderCards();}
   if(id==='together')renderTiles();
   if(id==='settings'){fillSettings();try{yzBeautyRender();}catch(e){}try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}try{yzMarkSetStatus();}catch(e){}}
-  if(id==='moments')renderMoments();
+  if(id==='moments'){ try{(D.moments||[]).forEach(function(m){ if(m.from==='him')m.read=true; }); save();}catch(e){} renderMoments(); try{renderHome();}catch(e){} }
   if(id==='listen'){ D._yzLisEnterMs=Date.now(); try{window.__yzStampArmedLis=true;}catch(e){} hideLisFloat(); if(!D.lisBound){ try{ lisOpenPick(); }catch(e){} } else { try{ lisShowPlayer(); }catch(e){} } try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
   if(id!=='listen'){ try{ setTimeout(yzMaybeShowFloat,60); }catch(e){} }
   if(id==='letters')renderLetters();
@@ -2648,7 +2657,7 @@ function go(id){
   if(id==='gomoku'){try{_gmk._yzEnterMs=Date.now();window.__yzStampArmedGmk=true;renderGomoku();}catch(e){}}
   if(id==='ttt'){try{_ttt._yzEnterMs=Date.now();window.__yzStampArmedTtt=true;renderTtt();}catch(e){}}
   try{yzPhStatusIcon();}catch(e){}
-  if(id==='himprofile')renderHimProfile();
+  if(id==='himprofile'){ try{(D.diaries||[]).forEach(function(x){ if(x.from==='him')x.read=true; }); save();}catch(e){} renderHimProfile(); try{renderHome();}catch(e){} }
   if(id==='letterWrite'){const to=$('#lwTo');if(to)to.textContent=letterTo(D.nick);}
   if(id==='diaryWrite'){const dt=$('#dwDate');if(dt)dt.textContent=dToday();}
 }
@@ -2716,6 +2725,7 @@ function yzPhTick(){
     try{ yzDaifuTick(dt); }catch(e){} /* 代付累计计时 */
     try{ yzGiftTick(dt); }catch(e){} /* 送东西累计计时 */
     try{ yzLisAskTick(dt); }catch(e){} /* 一起听邀请累计计时 */
+    try{ yzProactiveTick(dt); }catch(e){} /* 主动发消息累计计时 */
     /* 电量没变就不写库：避免每秒全量序列化 → 越用越卡 */
     var _phSig=D.ph.my+'/'+D.ph.him+'/'+(D.ph.myCharging?1:0)+'/'+(D.ph.himCharging?1:0)+'/'+(D.ph.himPower?1:0);
     if(window.__yzPhSig!==_phSig){ window.__yzPhSig=_phSig; save(); }
@@ -2731,7 +2741,7 @@ function yzPhBatteryHtml(pct,charging,big){
   var fillW=Math.round((w-8)*pct/100);
   return '<div class="phbat"><div class="phbatbody" style="width:'+w+'px;height:'+h+'px">'+
     '<div class="phbatfill" style="width:'+fillW+'px"></div>'+
-    (charging?'<div class="phbolt">⚡</div>':'')+
+    (charging?'<div class="phbolt">'+yzi('bolt',12)+'</div>':'')+
     '</div><div class="phbatcap" style="height:'+(h*0.34)+'px"></div></div>'+
     '<div class="phpct">'+pct+'%'+(charging?' · 充电中':'')+'</div>';
 }
@@ -2781,7 +2791,7 @@ function yzPhRenderHim(body){
 function yzPhHelpCharge(){
   var body=$('#phBody'); if(!body)return;
   /* 开机动画：黑底 -> 苹果标志淡入 -> 亮起 */
-  body.innerHTML='<div class="phboot"><div class="phbootlogo">🍎</div></div>';
+  body.innerHTML='<div class="phboot"><div class="phbootlogo">'+yzi('apple',40)+'</div></div>';
   var lg=body.querySelector('.phbootlogo');
   setTimeout(function(){ if(lg)lg.classList.add('show'); },60);
   setTimeout(function(){
@@ -3072,7 +3082,7 @@ function yzPhStatusIcon(){
   document.querySelectorAll('.statusbar .right').forEach(function(el){
     var b=el.querySelector('.phchg');
     if(show && !b){
-      var s=document.createElement('span'); s.className='phchg'; s.textContent='⚡';
+      var s=document.createElement('span'); s.className='phchg'; s.innerHTML=yzi('bolt',12);
       el.insertBefore(s,el.firstChild);
     } else if(!show && b){ b.remove(); }
     /* 把末尾的百分比数字替换成真实电量 */
@@ -3093,11 +3103,36 @@ function yzPhWarn(){
 }
 
 const DOCK_ACTS=['chatlist','moments','letters','diary'];
+/* ===== 未读角标 ===== */
+function yzHisCount(cv){
+  try{
+    var n=0, ms=cv.msgs||[];
+    var rd=(typeof cv._readLen==='number')?cv._readLen:0;
+    for(var i=rd;i<ms.length;i++){ var m=ms[i]; if(m&&m.from==='him'&&m.type!=='sept')n++; }
+    return n;
+  }catch(e){ return 0; }
+}
+function yzChatUnread(){ var t=0; (D.convs||[]).forEach(function(cv){ t+=yzHisCount(cv); }); return t; }
+function yzLetterUnread(){ try{ return (D.letters||[]).filter(function(x){return x.from==='him'&&!x.read;}).length; }catch(e){ return 0; } }
+function yzHimDiaryUnread(){ try{ return (D.diaries||[]).filter(function(x){return x.from==='him'&&!x.read;}).length; }catch(e){ return 0; } }
+function yzMomUnread(){ try{ return (D.moments||[]).filter(function(x){return x.from==='him'&&!x.read;}).length; }catch(e){ return 0; } }
+function yzUnreadFor(act){
+  if(act==='chatlist')return yzChatUnread();
+  if(act==='letters')return yzLetterUnread();
+  if(act==='diary')return yzHimDiaryUnread();
+  if(act==='moments')return yzMomUnread();
+  return 0;
+}
+function yzBadgeHtml(n){
+  n=parseInt(n,10)||0;
+  if(n<=0)return '';
+  return '<span class="yz-badge">'+(n>99?'99+':n)+'</span>';
+}
 function renderHome(){
   const dock=$('#homeDock'),g=$('#homeGrid');
   const dk=HOME_APPS.filter(a=>DOCK_ACTS.indexOf(a.act)>=0);
   const rest=HOME_APPS.filter(a=>DOCK_ACTS.indexOf(a.act)<0);
-  function yzIconHtml(a){var cu=(D.appIcons||{})[a.act];if(cu){return '<img src="'+cu+'" style="width:100%;height:100%;object-fit:cover;border-radius:19px">';}return ICONS[a.ic]||'';}
+  function yzIconHtml(a){var cu=(D.appIcons||{})[a.act];var base;if(cu){base='<img src="'+cu+'" style="width:100%;height:100%;object-fit:cover;border-radius:19px">';}else{base=ICONS[a.ic]||'';}return base+yzBadgeHtml(yzUnreadFor(a.act));}
   if(dock){dock.innerHTML='';dk.forEach(a=>{
     dock.insertAdjacentHTML('beforeend',`<div class="app" data-act="${a.act}" onclick="go('${a.act}')" ontouchstart="yzAppPress('${a.act}',event)" oncontextmenu="return yzAppLong('${a.act}',event)"><div class="icon">${yzIconHtml(a)}</div><span>${a.name}</span></div>`);
   });}
@@ -3306,7 +3341,7 @@ function bubbleHTML(m,i){
     var _sc=(m.title||'')+' '+(m.by||'');
     return '<div class="bubble songcard" data-str="'+i+'" onclick="openListenCard('+i+')">'+
       '<div class="scTop">'+esc((D.myNick||'我')+'，我们一起听这首歌吧！')+'</div>'+
-      '<div class="scBody"><div class="scIc">🎵</div><div class="scInfo"><div class="scName">'+esc(m.title||'未知歌曲')+'</div><div class="scBy">'+esc(m.by||'')+'</div></div></div>'+
+      '<div class="scBody"><div class="scIc">'+yzi('listen',22)+'</div><div class="scInfo"><div class="scName">'+esc(m.title||'未知歌曲')+'</div><div class="scBy">'+esc(m.by||'')+'</div></div></div>'+
       '</div>';
   }
   if(m.type==='gift'){
@@ -3384,7 +3419,7 @@ function renderChat(){
   window.__applyBubbleInline&&window.__applyBubbleInline();
   try{ var _hb=document.getElementById('holdBtn'); if(_hb)_hb.classList.toggle('on',!!D.sendHold); }catch(e){}
 }
-function push(m){try{if(m&&!m._dms)m._dms=Date.now();}catch(e){}try{if(window.__yzStampArmed&&m&&m.type!=='sept'){D.msgs.push({type:'sept',_dms:Date.now()});window.__yzStampArmed=false;}}catch(e){}try{if(m&&m.from==='him'&&m.type!=='sept'&&(window.__yzActiveMsg||(window.__yzActiveMsgUntil&&Date.now()<window.__yzActiveMsgUntil))){m.auto=true;}}catch(e){}D.msgs.push(m);save();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}if($('#chat').classList.contains('active')){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40));}}catch(e){}}
+function push(m){try{if(m&&!m._dms)m._dms=Date.now();}catch(e){}try{if(window.__yzStampArmed&&m&&m.type!=='sept'){D.msgs.push({type:'sept',_dms:Date.now()});window.__yzStampArmed=false;}}catch(e){}try{if(m&&m.from==='him'&&m.type!=='sept'&&(window.__yzActiveMsg||(window.__yzActiveMsgUntil&&Date.now()<window.__yzActiveMsgUntil))){m.auto=true;}}catch(e){}D.msgs.push(m);save();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}if($('#chat').classList.contains('active')){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40));}}catch(e){}try{if(m&&m.from==='him'&&!$('#chat').classList.contains('active')){renderHome();var _tt=(m.type==='img')?'[表情]':(m.type==='voice'?('[语音]'+(m.text||'')):(m.type==='transfer'?('[转账] ¥'+(m.amt||'')):(m.type==='pat'?(m.text||'拍一拍'):(m.text||''))));try{ yzTopNotice((D.nick||'他'),_tt,function(){ try{ yzOpenConv((yzCurConv()||{}).id); }catch(e){} }); }catch(e){}}}catch(e){}}
 function jumpMsg(i){
   const list=document.querySelectorAll('#chatBody .msg');
   const el=list[i];if(!el)return;
@@ -4140,28 +4175,36 @@ var _proactiveTimer=null;
 function toggleProactive(){D.proactive=!D.proactive;save();var b=document.getElementById('proactiveBtn');if(b)b.textContent=D.proactive?'开启':'关闭';startProactiveLoop();}
 function startProactiveLoop(){
   if(_proactiveTimer){clearInterval(_proactiveTimer);_proactiveTimer=null;}
-  if(!D.proactive)return;
-  var gapMin=Math.max(1,parseFloat(D.proactiveGap)||10);
-  _proactiveTimer=setInterval(function(){
-    try{
-      if(!D.proactive)return;
-      // 随机决定是否发（50%），避免太机械
-      if(Math.random()>0.5)return;
-      var cv=yzCurConv();
-      if(!cv)return;
-      if(D.curConv!==cv.id){/* 非当前会话也发，进他自己的会话 */}
-      var target=cv;
-      var oldCur=D.curConv,_oldMsgs=D.msgs;
-      D.msgs=target.msgs=target.msgs||[];
-      window.__yzActiveMsg=true;
-      try{ window.__yzActiveMsgUntil=Date.now()+30000; }catch(e){}
-      himSay({auto:true});
-      D.msgs=_oldMsgs; D.curConv=oldCur;
-      save();
-      if(document.hidden){yzNotify(yzConvTitle(target),'给你发消息了');}
-      try{ var _pt=yzConvTitle(target); var _pcv=target.id; yzTopNotice(_pt+' 给你发消息了','点开看看我这一轮发的主动消息',function(){ try{ yzOpenConv(_pcv); }catch(e){} }); }catch(e){}
-    }catch(e){}
-  },gapMin*60*1000);
+  /* 改为“累计式计时”：进网站才累加，不在线不计；到点必发（不再写死 50%）
+     由 yzProactiveTick 每秒把 dt 累加到 D.proactiveAcc */
+}
+function yzDoProactive(){
+  try{
+    if(!D.proactive)return;
+    var cv=yzCurConv();
+    if(!cv)return;
+    var target=cv;
+    var oldCur=D.curConv,_oldMsgs=D.msgs;
+    D.msgs=target.msgs=target.msgs||[];
+    himSay({auto:true});
+    D.msgs=_oldMsgs; D.curConv=oldCur;
+    save();
+    if(document.hidden){yzNotify(yzConvTitle(target),'给你发消息了');}
+
+  }catch(e){}
+}
+function yzProactiveTick(dt){
+  try{
+    if(!D.proactive)return;
+    if(document.hidden)return;
+    if(dt<0)dt=0; if(dt>300000)dt=300000;
+    D.proactiveAcc=(D.proactiveAcc||0)+dt;
+    var gap=Math.max(1,parseFloat(D.proactiveGap)||10)*60000;
+    while(D.proactiveAcc>=gap){
+      D.proactiveAcc-=gap;
+      try{ yzDoProactive(); }catch(e){}
+    }
+  }catch(e){}
 }
 /* ============ 20. 版本检测 ============ */
 function yzCheckVersion(){
@@ -4881,7 +4924,7 @@ function quoteWho(m){
 function quoteFullText(m){
   if(!m)return '';
   if(m.type==='img')return '[图片]';
-  if(m.type==='voice')return '🎤 '+(m.sec||'')+'″'+(m.text?(' '+m.text):'');
+  if(m.type==='voice')return '[语音] '+(m.sec||'')+'″'+(m.text?(' '+m.text):'');
   if(m.type==='pat')return String(m.text||'[拍一拍]');
   if(m.type==='transfer')return '[转账 ¥'+(m.amt||'')+']';
   if(m.type==='daifu')return '[代付] '+(m.text||'');
@@ -5380,9 +5423,10 @@ function himWriteDiary(){
   if(!txt)return;
   const fl=(D.feelings||[]).filter(Boolean);
   const mood=fl.length?fl[Math.floor(Math.random()*fl.length)]:'';
-  D.diaries.push({id:'dy'+Date.now(),from:'him',title:'',mood:mood,date:dFull(),text:txt,comments:[],time:new Date().toISOString()});
+  D.diaries.push({id:'dy'+Date.now(),from:'him',title:'',mood:mood,date:dFull(),text:txt,comments:[],read:false,time:new Date().toISOString()});
   save();
   sys((D.nick||'他')+' 写了一篇日记');
+  try{renderHome();}catch(e){}
   try{ yzTopNotice((D.nick||'他')+' 写了一篇日记',(txt||'').slice(0,40),function(){ try{ go('diary'); }catch(e){} }); }catch(e){}
   if($('#diary').classList.contains('active'))renderDiary();
   if($('#himprofile')&&$('#himprofile').classList.contains('active'))renderHimProfile();
@@ -5907,7 +5951,7 @@ function renderMoments(){
         <div class="moc">${esc(m.text)}${img}</div>
         <div class="moact">
           <div class="${liked?'on':''}" onclick="toggleLike('${m.id}')">♡ ${(m.likedBy||[]).length}</div>
-          <div onclick="momentCmtToggle('${m.id}')">💬 评论</div>
+          <div onclick="momentCmtToggle('${m.id}')">'+yzi('comment',13)+' 评论</div>
           <div><span class="favbtn" data-favbtn="1" data-favtype="moment" data-favid="${m.id}">☆ 收藏</span></div>
           <div onclick="delMoment('${m.id}')">删除</div>
         </div>
@@ -5979,8 +6023,9 @@ function pushMomentByHim(){
   let himImg='';
   const pr=parseFloat(D.packRate)||0;
   if(pr>0&&(D.packs||[]).length&&Math.random()*100<pr)himImg=D.packs[Math.floor(Math.random()*D.packs.length)];
-  D.moments.push({id:'m'+Date.now(),from:'him',text:pickByRange(D.momMin,D.momMax),img:himImg,time:nowStr(),likedBy:[],comments:[]});
+  D.moments.push({id:'m'+Date.now(),from:'him',text:pickByRange(D.momMin,D.momMax),img:himImg,time:nowStr(),likedBy:[],comments:[],read:false});
   save();if($('#moments').classList.contains('active'))renderMoments();
+  try{renderHome();}catch(e){}
 }
 /* 他回复评论 / 点赞你的动态 */
 function momReply(m){
@@ -6041,6 +6086,7 @@ function pushLetterByHim(){
   D.letters.push({id:'lt'+Date.now(),from:'him',text:letterTo(D.myNick||'我')+'\n\n'+txt,preview:txt.slice(0,20),time:nowStr(),read:false,replied:true});
   save();
   try{ sys((D.nick||'他')+' 给你寄了一封信'); }catch(e){}
+  try{renderHome();}catch(e){}
   try{ yzTopNotice((D.nick||'他')+' 给你寄了一封信',(txt||'').slice(0,40),function(){ try{ go('letters'); }catch(e){} }); }catch(e){}
   if($('#letters').classList.contains('active'))renderLetters();
 }
@@ -6170,7 +6216,7 @@ function renderListen(){
     const av=isMe?D.avatarMe:D.avatarHim;
     const nm=isMe?(D.myNick||'我'):(D.nick||'他');
     const avh=av?`<img src="${av}">`:esc(nm[0]||'');
-    const inner=(m.type==='img')?`<div class="lb lbimg"><img src="${esc(m.src||'')}"></div>`:((m.type==='voice')?`<div class="lb voice">🎤 <span>${esc(m.sec||'')}″</span></div>${m.text?('<div class="vtt">'+esc(m.text)+'</div>'):''}`:`<div class="lb">${esc(m.text)}</div>`);
+    const inner=(m.type==='img')?`<div class="lb lbimg"><img src="${esc(m.src||'')}"></div>`:((m.type==='voice')?`<div class="lb voice">'+yzi('mic',13)+' <span>${esc(m.sec||'')}″</span></div>${m.text?('<div class="vtt">'+esc(m.text)+'</div>'):''}`:`<div class="lb">${esc(m.text)}</div>`);
     c.insertAdjacentHTML('beforeend',`<div class="lm ${isMe?'me':''}"><div class="lav">${avh}</div><div>${inner}<div class="lts ${isMe?'ltsme':''}">${esc(m.time||'')}</div></div></div>`);
   });
   if(D.typingOn&&D._ltyping){
@@ -6727,7 +6773,7 @@ function renderListenPlayer(cur){
         au.style.display='none';
         fb.style.display='';
         fb.innerHTML='<div style="padding:18px 16px;text-align:center;font-size:13px;color:var(--sub);line-height:1.8;background:var(--card);border-radius:16px">'
-          +'<div style="font-size:22px;margin-bottom:6px">🎵</div>'
+          +'<div style="margin-bottom:6px">'+yzi('listen',22)+'</div>'
           +'这首歌是 VIP / 有版权保护，所有直链都被拦了<br>换一首，或点下面在平台里听'
           +'<div style="margin-top:12px"><a href="'+safe+'" target="_blank" style="display:inline-block;padding:9px 18px;border-radius:16px;background:var(--bubble-me);color:var(--bubble-me-text);text-decoration:none">在平台打开</a></div></div>';
       };
@@ -6756,7 +6802,7 @@ function renderListenPlayer(cur){
   // 兜底：给清爽引导，不白屏
   fb.style.display='';
   fb.innerHTML='<div style="padding:18px 16px;text-align:center;font-size:13px;color:var(--sub);line-height:1.8;background:var(--card);border-radius:16px">'
-    +'<div style="font-size:22px;margin-bottom:6px">🎵</div>'
+    +'<div style="margin-bottom:6px">'+yzi('listen',22)+'</div>'
     +'这个链接没法直接在这播<br>把歌名发我，我陪你记歌词'
     +'<div style="margin-top:12px"><a href="'+safe+'" target="_blank" style="display:inline-block;padding:9px 18px;border-radius:16px;background:var(--bubble-me);color:var(--bubble-me-text);text-decoration:none">在平台打开</a></div></div>';
 }
@@ -7244,7 +7290,7 @@ function gmkChatRender(){
     var av=isMe?D.avatarMe:gmkCurAvatar();
     var nm=isMe?(D.myNick||'我'):gmkCurName();
     var avh=av?('<img src="'+av+'">'):(((nm||'')[0])||'');
-    var inner=(m.type==='img')?('<div class="gb gimg"><img src="'+String(m.src||'').replace(/"/g,'%22')+'"></div>'):((m.type==='voice')?('<div class="gb voice">🎤 <span>'+(m.sec||'')+'″</span></div>'+(m.text?('<div class="vtt">'+esc(m.text)+'</div>'):'')):('<div class="gb">'+esc(m.text||'')+'</div>'));
+    var inner=(m.type==='img')?('<div class="gb gimg"><img src="'+String(m.src||'').replace(/"/g,'%22')+'"></div>'):((m.type==='voice')?('<div class="gb voice">'+yzi('mic',13)+' <span>'+(m.sec||'')+'″</span></div>'+(m.text?('<div class="vtt">'+esc(m.text)+'</div>'):'')):('<div class="gb">'+esc(m.text||'')+'</div>'));
     c.insertAdjacentHTML('beforeend','<div class="gm '+(isMe?'me':'')+'"><div class="gav">'+avh+'</div><div>'+inner+'</div></div>');
   });
   if(D.typingOn&&_gmk.typing){
@@ -7674,7 +7720,7 @@ function tttChatRender(){
     var av=isMe?D.avatarMe:tttCurAvatar();
     var nm=isMe?(D.myNick||'我'):tttCurName();
     var avh=av?('<img src="'+av+'">'):(((nm||'')[0])||'');
-    var inner=(m.type==='img')?('<div class="gb gimg"><img src="'+String(m.src||'').replace(/"/g,'%22')+'"></div>'):((m.type==='voice')?('<div class="gb voice">🎤 <span>'+(m.sec||'')+'″</span></div>'+(m.text?('<div class="vtt">'+esc(m.text)+'</div>'):'')):('<div class="gb">'+esc(m.text||'')+'</div>'));
+    var inner=(m.type==='img')?('<div class="gb gimg"><img src="'+String(m.src||'').replace(/"/g,'%22')+'"></div>'):((m.type==='voice')?('<div class="gb voice">'+yzi('mic',13)+' <span>'+(m.sec||'')+'″</span></div>'+(m.text?('<div class="vtt">'+esc(m.text)+'</div>'):'')):('<div class="gb">'+esc(m.text||'')+'</div>'));
     c.insertAdjacentHTML('beforeend','<div class="gm '+(isMe?'me':'')+'"><div class="gav">'+avh+'</div><div>'+inner+'</div></div>');
   });
   if(D.typingOn&&_ttt.typing){
