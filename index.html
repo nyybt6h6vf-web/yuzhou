@@ -154,10 +154,7 @@ svg [fill="currentColor"]{stroke:none;}
 .gmk-chat .yz-timebar,.gb-chat .yz-timebar{margin:8px 0 4px;}
 /* 主动消息标记：左侧雾蓝竖线 + 左上角小圆点 */
 .msg.yz-auto{position:relative;}
-.msg.yz-auto::before{content:"";position:absolute;left:2px;top:8px;bottom:6px;width:2px;border-radius:2px;background:var(--accent,#859ecb);opacity:.55;}
-.msg.yz-auto .bubwrap{position:relative;}
-.msg.yz-auto .bubwrap::before{content:"";position:absolute;left:-7px;top:6px;width:6px;height:6px;border-radius:50%;background:var(--accent,#859ecb);}
-.msg .auto-dot{position:absolute;left:6px;top:4px;width:7px;height:7px;border-radius:50%;background:#859ecb;box-shadow:0 0 0 2px rgba(133,158,203,.25);z-index:3;pointer-events:none;}
+.msg .auto-dot{position:absolute;left:41px;top:15px;width:7px;height:7px;border-radius:50%;background:#859ecb;z-index:3;pointer-events:none;}
 .msg{position:relative;}
 
 #listenChat .yz-timebar{margin:8px 0 4px;}
@@ -4378,8 +4375,11 @@ function endVoice(){
 function confirmTransfer(){
   const amt=$("#trAmt").value.trim()||"52";
   const note=$("#trNote").value.trim()||"";
+  var _amtN=parseFloat(amt)||0;
+  if(_amtN>balMe()){ toast('余额不够了'); return; }
   closeSheet2("transferSheet");
   $("#trNote").value="";
+  try{ D.balance=balMe()-_amtN; save(); refreshBalUI(); }catch(e){}
   push({from:"me",type:"transfer",amt:amt,note:note});
   const idx=D.msgs.length-1;
   const who=(D.nick||"他");
@@ -4387,6 +4387,12 @@ function confirmTransfer(){
     const m=D.msgs[idx];if(!m)return;
     const got=Math.random()*100<(D.tran||50);
     m.st=got?"got":"back";
+    try{
+      var _a=parseFloat(amt)||0;
+      if(got){ D.balanceHim=balHim()+_a; }
+      else{ D.balance=balMe()+_a; }
+      refreshBalUI();
+    }catch(e){}
     save();renderChat();
     push({type:"sys",text:(got?("对方已收款 ¥"+amt):("对方已退还 ¥"+amt))});
     setTimeout(function(){himSay();},Math.max(200,sendGapMs()));
@@ -4451,6 +4457,12 @@ function tranPick(k){
   closeSheet2('tranSheet');
   if(!m||m.type!=='transfer')return;
   m.st=(k==='got')?'got':'back';
+  try{
+    var _a=parseFloat(m.amt)||0;
+    if(k==='got'){ D.balance=balMe()+_a; }
+    else{ D.balanceHim=balHim()+_a; }
+    refreshBalUI();
+  }catch(e){}
   save();renderChat();
   push({type:'sys',text:(k==='got'?('你已收款 ¥'+m.amt):('你已退还 ¥'+m.amt))});
   setTimeout(function(){
@@ -4468,6 +4480,8 @@ function himTransfer(){
   const notes=(D.tranNotes&&D.tranNotes.length)?D.tranNotes:['给你的'];
   const amt=amts[Math.floor(Math.random()*amts.length)];
   const note=notes[Math.floor(Math.random()*notes.length)];
+  var _a=parseFloat(amt)||0;
+  try{ if(_a>balHim()){ return; } D.balanceHim=balHim()-_a; save(); refreshBalUI(); }catch(e){}
   push({from:'him',type:'transfer',amt:amt,note:note,auto:true});
   setTimeout(()=>himSay({auto:true}),Math.max(600,sendGapMs()));
 }
