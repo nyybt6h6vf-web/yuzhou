@@ -146,6 +146,8 @@ body{
 .msg.yz-auto::before{content:"";position:absolute;left:2px;top:8px;bottom:6px;width:2px;border-radius:2px;background:var(--accent,#859ecb);opacity:.55;}
 .msg.yz-auto .bubwrap{position:relative;}
 .msg.yz-auto .bubwrap::before{content:"";position:absolute;left:-7px;top:6px;width:6px;height:6px;border-radius:50%;background:var(--accent,#859ecb);}
+.msg .auto-dot{position:absolute;left:6px;top:4px;width:7px;height:7px;border-radius:50%;background:#859ecb;box-shadow:0 0 0 2px rgba(133,158,203,.25);z-index:3;pointer-events:none;}
+.msg{position:relative;}
 
 #listenChat .yz-timebar{margin:8px 0 4px;}
 .bubble.voice{display:flex;align-items:center;gap:8px;min-width:110px;}
@@ -3371,7 +3373,7 @@ function renderChat(){
       var _qw=''; try{ var _qm2=D.msgs[m.quote.i]; if(_qm2)_qw=quoteWho(_qm2)+'：'; }catch(e){}
       quoteHtml='<div class="qbox" onclick="jumpMsg('+(m.quote.i)+')">'+qsrc+'<div class="qtxt">'+esc(_qw)+((m.quote.type==='img')?'[图片]':esc(m.quote.brief))+'</div></div>';
     }
-    b.insertAdjacentHTML('beforeend',`<div class="msg ${me?'me':'him'}${(!me&&m.auto)?' yz-auto':''}" data-mi="${i}">${avHTML(me?'me':'him',m.who)}<div class="bubwrap">${nameHtml}${quoteHtml}${bubbleHTML(m,i)}${readHtml}${himStamp}${meStamp}</div></div>`);
+    b.insertAdjacentHTML('beforeend',`<div class="msg ${me?'me':'him'}${(!me&&m.auto)?' yz-auto':''}" data-mi="${i}">${(!me&&m.auto)?'<span class="auto-dot"></span>':''}${avHTML(me?'me':'him',m.who)}<div class="bubwrap">${nameHtml}${quoteHtml}${bubbleHTML(m,i)}${readHtml}${himStamp}${meStamp}</div></div>`);
   });
   if(D.typingOn&&D._typing&&$('#chat').classList.contains('active')){
     b.insertAdjacentHTML('beforeend',`<div class="typing-ind"><span>对方正在输入中</span><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div>`);
@@ -3763,7 +3765,7 @@ function quoteBrief(m){
   if(m.type==='ask')return '问卷：'+String(m.text||'').slice(0,40);
   return String(m.text||'').slice(0,60);
 }
-function himSay(){ himSayFor(null); }
+function himSay(opt){ himSayFor(null,opt); }
 function himSayMain(who,opt){
   /* 连发（免打扰）模式：梦角一条也不发 */
   try{ if(D.sendHold) return; }catch(e){}
@@ -3823,9 +3825,10 @@ function himSayFor(who,opt){
     (function(it){
       setTimeout(function(){
         try{
-          if(it.kind==='voice'){ var m={from:'him',type:'voice',sec:it.sec||3,text:it.text,_t:clockStr()}; if(who)m.who=who; _p(m); }
-          else if(it.kind==='img'){ var m2={from:'him',type:'img',src:it.src,_t:clockStr()}; if(who)m2.who=who; _p(m2); }
-          else { var m3={from:'him',text:it.text,type:'text',_t:clockStr()}; if(who)m3.who=who; _p(m3); }
+          var _auto=(opt&&opt.auto)?true:false;
+          if(it.kind==='voice'){ var m={from:'him',type:'voice',sec:it.sec||3,text:it.text,_t:clockStr()}; if(who)m.who=who; if(_auto)m.auto=true; _p(m); }
+          else if(it.kind==='img'){ var m2={from:'him',type:'img',src:it.src,_t:clockStr()}; if(who)m2.who=who; if(_auto)m2.auto=true; _p(m2); }
+          else { var m3={from:'him',text:it.text,type:'text',_t:clockStr()}; if(who)m3.who=who; if(_auto)m3.auto=true; _p(m3); }
         }catch(e){}
       },t);
     })(item);
@@ -4150,7 +4153,7 @@ function startProactiveLoop(){
       D.msgs=target.msgs=target.msgs||[];
       window.__yzActiveMsg=true;
       try{ window.__yzActiveMsgUntil=Date.now()+30000; }catch(e){}
-      himSay();
+      himSay({auto:true});
       D.msgs=_oldMsgs; D.curConv=oldCur;
       save();
       if(document.hidden){yzNotify(yzConvTitle(target),'给你发消息了');}
