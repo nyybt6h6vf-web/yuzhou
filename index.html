@@ -722,6 +722,11 @@ body{
 .cchk.on{background:var(--accent,#859ecb);border-color:var(--accent,#859ecb);color:#fff;}
 #yzToast{position:fixed;left:50%;bottom:12%;transform:translate(-50%,10px);background:rgba(0,0,0,.82);color:#fff;font-size:13px;padding:9px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:.22s;z-index:99999;max-width:76%;text-align:center;}
 #yzToast.show{opacity:1;transform:translate(-50%,0);}
+#yzTopNotice{position:fixed;left:50%;top:8px;transform:translate(-50%,-140%);width:92%;max-width:420px;background:rgba(28,30,36,.96);color:#fff;border-radius:16px;padding:12px 14px 13px;box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:100000;transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .3s;opacity:0;cursor:pointer;touch-action:pan-y;}
+#yzTopNotice.show{transform:translate(-50%,0);opacity:1;}
+#yzTopNotice .ytn-t{font-size:13.5px;font-weight:800;letter-spacing:.3px;display:flex;align-items:center;gap:6px;}
+#yzTopNotice .ytn-c{font-size:12.8px;color:rgba(255,255,255,.82);margin-top:5px;line-height:1.5;max-height:38px;overflow:hidden;}
+#yzTopNotice .ytn-x{position:absolute;top:8px;right:10px;font-size:14px;opacity:.7;}
 
 /* ==== 引用回复 ==== */
 .qbox{max-width:82%;margin:0 0 4px 0;padding:6px 10px;border-left:3px solid var(--accent,#859ecb);border-radius:8px;background:var(--card,#f5f5f7);cursor:pointer;overflow:hidden;}
@@ -817,9 +822,27 @@ body{
 .gdel{position:absolute;right:8px;top:8px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--sub);}
 .gedit{display:inline-block;align-self:flex-start;margin-top:4px;font-size:11px;color:var(--accent,#859ecb);background:rgba(133,158,203,.15);padding:2px 10px;border-radius:8px;font-weight:600;}
 .shopadd{text-align:center;font-size:13px;color:var(--accent,#859ecb);padding:14px 0;cursor:pointer;}
+.shopbal .gwb{cursor:pointer;font-size:14px;color:var(--fg);font-weight:600;}
+.gwgrid{padding:14px 14px 40px;overflow:auto;height:calc(100% - 96px);box-sizing:border-box;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:start;}
+.gwitem{background:var(--panel);border-radius:16px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.06);display:flex;flex-direction:column;}
+.gwitem .gwi{width:100%;height:96px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--sub);}
+.gwitem .gwi img{width:100%;height:100%;object-fit:cover;}
+.gwitem .gwn{padding:8px 10px 2px;font-size:13px;font-weight:600;}
+.gwitem .gwp{padding:0 10px 10px;font-size:13.5px;font-weight:800;color:var(--accent);}
+.gwtabs{display:flex;gap:8px;padding:10px 14px 4px;}
+.gwtab{flex:1;text-align:center;font-size:13.5px;padding:9px 0;border-radius:12px;background:var(--card);cursor:pointer;}
+.gwtab.on{background:var(--accent,#859ecb);color:#fff;font-weight:700;}
+.gwempty{grid-column:1/-1;text-align:center;color:var(--sub);font-size:13px;padding:40px 0;}
 .gimgpick{width:100%;height:80px;border-radius:12px;background:var(--icon-bg,#eee);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--sub);cursor:pointer;margin-bottom:10px;background-size:cover;background-position:center;}
 #goodsSheet textarea{width:100%;box-sizing:border-box;min-height:56px;background:var(--icon-bg,#eee);border:none;border-radius:10px;padding:10px 12px;font-size:14px;color:var(--fg);outline:none;resize:vertical;}
 .bubble.goodsbub,.bubble.dfbub{display:flex;flex-direction:column;gap:8px;min-width:180px;max-width:74%;}
+.bubble.songcard{display:flex;flex-direction:column;gap:9px;min-width:190px;max-width:76%;cursor:pointer;}
+.bubble.songcard:active{transform:scale(.985);}
+.songcard .scTop{font-size:12.5px;color:var(--sub);line-height:1.5;}
+.songcard .scBody{display:flex;gap:10px;align-items:center;}
+.songcard .scIc{width:42px;height:42px;border-radius:12px;background:var(--accent,#859ecb);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 42px;}
+.songcard .scName{font-size:14.5px;font-weight:700;}
+.songcard .scBy{font-size:12px;color:var(--sub);margin-top:3px;}
 .bubble.dfbub.tap{cursor:pointer;box-shadow:0 4px 14px rgba(120,140,200,.28);}
 .bubble.dfbub.tap:active{transform:scale(.985);}
 .gbimg{width:48px;height:48px;border-radius:10px;object-fit:cover;}
@@ -1519,8 +1542,14 @@ body{
   <div class="screen" id="shop">
     <div class="statusbar"><span id="sTimeTop">9:41</span><span class="right">●●● 100%</span></div>
     <div class="navbar"><div class="back" onclick="go('home')">‹</div><div class="title">商城</div><div class="act" onclick="addGoodsPrompt()">＋ 添加商品</div></div>
-    <div class="shopbal"><span>我的余额</span><b id="shopBal">¥5200</b><span class="edbal" onclick="editBalance()">改</span></div>
+    <div class="shopbal"><span class="gwb" onclick="openGiftWall()">🎁 礼物墙</span></div>
     <div class="shopbody" id="shopBody"></div>
+  </div>
+  <div class="screen" id="giftwall">
+    <div class="statusbar"><span id="gwTimeTop">9:41</span><span class="right">●●● 100%</span></div>
+    <div class="navbar"><div class="back" onclick="go('shop')">‹</div><div class="title">礼正墙</div><div class="act"></div></div>
+    <div class="gwtabs"><div class="gwtab on" id="gwTabHim" onclick="setGiftTab('him')">梦角送我</div><div class="gwtab" id="gwTabME" onclick="setGiftTab('me')">我送梦蠒</div></div>
+    <div class="gwgrid" id="giftWallBody"></div>
   </div>
 
   <div class="sheet" id="goodsSheet">
@@ -1619,6 +1648,11 @@ body{
         <div class="row"><div class="lab">梦角找你代付概率（%）</div><input type="number" id="setDaifuRate" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">代付检查间隔（分钟）</div><input type="number" id="setDaifuGap" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角代付处理时长（秒）</div><input type="number" id="setDaifuDelay" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角主动送东西概率（%）</div><input type="number" id="setGiftRate" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">送东西检查间隔（分钟）</div><input type="number" id="setGiftGap" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角送东西处理时长（秒）</div><input type="number" id="setGiftDelay" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角主动发一起听概率（%）</div><input type="number" id="setLisAskRate" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">一起听邀请间隔（分钟）</div><input type="number" id="setLisAskGap" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">转账收款概率（%）</div><input type="number" id="setTran" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角主动转账概率（%）</div><input type="number" id="setTranTo" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row" style="flex-direction:column;align-items:stretch">
@@ -1763,6 +1797,23 @@ body{
     <div class="cend" onclick="hangCall()">✕</div>
   </div>
 
+  <div class="sheet" id="balanceSheet">
+    <div class="dlg">
+      <h3>余额</h3>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-radius:16px;background:var(--card);border:1px solid var(--line);margin-bottom:12px">
+        <div><div style="font-size:12.5px;color:var(--sub)">我的余额</div><div id="balMe" style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px">¥5200</div></div>
+        <div class="b ok" style="cursor:pointer;padding:8px 18px;border-radius:12px" onclick="editBalance()">改</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-radius:16px;background:var(--card);border:1px solid var(--line)">
+        <div><div style="font-size:12.5px;color:var(--sub)">梦角余额</div><div id="balHim" style="font-size:20px;font-weight:800;color:var(--accent);margin-top:4px">¥5200</div></div>
+        <div class="b ok" style="cursor:pointer;padding:8px 18px;border-radius:12px" onclick="editBalanceHim()">改</div>
+      </div>
+      <div class="dbtns" style="margin-top:16px">
+        <div class="b cancel" onclick="closeSheet2('balanceSheet')">关闭</div>
+      </div>
+    </div>
+  </div>
+
   <div class="sheet" id="transferSheet">
     <div class="dlg">
       <h3>转账</h3>
@@ -1902,12 +1953,23 @@ body{
       <p id="promptDesc" style="display:none;font-size:12.5px;color:var(--sub);text-align:center;line-height:1.6;margin:-8px 0 14px;padding:0 6px"></p>
       <textarea id="promptInput" placeholder="" style="min-height:110px;line-height:1.5"></textarea>
       <div class="dbtns" style="display:flex;gap:10px;justify-content:flex-end;align-items:center;margin-top:14px;position:relative;z-index:9">
-        <div class="b cancel" style="visibility:visible;opacity:1" onclick="closeSheet2('promptSheet')">取消</div>
+        <div class="b cancel" style="visibility:visible;opacity:1" onclick="promptCancel()">取消</div>
         <div class="b ok" style="visibility:visible;opacity:1" onclick="promptOk()">确定</div>
       </div>
     </div>
   </div>
 
+  <div class="sheet" id="giftActSheet">
+    <div class="dlg" style="position:relative">
+      <div class="dfaclose" onclick="closeGiftAct()" style="position:absolute;top:-6px;right:-2px;width:26px;height:26px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;z-index:5">×</div>
+      <h3 id="giftActTitle">他送你的礼物</h3>
+      <div id="giftActBody" style="margin:2px 0 12px"></div>
+      <div class="dbtns" style="display:flex;gap:10px;justify-content:flex-end;align-items:center;margin-top:6px">
+        <div class="b cancel" style="cursor:pointer" onclick="giftUserAct(false)">拒绝</div>
+        <div class="b ok" style="cursor:pointer" onclick="giftUserAct(true)">收下</div>
+      </div>
+</div>
+  </div>
   <div class="sheet" id="daifuActSheet">
     <div class="dlg" style="position:relative">
       <div class="dfaclose" onclick="closeDaifuAct()" style="position:absolute;top:-6px;right:-2px;width:26px;height:26px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;z-index:5">×</div>
@@ -1990,6 +2052,7 @@ const ICONS={
  album:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-6 6-3-3-4 4"/></svg>',
  poke:'<svg viewBox="0 0 24 24"><path d="M12 21s-7-4.5-9.3-8.5A5 5 0 0 1 12 6a5 5 0 0 1 9.3 6.5C19 16.5 12 21 12 21z"/><path d="M12 9.5v4.5"/><path d="M9.8 11.5h4.4"/></svg>',
  shop:'<svg viewBox="0 0 24 24"><path d="M4 8h16l-1.5 11H5.5z"/><path d="M8.5 8V6a3.5 3.5 0 0 1 7 0v2"/></svg>',
+ wallet:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1.3" fill="currentColor" stroke="none"/></svg>',
  diary:'<svg viewBox="0 0 24 24"><path d="M6 3h11a2 2 0 0 1 2 2v16H8a2 2 0 0 1-2-2z"/><path d="M6 3v16"/><path d="M10 8h6"/><path d="M10 12h6"/></svg>',
  period:'<svg viewBox="0 0 24 24"><path d="M12 21s-7-5-7-10a7 7 0 0 1 14 0c0 5-7 10-7 10z"/><circle cx="12" cy="11" r="2.5"/></svg>',
  moment:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/></svg>'
@@ -2011,6 +2074,7 @@ const HOME_APPS=[
  {act:'settings',ic:'tree',name:'设置'}
 ];
 const PLUS=[
+ {act:'balance',ic:'wallet',name:'余额'},
  {act:'transfer',ic:'transfer',name:'转账'},
  {act:'call',ic:'call',name:'通话'},
  {act:'voice',ic:'mic',name:'按住说话'},
@@ -2386,6 +2450,13 @@ if(o.balance===undefined)o.balance=5200;
 if(o.daifuDelay===undefined)o.daifuDelay=8;
 if(o.daifuRate===undefined)o.daifuRate=20;
 if(o.daifuGap===undefined)o.daifuGap=20;
+if(o.balanceHim===undefined)o.balanceHim=5200;
+if(o.giftRate===undefined)o.giftRate=20;
+if(o.giftGap===undefined)o.giftGap=20;
+if(o.giftDelay===undefined)o.giftDelay=8;
+if(!o.giftWall)o.giftWall=[];
+if(o.lisAskRate===undefined)o.lisAskRate=20;
+if(o.lisAskGap===undefined)o.lisAskGap=20;
     if(o.comboMin===undefined)o.comboMin=2;
     if(o.comboMax===undefined)o.comboMax=3;
     if(o.momMin===undefined)o.momMin=1;
@@ -2568,6 +2639,7 @@ function go(id){
   if(id==='diary')renderDiary();
   if(id==='period')renderPeriod();
   if(id==='shop')renderShop();
+  if(id==='giftwall')renderGiftWall();
   if(id==='phony'){try{yzPhInit();yzPhRender();}catch(e){}}
   if(id==='gomoku'){try{_gmk._yzEnterMs=Date.now();window.__yzStampArmedGmk=true;renderGomoku();}catch(e){}}
   if(id==='ttt'){try{_ttt._yzEnterMs=Date.now();window.__yzStampArmedTtt=true;renderTtt();}catch(e){}}
@@ -2638,6 +2710,8 @@ function yzPhTick(){
       }
     }
     try{ yzDaifuTick(dt); }catch(e){} /* 代付累计计时 */
+    try{ yzGiftTick(dt); }catch(e){} /* 送东西累计计时 */
+    try{ yzLisAskTick(dt); }catch(e){} /* 一起听邀请累计计时 */
     /* 电量没变就不写库：避免每秒全量序列化 → 越用越卡 */
     var _phSig=D.ph.my+'/'+D.ph.him+'/'+(D.ph.myCharging?1:0)+'/'+(D.ph.himCharging?1:0)+'/'+(D.ph.himPower?1:0);
     if(window.__yzPhSig!==_phSig){ window.__yzPhSig=_phSig; save(); }
@@ -3221,6 +3295,29 @@ function bubbleHTML(m,i){
     var _click=_canAct?(' data-dfi="'+i+'" onclick="openDaifuAct('+i+')"'):'';
     return '<div class="bubble dfbub'+(_canAct?' tap':'')+'"'+_click+'>'+
       '<div class="dfcap">'+esc(m.text||'亲爱的，帮我买这个吧～')+'</div>'+
+      '<div class="dfgoods">'+gi+'<div class="gbtxt"><div class="gbn">'+esc(m.gname||'')+'</div><div class="gbp">¥'+esc(m.gprice||'')+'</div></div></div>'+
+      st+'</div>';
+  }
+  if(m.type==='songcard'){
+    var _sc=(m.title||'')+' '+(m.by||'');
+    return '<div class="bubble songcard" data-str="'+i+'" onclick="openListenCard('+i+')">'+
+      '<div class="scTop">'+esc((D.myNick||'我')+'，我们一起听这首歌吧！')+'</div>'+
+      '<div class="scBody"><div class="scIc">🎵</div><div class="scInfo"><div class="scName">'+esc(m.title||'未知歌曲')+'</div><div class="scBy">'+esc(m.by||'')+'</div></div></div>'+
+      '</div>';
+  }
+  if(m.type==='gift'){
+    const gi=m.gimg?('<img class="gbimg" src="'+m.gimg+'">'):'<div class="gbimg ph">礼</div>';
+    const isMine=(m.from==='me');
+    let st='';
+    if(m.noSt){st='';}
+    else if(m.st==='got')st='<div class="dfst ok">已收下</div>';
+    else if(m.st==='no')st='<div class="dfst no">已拒绝</div>';
+    else if(m.st==='sent')st='<div class="dfst ok">已送出</div>';
+    else st='<div class="dfst wait">'+(isMine?'等对方领取':'等你收下')+'</div>';
+    var _gAct=(!isMine && !m.noSt && (!m.st||m.st==='wait'));
+    var _gClick=_gAct?(' data-gfi="'+i+'" onclick="openGiftAct('+i+')"'):'';
+    return '<div class="bubble dfbub'+(_gAct?' tap':'')+'"'+_gClick+'>'+
+      '<div class="dfcap">'+esc(m.text||'亲爱的，送你个东西～')+'</div>'+
       '<div class="dfgoods">'+gi+'<div class="gbtxt"><div class="gbn">'+esc(m.gname||'')+'</div><div class="gbp">¥'+esc(m.gprice||'')+'</div></div></div>'+
       st+'</div>';
   }
@@ -4057,6 +4154,7 @@ function startProactiveLoop(){
       D.msgs=_oldMsgs; D.curConv=oldCur;
       save();
       if(document.hidden){yzNotify(yzConvTitle(target),'给你发消息了');}
+      try{ var _pt=yzConvTitle(target); var _pcv=target.id; yzTopNotice(_pt+' 给你发消息了','点开看看我这一轮发的主动消息',function(){ try{ yzOpenConv(_pcv); }catch(e){} }); }catch(e){}
     }catch(e){}
   },gapMin*60*1000);
 }
@@ -4107,7 +4205,8 @@ function togglePlus(){const s=$('#plusSheet'),m=$('#mask');const on=s.classList.
 function closeSheet(){$('#plusSheet').classList.remove('show');$('#mask').classList.remove('show');}
 function doPlus(act){
   closeSheet();
-  if(act==='transfer')openSheet2('transferSheet');
+  if(act==='balance'){ try{refreshBalUI();}catch(e){} openSheet2('balanceSheet'); }
+  else if(act==='transfer')openSheet2('transferSheet');
   else if(act==='call')startOutgoing();
   else if(act==='listen')go('listen');
   else if(act==='pat'){
@@ -4596,8 +4695,50 @@ function delGoodsInSheet(){
 function editBalance(){
   askInput('我的余额',String(D.balance===undefined?5200:D.balance),function(t){
     const v=parseFloat(t);if(isNaN(v)||v<0){toast('填个正常数字');return;}
-    D.balance=v;save();renderShop();
+    D.balance=v;save();refreshBalUI();renderShop();
   },'改的是你钱包里的钱，在商城买东西会从这里扣。');
+}
+function balMe(){ return (D.balance===undefined?5200:D.balance); }
+function balHim(){ return (D.balanceHim===undefined?5200:D.balanceHim); }
+function editBalanceHim(){
+  askInput('梦角余额',String(balHim()),function(t){
+    const v=parseFloat(t);if(isNaN(v)||v<0){toast('填个正常数字');return;}
+    D.balanceHim=v;save();refreshBalUI();
+  },'改的是梦角钱包里的钱，他转账、代付、送东西会从这里扣。');
+}
+function refreshBalUI(){
+  try{
+    if($('#balMe'))$('#balMe').textContent='¥'+balMe();
+    if($('#balHim'))$('#balHim').textContent='¥'+balHim();
+    if($('#shopBal'))$('#shopBal').textContent='¥'+balMe();
+  }catch(e){}
+}
+/* 礼物墙：记录一条 */
+function pushGiftWall(who,g,dir){
+  try{
+    D.giftWall=D.giftWall||[];
+    D.giftWall.push({who:who||'',name:(g&&g.name)||'',price:(g&&g.price)||0,img:(g&&g.img)||'',dir:dir||'',ts:Date.now()});
+    save();
+    return D.giftWall[D.giftWall.length-1];
+  }catch(e){ return null; }
+}
+var _gwTab='him';
+function setGiftTab(t){ _gwTab=(t==='me')?'me':'him'; renderGiftWall(); }
+function openGiftWall(){ try{ go('giftwall'); _gwTab='him'; renderGiftWall(); }catch(e){} }
+function renderGiftWall(){
+  var box=$('#giftWallBody'); if(!box)return;
+  try{
+    var th=$('#gwTabHim'),tm=$('#gwTabMe');
+    if(th)th.classList.toggle('on',_gwTab==='him');
+    if(tm)tm.classList.toggle('on',_gwTab==='me');
+  }catch(e){}
+  var list=(D.giftWall||[]).filter(function(x){return x.dir===_gwTab;});
+  box.innerHTML='';
+  if(!list.length){ box.innerHTML='<div class="gwempty">'+( _gwTab==='him'?'梦角还没送过你东西':'你还没送过梦角东西')+'</div>'; return; }
+  list.slice().reverse().forEach(function(x){
+    var im=x.img?('<img src="'+x.img+'">'):'礼';
+    box.insertAdjacentHTML('beforeend','<div class="gwitem"><div class="gwi">'+im+'</div><div class="gwn">'+esc(x.name||'')+'</div><div class="gwp">¥'+esc(x.price)+'</div></div>');
+  });
 }
 function findGoods(id){return goodsList().find(function(g){return g.id===id;});}
 function buyGoods(id){
@@ -4605,7 +4746,7 @@ function buyGoods(id){
   const bal=(D.balance===undefined?5200:D.balance);
   if(bal<g.price){toast('余额不够了');return;}
   askConfirm('花 ¥'+g.price+' 买下「'+g.name+'」？',function(){
-    D.balance=bal-g.price;save();
+    D.balance=bal-g.price;save();refreshBalUI();
     push({from:'me',type:'goods',text:'我买下了「'+g.name+'」',gname:g.name,gprice:g.price,gimg:g.img,_t:clockStr()});
     renderShop();toast('买好了');
     setTimeout(function(){push({from:'him',text:pickCard(),_t:clockStr()});},Math.max(600,sendGapMs()));
@@ -4616,7 +4757,8 @@ function giveGoods(id){
   const bal=(D.balance===undefined?5200:D.balance);
   if(bal<g.price){toast('余额不够了');return;}
   askConfirm('送给他「'+g.name+'」（¥'+g.price+'）？',function(){
-    D.balance=bal-g.price;save();
+    D.balance=bal-g.price;save();refreshBalUI();
+    try{ pushGiftWall(D.nick||'他',g,'me'); }catch(e){}
     push({from:'me',type:'goods',text:'送给你「'+g.name+'」',gname:g.name,gprice:g.price,gimg:g.img,_t:clockStr()});
     renderShop();toast('已经送出去了');
     setTimeout(function(){
@@ -4645,6 +4787,8 @@ if(!window.__dfDeleg){
   window.__dfDeleg=true;
   document.addEventListener('click',function(e){
     try{
+      var _g=e.target&&e.target.closest?e.target.closest('.dfbub'):null;
+      if(_g&&_g.getAttribute('data-gfi')!==null&&_g.getAttribute('data-gfi')!==''){ var _gk=_g.getAttribute('data-gfi'); if(_gk!==null&&_gk!==''){ openGiftAct(_gk); } return; }
       var el=e.target&&e.target.closest?e.target.closest('.dfbub'):null;
       if(!el)return;
       var now=Date.now();
@@ -4790,6 +4934,136 @@ if(!window.__msgTapMenu){
     },false);
   })();
 }
+var _gfActIdx=-1;
+function openGiftAct(i){
+  _gfActIdx=parseInt(i,10);
+  var m=(D.msgs||[])[_gfActIdx]; if(!m||m.type!=='gift')return;
+  var t=document.getElementById('giftActTitle'); if(t)t.textContent='他送你的礼物';
+  var b=document.getElementById('giftActBody');
+  if(b){
+    var gi=m.gimg?('<img src="'+esc(m.gimg)+'" style="width:64px;height:64px;border-radius:12px;object-fit:cover">'):'<div style="width:64px;height:64px;border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:20px">礼</div>';
+    b.innerHTML='<div style="display:flex;gap:12px;align-items:center;padding:12px;border-radius:14px;background:var(--card);border:1px solid var(--line)">'+gi+
+      '<div style="flex:1;min-width:0"><div style="font-size:14.5px;font-weight:700">'+esc(m.gname||'')+'</div>'+
+      '<div style="font-size:15px;font-weight:700;color:var(--accent);margin-top:4px">¥'+esc(m.gprice||'')+'</div></div></div>'+
+      '<div style="font-size:12.5px;color:var(--sub);text-align:center;margin-top:10px">'+esc(m.text||'亲爱的，送你个东西～')+'</div>';
+  }
+  openSheet2('giftActSheet');
+}
+function closeGiftAct(){ _gfActIdx=-1; closeSheet2('giftActSheet'); }
+function giftUserAct(accept){
+  closeSheet2('giftActSheet');
+  var i=_gfActIdx; _gfActIdx=-1;
+  var m=(D.msgs||[])[i];
+  if(!m||m.type!=='gift'||m.from==='me')return;
+  if(m.st&&m.st!=='wait')return;
+  if(accept){
+    m.st='got';
+    try{ D.balanceHim=balHim()-(m.gprice||0); save(); refreshBalUI(); }catch(e){}
+    try{ pushGiftWall(D.nick||'他',{name:m.gname,price:m.gprice,img:m.gimg},'him'); }catch(e){}
+  }else{
+    m.st='no';
+    try{save();}catch(e){}
+  }
+  if($('#chat')&&$('#chat').classList.contains('active'))renderChat();
+  try{
+    var _line=(accept?'你喜欢就好，':'好吧，下次再给你买')+pickCard();
+    setTimeout(function(){
+      setTyping(true);
+      setTimeout(function(){
+        try{setTyping(false);}catch(e){}
+        try{ push({from:'him',text:_line,_t:clockStr()}); }catch(e){}
+      }, Math.max(500,(typeof sendGapMs==='function'?sendGapMs():1200)));
+    }, 1600);
+  }catch(e){}
+}
+function himGiftMe(){
+  try{ if(D.sendHold) return; }catch(e){}
+  var list=goodsList(); if(!list.length)return;
+  var g=list[Math.floor(Math.random()*list.length)];
+  if(!g)return;
+  push({from:'him',type:'gift',text:'亲爱的，送你个东西～',gname:g.name,gprice:g.price,gimg:g.img,st:'wait',_t:clockStr()});
+  toast('他送你一件东西');
+  try{ yzTopNotice((D.nick||'他')+' 送你一件东西','「'+g.name+'」¥'+g.price+'，点开收下',function(){ try{ yzOpenConv(D.curConv); }catch(e){} }); }catch(e){}
+}
+function yzGiftTick(dt){
+  try{
+    if(document.hidden)return;
+    if(dt<0)dt=0; if(dt>300000)dt=300000;
+    D.giftAcc=(D.giftAcc||0)+dt;
+    const gap=Math.max(1,parseFloat(D.giftGap)||20)*60000;
+    while(D.giftAcc>=gap){
+      D.giftAcc-=gap;
+      const r=parseFloat(D.giftRate);
+      if(!isNaN(r) && Math.random()*100<r){ try{ himGiftMe(); }catch(e){} }
+    }
+  }catch(e){}
+}
+function yzCurChara(){
+  try{
+    var cv=yzCurConv(); if(!cv||cv.type==='group')return null;
+    return (D.charas||[]).find(function(c){return c.id===cv.charas[0];})||null;
+  }catch(e){ return null; }
+}
+/* 梦角主动发一起听歌曲卡片 */
+function yzHimSendListenCard(){
+  try{
+    var pl=D.listenPlaylist||[];
+    if(!pl.length)return false;
+    var ch=yzCurChara();
+    var sg=pl[Math.floor(Math.random()*pl.length)];
+    if(!sg)return false;
+    push({from:'him',type:'songcard',title:sg.title||'',by:sg.by||'',url:sg.url||'',charaId:(ch?ch.id:''),charNick:(ch?(ch.nick||'梦角'):'梦角'),_t:clockStr()});
+    try{ var _sn=(ch?(ch.nick||'梦角'):'梦角'); yzTopNotice(_sn+' 想和你一起听','「'+(sg.title||'')+'」，点开一起听',function(){ try{ openListenCard(D.msgs.length-1); }catch(e){} }); }catch(e){}
+    return true;
+  }catch(e){ return false; }
+}
+function openListenCard(i){
+  var m=(D.msgs||[])[i]; if(!m||m.type!=='songcard')return;
+  var sender=String(m.charaId||'');
+  var senderName=m.charNick||'梦角';
+  /* 先跳一起听 */
+  try{ go('listen'); }catch(e){}
+  setTimeout(function(){
+    try{
+      if(D.lisBound && sender && String(D.lisBound)===sender){
+        /* 正在绑定的就是这个梦角 → 直接停留 */
+        return;
+      }
+      var cur=lisBoundChara();
+      if(D.lisBound && sender && String(D.lisBound)!==sender){
+        var curName=cur?(cur.nick||'梦角'):'梦角';
+        askConfirm('你当前绑定的一起听不是「'+senderName+'」哦，是否和「'+curName+'」解绑？',function(){
+          /* 确定：解绑当前，进选梦角 */
+          D.lisAccumMs=lisElapsedMs();
+          D.lisBound=''; D.lisStartAt=0; save();
+          try{ lisOpenPick(); }catch(e){}
+          try{ yzLisTickMeta(); }catch(e){}
+        },function(){
+          /* 不是：不解绑，回聊天 */
+          try{ go('chat'); }catch(e){}
+        });
+        /* 点“取消/不是”→ 由 askConfirm 不回调解定：回聊天界面 */
+
+      }else if(!D.lisBound){
+        /* 没有绑定 → 直接进选梦角界面 */
+        try{ lisOpenPick(); }catch(e){}
+      }
+    }catch(e){}
+  },120);
+}
+function yzLisAskTick(dt){
+  try{
+    if(document.hidden)return;
+    if(dt<0)dt=0; if(dt>300000)dt=300000;
+    D.lisAskAcc=(D.lisAskAcc||0)+dt;
+    const gap=Math.max(1,parseFloat(D.lisAskGap)||20)*60000;
+    while(D.lisAskAcc>=gap){
+      D.lisAskAcc-=gap;
+      const r=parseFloat(D.lisAskRate);
+      if(!isNaN(r) && Math.random()*100<r){ try{ yzHimSendListenCard(); }catch(e){} }
+    }
+  }catch(e){}
+}
 function daifuUserAct(accept){
   closeSheet2('daifuActSheet');
   var i=_dfActIdx; _dfActIdx=-1;
@@ -4859,6 +5133,7 @@ function himAskMePay(){
   if(!g)return;
   push({from:'him',type:'daifu',text:'亲爱的，帮我买这个吧～',gname:g.name,gprice:g.price,gimg:g.img,st:'wait',mine:false,_t:clockStr()});
   toast('他在找你代付');
+  try{ yzTopNotice((D.nick||'他')+' 找你代付','「'+g.name+'」¥'+g.price+'，点开处理',function(){ try{ yzOpenConv(D.curConv); }catch(e){} }); }catch(e){}
 }
 function startShopLoop(){
   if(shopTimer)clearInterval(shopTimer);
@@ -5103,6 +5378,7 @@ function himWriteDiary(){
   D.diaries.push({id:'dy'+Date.now(),from:'him',title:'',mood:mood,date:dFull(),text:txt,comments:[],time:new Date().toISOString()});
   save();
   sys((D.nick||'他')+' 写了一篇日记');
+  try{ yzTopNotice((D.nick||'他')+' 写了一篇日记',(txt||'').slice(0,40),function(){ try{ go('diary'); }catch(e){} }); }catch(e){}
   if($('#diary').classList.contains('active'))renderDiary();
   if($('#himprofile')&&$('#himprofile').classList.contains('active'))renderHimProfile();
 }
@@ -5412,7 +5688,7 @@ function promptOk(){
   const v=inp.value;
   inp.style.display='';
   closeSheet2('promptSheet');
-  const cb=_promptCb;_promptCb=null;
+  const cb=_promptCb;_promptCb=null;_promptCancelCb=null;
   if(_multiMode){
     let lines=String(v||'').split(/\r?\n/);
     if(lines.length<=1)lines=String(v||'').split(/[，,；;]+/);
@@ -5760,6 +6036,7 @@ function pushLetterByHim(){
   D.letters.push({id:'lt'+Date.now(),from:'him',text:letterTo(D.myNick||'我')+'\n\n'+txt,preview:txt.slice(0,20),time:nowStr(),read:false,replied:true});
   save();
   try{ sys((D.nick||'他')+' 给你寄了一封信'); }catch(e){}
+  try{ yzTopNotice((D.nick||'他')+' 给你寄了一封信',(txt||'').slice(0,40),function(){ try{ go('letters'); }catch(e){} }); }catch(e){}
   if($('#letters').classList.contains('active'))renderLetters();
 }
 function startLetterLoop(){
@@ -7785,6 +8062,30 @@ function importCards(inp){
   };
   r.readAsText(f,'UTF-8');
 }
+function yzTopNotice(title,content,onClick,ms){
+  try{
+    var el=document.getElementById('yzTopNotice');
+    if(!el){ el=document.createElement('div'); el.id='yzTopNotice'; document.body.appendChild(el); }
+    if(el._to)clearTimeout(el._to);
+    if(el._rm)clearTimeout(el._rm);
+    el.innerHTML='<div class="ytn-t">'+esc(title||'')+'</div><div class="ytn-c">'+esc(content||'')+'</div><div class="ytn-x">×</div>';
+    el.onclick=function(){ try{ if(onClick)onClick(); }catch(e){} yzTopNoticeHide(); };
+    /* 上滑消失 */
+    var sy=0;
+    el.ontouchstart=function(e){ try{ sy=e.touches[0].clientY; }catch(_){} };
+    el.ontouchmove=function(e){ try{ var dy=e.touches[0].clientY-sy; if(dy<-12){ yzTopNoticeHide(); } }catch(_){} };
+    requestAnimationFrame(function(){ el.classList.add('show'); });
+    el._to=setTimeout(function(){ yzTopNoticeHide(); }, (typeof ms==='number'?ms:3000));
+  }catch(e){}
+}
+function yzTopNoticeHide(){
+  try{
+    var el=document.getElementById('yzTopNotice'); if(!el)return;
+    if(el._to){clearTimeout(el._to);el._to=null;}
+    el.classList.remove('show');
+    el._rm=setTimeout(function(){ try{ el.innerHTML=''; el.onclick=null; }catch(e){} },320);
+  }catch(e){}
+}
 function toast(t){
   let el=$('#yzToast');
   if(!el){el=document.createElement('div');el.id='yzToast';document.body.appendChild(el);}
@@ -8046,6 +8347,11 @@ function fillSettings(){
   if($('#setDaifuRate'))$('#setDaifuRate').value=(D.daifuRate===undefined?20:D.daifuRate);
   if($('#setDaifuGap'))$('#setDaifuGap').value=(D.daifuGap===undefined?20:D.daifuGap);
   if($('#setDaifuDelay'))$('#setDaifuDelay').value=(D.daifuDelay===undefined?8:D.daifuDelay);
+  if($('#setGiftRate'))$('#setGiftRate').value=(D.giftRate===undefined?20:D.giftRate);
+  if($('#setGiftGap'))$('#setGiftGap').value=(D.giftGap===undefined?20:D.giftGap);
+  if($('#setGiftDelay'))$('#setGiftDelay').value=(D.giftDelay===undefined?8:D.giftDelay);
+  if($('#setLisAskRate'))$('#setLisAskRate').value=(D.lisAskRate===undefined?20:D.lisAskRate);
+  if($('#setLisAskGap'))$('#setLisAskGap').value=(D.lisAskGap===undefined?20:D.lisAskGap);
   if($('#setComboMin'))$('#setComboMin').value=D.comboMin||2;
   if($('#setComboMax'))$('#setComboMax').value=D.comboMax||3;
   if($('#setMomMin'))$('#setMomMin').value=D.momMin||1;
@@ -8362,6 +8668,11 @@ function saveProfile(){
   if($('#setDaifuRate'))D.daifuRate=Math.max(0,Math.min(100,parseFloat($('#setDaifuRate').value)||0));
   if($('#setDaifuGap'))D.daifuGap=Math.max(1,parseFloat($('#setDaifuGap').value)||20);
   if($('#setDaifuDelay'))D.daifuDelay=Math.max(1,parseFloat($('#setDaifuDelay').value)||8);
+  if($('#setGiftRate'))D.giftRate=Math.max(0,Math.min(100,parseFloat($('#setGiftRate').value)||0));
+  if($('#setGiftGap'))D.giftGap=Math.max(1,parseFloat($('#setGiftGap').value)||20);
+  if($('#setGiftDelay'))D.giftDelay=Math.max(1,parseFloat($('#setGiftDelay').value)||8);
+  if($('#setLisAskRate'))D.lisAskRate=Math.max(0,Math.min(100,parseFloat($('#setLisAskRate').value)||0));
+  if($('#setLisAskGap'))D.lisAskGap=Math.max(1,parseFloat($('#setLisAskGap').value)||20);
   if($('#setDaifuGap'))startShopLoop();
   if($('#setComboMin'))D.comboMin=Math.max(2,parseInt($('#setComboMin').value)||2);
   if($('#setComboMax'))D.comboMax=Math.max(D.comboMin||2,parseInt($('#setComboMax').value)||(D.comboMin||2));
@@ -8407,7 +8718,9 @@ function updateHomeAvatar(){
   if(cf){const t=curFeeling();cf.textContent=t||'';cf.style.display=t?'':'none';}
 }
 function clearChat(){askConfirm('清空聊天记录？',function(){D.msgs=[];save();renderChat();});}
-function askConfirm(msg,cb){_promptCb=function(){cb&&cb();};$('#promptTitle').textContent=msg;_setPromptDesc('');$('#promptInput').style.display='none';$('#promptInput').classList.remove('multi');openSheet2('promptSheet');}
+var _promptCancelCb=null;
+function askConfirm(msg,cb,onCancel){_promptCb=function(){cb&&cb();};_promptCancelCb=(onCancel&&typeof onCancel==='function')?onCancel:null;$('#promptTitle').textContent=msg;_setPromptDesc('');$('#promptInput').style.display='none';$('#promptInput').classList.remove('multi');openSheet2('promptSheet');}
+function promptCancel(){ var _c=_promptCancelCb; _promptCancelCb=null; closeSheet2('promptSheet'); try{ if(_c)_c(); }catch(e){} }
 
 
 function getChatBg(){
