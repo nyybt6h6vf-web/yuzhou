@@ -2453,6 +2453,7 @@ function yzGroupSetting(cv){
 }
 
 let D=load();
+try{ var _bg0=JSON.parse(localStorage.getItem(DKEY+'_big')||'{}'); for(var _bk0 in _bg0){ if(_bg0[_bk0]&&!D[_bk0])D[_bk0]=_bg0[_bk0]; } }catch(e){}
 function load(){
   try{console.log('[LOAD] raw=',(localStorage.getItem(DKEY)||'NULL').slice(0,120));const r=localStorage.getItem(DKEY)||localStorage.getItem('yuzhou_data_v3')||localStorage.getItem('yuzhou_data_v2');console.log('[LOAD] r取到=',r?('有'+r.length):'无');if(r){
     const o=JSON.parse(r);
@@ -2611,6 +2612,7 @@ YZDB.open(function(ok){
         if(o&&typeof o==='object'){
           /* IDB 存的是完整数据（含图片），为权威源；localStorage 只是瘦身兜底 */
           D=Object.assign(D,o);
+          try{ var _bg=JSON.parse(localStorage.getItem(DKEY+'_big')||'{}'); for(var _bk in _bg){ if(_bg[_bk])D[_bk]=_bg[_bk]; } }catch(e){}
           try{ if(D.themeAuto){ applyThemeAuto(true); yzBindThemeAuto(); } else { document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light'); } }catch(_){}
           try{renderHome();applyCustom();}catch(_){}
           try{if(typeof yzBindAvatarKey==='function')yzBindAvatarKey();}catch(_){}
@@ -2635,7 +2637,8 @@ function save(){
 }
 /* 立即落盘（关键操作如退出/切页时用） */
 function saveFlush(){ try{ if(_yzSaveTimer2){clearTimeout(_yzSaveTimer2);_yzSaveTimer2=null;} _yzSavePending=false; saveNow(); }catch(e){} }
-function saveNow(){var __j='';try{__j=JSON.stringify(D);}catch(e){return;}try{YZDB.set(DKEY,__j);}catch(e){}if(YZDB&&YZDB.ready){window.__yzSaveErr=false;try{var sl=yzSlender();if(sl)localStorage.setItem(DKEY,sl);}catch(e){}}else{/* IDB 未就绪：完整数据先存 localStorage 保底 */try{localStorage.setItem(DKEY,__j);window.__yzSaveErr=false;}catch(e){window.__yzSaveErr=true;}}}
+function yzSaveBigs(){try{var o={};for(var i=0;i<YZ_BIGKEYS.length;i++){var k=YZ_BIGKEYS[i];if(D[k])o[k]=D[k];}localStorage.setItem(DKEY+'_big',JSON.stringify(o));}catch(e){}}
+function saveNow(){var __j='';try{__j=JSON.stringify(D,function(k,v){ if(k&&YZ_BIGKEYS.indexOf(k)>=0)return undefined; return v;});}catch(e){return;}try{yzSaveBigs();}catch(e){}try{YZDB.set(DKEY,__j);}catch(e){}if(YZDB&&YZDB.ready){window.__yzSaveErr=false;/* localStorage 黎身版改为防抖写，避免每次写大字符串卡顿 */try{if(window.__yzSlenderT)clearTimeout(window.__yzSlenderT);window.__yzSlenderT=setTimeout(function(){window.__yzSlenderT=null;try{var sl=yzSlender();if(sl)localStorage.setItem(DKEY,sl);}catch(e){}},2500);}catch(e){}}else{try{localStorage.setItem(DKEY,__j);window.__yzSaveErr=false;}catch(e){window.__yzSaveErr=true;}}}
 function $(s){return document.querySelector(s);}
 function pad(n){return n<10?'0'+n:''+n;}
 
@@ -3460,7 +3463,7 @@ function yzPushInto(arr,m,isCurrent,convId){
     } }catch(e){}
   }catch(e){}
 }
-function push(m){try{if(m&&!m._dms)m._dms=Date.now();}catch(e){}try{if(window.__yzStampArmed&&m&&m.type!=='sept'){D.msgs.push({type:'sept',_dms:Date.now()});window.__yzStampArmed=false;}}catch(e){}try{if(m&&m.from==='him'&&m.type!=='sept'&&(window.__yzActiveMsg||(window.__yzActiveMsgUntil&&Date.now()<window.__yzActiveMsgUntil))){m.auto=true;}}catch(e){}D.msgs.push(m);try{if(m&&(m.from==='me'||m.from==='him')&&!m.auto){D.lastChatTs=Date.now();}}catch(e){}save();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}var _chAct=$('#chat').classList.contains('active');if(_chAct){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40),!_chAct);}}catch(e){}try{if(m&&m.from==='him'&&!$('#chat').classList.contains('active')){scheduleHomeBadges();var _tt=(m.type==='img')?'[表情]':(m.type==='voice'?('[语音]'+(m.text||'')):(m.type==='transfer'?('[转账] ¥'+(m.amt||'')):(m.type==='pat'?(m.text||'拍一拍'):(m.text||''))));try{ yzTopNotice((D.nick||'他'),_tt,function(){ try{ yzOpenConv((yzCurConv()||{}).id); }catch(e){} }); }catch(e){}}}catch(e){}}
+function push(m){try{if(m&&!m._dms)m._dms=Date.now();}catch(e){}try{if(window.__yzStampArmed&&m&&m.type!=='sept'){D.msgs.push({type:'sept',_dms:Date.now()});window.__yzStampArmed=false;}}catch(e){}try{if(m&&m.from==='him'&&m.type!=='sept'&&(window.__yzActiveMsg||(window.__yzActiveMsgUntil&&Date.now()<window.__yzActiveMsgUntil))){m.auto=true;}}catch(e){}D.msgs.push(m);try{if(m&&(m.from==='me'||m.from==='him')&&!m.auto){D.lastChatTs=Date.now();}}catch(e){}saveSoon();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}var _chAct=$('#chat').classList.contains('active');if(_chAct){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40),!_chAct);}}catch(e){}try{if(m&&m.from==='him'&&!$('#chat').classList.contains('active')){scheduleHomeBadges();var _tt=(m.type==='img')?'[表情]':(m.type==='voice'?('[语音]'+(m.text||'')):(m.type==='transfer'?('[转账] ¥'+(m.amt||'')):(m.type==='pat'?(m.text||'拍一拍'):(m.text||''))));try{ yzTopNotice((D.nick||'他'),_tt,function(){ try{ yzOpenConv((yzCurConv()||{}).id); }catch(e){} }); }catch(e){}}}catch(e){}}
 function jumpMsg(i){
   const list=document.querySelectorAll('#chatBody .msg');
   const el=list[i];if(!el)return;
@@ -8558,7 +8561,7 @@ var _yzSaveTimer=null;
 function saveSoon(){
   try{
     if(_yzSaveTimer)clearTimeout(_yzSaveTimer);
-    _yzSaveTimer=setTimeout(function(){ _yzSaveTimer=null; try{save();}catch(e){} }, 600);
+    _yzSaveTimer=setTimeout(function(){ _yzSaveTimer=null; try{save();}catch(e){} }, 1200);
   }catch(e){}
 }
 function saveBeauty(){
