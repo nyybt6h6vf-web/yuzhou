@@ -743,6 +743,10 @@ svg [fill="currentColor"]{stroke:none;}
 #yzToast.show{opacity:1;transform:translate(-50%,0);}
 #yzTopNotice{position:fixed;left:50%;top:8px;transform:translate(-50%,-140%);width:92%;max-width:420px;background:var(--panel,#fff);color:var(--text,#1c1c1e);border:1px solid var(--line,rgba(0,0,0,.08));border-radius:16px;padding:12px 14px 13px;box-shadow:0 10px 30px rgba(0,0,0,.3);z-index:100000;transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .3s;opacity:0;cursor:pointer;touch-action:pan-y;}
 #yzTopNotice.show{transform:translate(-50%,0);opacity:1;}
+#yzTopNotice .ytn-row{display:flex;align-items:center;gap:10px;}
+#yzTopNotice .ytn-av{width:34px;height:34px;border-radius:10px;overflow:hidden;flex:0 0 34px;background:var(--card,#eee);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--sub);}
+#yzTopNotice .ytn-av img{width:100%;height:100%;object-fit:cover;}
+#yzTopNotice .ytn-tx{flex:1;min-width:0;}
 #yzTopNotice .ytn-t{font-size:13.5px;font-weight:800;letter-spacing:.3px;display:flex;align-items:center;gap:6px;}
 #yzTopNotice .ytn-c{font-size:12.8px;color:var(--sub,#8e8e93);margin-top:5px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 #yzTopNotice .ytn-x{position:absolute;top:8px;right:10px;font-size:14px;opacity:.7;}
@@ -3478,11 +3482,11 @@ function yzPushInto(arr,m,isCurrent,convId){
       scheduleHomeBadges();
       var _cid=convId||(yzCurConv()||{}).id;
       var _txt=(m.type==='img')?'[表情]':(m.type==='voice'?('[语音]'+(m.text||'')):(m.type==='transfer'?('[转账] ¥'+(m.amt||'')):(m.type==='pat'?(m.text||'拍一拍'):(m.text||''))));
-      yzTopNotice((D.nick||'他'),_txt,function(){ try{ yzOpenConv(_cid); }catch(e){} });
+      var _fav='';try{ var _fcv=(D.convs||[]).find(function(c){return c.id===_cid;}); if(_fcv&&_fcv.charas&&_fcv.charas[0]){var _fch=(D.charas||[]).find(function(x){return x.id===_fcv.charas[0];}); if(_fch)_fav=_fch.avatar||''; } }catch(e){} yzTopNotice((D.nick||'他'),_txt,function(){ try{ yzOpenConv(_cid); }catch(e){} },3000,_fav);
     } }catch(e){}
   }catch(e){}
 }
-function push(m){try{if(m&&!m._dms)m._dms=Date.now();}catch(e){}try{if(window.__yzStampArmed&&m&&m.type!=='sept'){D.msgs.push({type:'sept',_dms:Date.now()});window.__yzStampArmed=false;}}catch(e){}try{if(m&&m.from==='him'&&m.type!=='sept'&&(window.__yzActiveMsg||(window.__yzActiveMsgUntil&&Date.now()<window.__yzActiveMsgUntil))){m.auto=true;}}catch(e){}D.msgs.push(m);try{if(m&&(m.from==='me'||m.from==='him')&&!m.auto){D.lastChatTs=Date.now();}}catch(e){}saveSoon();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}var _chAct=$('#chat').classList.contains('active');if(_chAct){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40),!_chAct);}}catch(e){}try{if(m&&m.from==='him'&&!$('#chat').classList.contains('active')){scheduleHomeBadges();var _tt=(m.type==='img')?'[表情]':(m.type==='voice'?('[语音]'+(m.text||'')):(m.type==='transfer'?('[转账] ¥'+(m.amt||'')):(m.type==='pat'?(m.text||'拍一拍'):(m.text||''))));try{ yzTopNotice((D.nick||'他'),_tt,function(){ try{ yzOpenConv((yzCurConv()||{}).id); }catch(e){} }); }catch(e){}}}catch(e){}}
+function push(m){try{if(m&&!m._dms)m._dms=Date.now();}catch(e){}try{if(window.__yzStampArmed&&m&&m.type!=='sept'){D.msgs.push({type:'sept',_dms:Date.now()});window.__yzStampArmed=false;}}catch(e){}try{if(m&&m.from==='him'&&m.type!=='sept'&&(window.__yzActiveMsg||(window.__yzActiveMsgUntil&&Date.now()<window.__yzActiveMsgUntil))){m.auto=true;}}catch(e){}D.msgs.push(m);try{if(m&&(m.from==='me'||m.from==='him')&&!m.auto){D.lastChatTs=Date.now();}}catch(e){}saveSoon();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}var _chAct=$('#chat').classList.contains('active');if(_chAct){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40),!_chAct);}}catch(e){}try{if(m&&m.from==='him'&&!$('#chat').classList.contains('active')){scheduleHomeBadges();var _tt=(m.type==='img')?'[表情]':(m.type==='voice'?('[语音]'+(m.text||'')):(m.type==='transfer'?('[转账] ¥'+(m.amt||'')):(m.type==='pat'?(m.text||'拍一拍'):(m.text||''))));try{ var _pv='';try{var _pc=(D.charas||[]).find(function(x){return x.id===((yzCurConv()||{}).charas||[])[0];});if(_pc)_pv=_pc.avatar||'';}catch(e2){} yzTopNotice((D.nick||'他'),_tt,function(){ try{ yzOpenConv((yzCurConv()||{}).id); }catch(e){} },3000,_pv); }catch(e){}}}catch(e){}}
 function jumpMsg(i){
   const list=document.querySelectorAll('#chatBody .msg');
   const el=list[i];if(!el)return;
@@ -5112,7 +5116,7 @@ function himGiftMe(){
   if(!g)return;
   push({from:'him',type:'gift',text:'亲爱的，送你个东西～',gname:g.name,gprice:g.price,gimg:g.img,st:'wait',auto:true,_t:clockStr()});
   toast('他送你一件东西');
-  try{ yzTopNotice((D.nick||'他')+' 送你一件东西','「'+g.name+'」¥'+g.price+'，点开收下',function(){ try{ yzOpenConv(D.curConv); }catch(e){} }); }catch(e){}
+  try{ var _gv='';try{var _gc=(D.charas||[]).find(function(x){return x.id===((yzCurConv()||{}).charas||[])[0];});if(_gc)_gv=_gc.avatar||'';}catch(e2){} yzTopNotice((D.nick||'他')+' 送你一件东西','「'+g.name+'」¥'+g.price+'，点开收下',function(){ try{ yzOpenConv(D.curConv); }catch(e){} },3000,_gv); }catch(e){}
 }
 function yzGiftTick(dt){
   try{
@@ -5142,7 +5146,7 @@ function yzHimSendListenCard(){
     var sg=pl[Math.floor(Math.random()*pl.length)];
     if(!sg)return false;
     push({from:'him',type:'songcard',title:sg.title||'',by:sg.by||'',url:sg.url||'',charaId:(ch?ch.id:''),charNick:(ch?(ch.nick||'梦角'):'梦角'),auto:true,_t:clockStr()});
-    try{ var _sn=(ch?(ch.nick||'梦角'):'梦角'); yzTopNotice(_sn+' 想和你一起听','「'+(sg.title||'')+'」，点开一起听',function(){ try{ openListenCard(D.msgs.length-1); }catch(e){} }); }catch(e){}
+    try{ var _sn=(ch?(ch.nick||'梦角'):'梦角'); yzTopNotice(_sn+' 想和你一起听','「'+(sg.title||'')+'」，点开一起听',function(){ try{ openListenCard(D.msgs.length-1); }catch(e){} },3000,(ch&&ch.avatar)||''); }catch(e){}
     return true;
   }catch(e){ return false; }
 }
@@ -5262,7 +5266,7 @@ function himAskMePay(){
   if(!g)return;
   push({from:'him',type:'daifu',text:'亲爱的，帮我买这个吧～',gname:g.name,gprice:g.price,gimg:g.img,st:'wait',mine:false,auto:true,_t:clockStr()});
   toast('他在找你代付');
-  try{ yzTopNotice((D.nick||'他')+' 找你代付','「'+g.name+'」¥'+g.price+'，点开处理',function(){ try{ yzOpenConv(D.curConv); }catch(e){} }); }catch(e){}
+  try{ var _dv='';try{var _dc=(D.charas||[]).find(function(x){return x.id===((yzCurConv()||{}).charas||[])[0];});if(_dc)_dv=_dc.avatar||'';}catch(e2){} yzTopNotice((D.nick||'他')+' 找你代付','「'+g.name+'」¥'+g.price+'，点开处理',function(){ try{ yzOpenConv(D.curConv); }catch(e){} },3000,_dv); }catch(e){}
 }
 function startShopLoop(){
   if(shopTimer)clearInterval(shopTimer);
@@ -5509,7 +5513,7 @@ function himWriteDiary(){
   save();
   sys((D.nick||'他')+' 写了一篇日记');
   try{renderHome();}catch(e){}
-  try{ yzTopNotice((D.nick||'他')+' 写了一篇日记',(txt||'').slice(0,40),function(){ try{ openDiary(_did); }catch(e){} }); }catch(e){}
+  try{ var _dyv='';try{var _dyc=(D.charas||[]).find(function(x){return x.id===((yzCurConv()||{}).charas||[])[0];});if(_dyc)_dyv=_dyc.avatar||'';if(!_dyv)_dyv=D.avatarHim||'';}catch(e2){} yzTopNotice((D.nick||'他')+' 写了一篇日记',(txt||'').slice(0,40),function(){ try{ openDiary(_did); }catch(e){} },3000,_dyv); }catch(e){}
   try{ yzNotify((D.nick||'他')+' 写了一篇日记',(txt||'').slice(0,40),true); }catch(e){}
   if($('#diary').classList.contains('active'))renderDiary();
   if($('#himprofile')&&$('#himprofile').classList.contains('active'))renderHimProfile();
@@ -5995,7 +5999,14 @@ function confirmCrop(){
   const out=document.createElement('canvas');out.width=_SZ;out.height=_SZ;
   out.getContext('2d').drawImage(img,-cropPos.x*(_SZ/box.clientWidth),-cropPos.y*(_SZ/box.clientWidth),cropBase.w*(_SZ/box.clientWidth),cropBase.h*(_SZ/box.clientWidth));
   const url=out.toDataURL('image/jpeg',0.72);
-  if(cropTarget==='him'){ D.avatarHim=url; var _hc=(D.charas||[]).find(function(c){return c.id===D.curConv;}); } else if(cropTarget==='me'){ D.avatarMe=url; }
+  if(cropTarget==='him'){
+    D.avatarHim=url;
+    /* 同步到主页展示的梦角，或当前会话的梦角 */
+    try{
+      var _tid=D.homeCharaId||(yzCurConv()&&yzCurConv().charas&&yzCurConv().charas[0])||'';
+      if(_tid){ var _tc=(D.charas||[]).find(function(c){return c.id===_tid;}); if(_tc)_tc.avatar=url; }
+    }catch(e){}
+  } else if(cropTarget==='me'){ D.avatarMe=url; }
   save();updateHomeAvatar();renderChat();fillSettings();
   closeSheet2('cropSheet');
 }
@@ -6123,7 +6134,7 @@ function pushMomentByHim(){
   D.moments.push({id:_mid,from:'him',text:_mtxt,img:himImg,time:nowStr(),likedBy:[],comments:[],read:false});
   save();if($('#moments').classList.contains('active'))renderMoments();
   try{scheduleHomeBadges();}catch(e){}
-  try{ yzTopNotice((D.nick||'他')+' 发了一条动态',(_mtxt||'').replace(/\n/g,' '),function(){ try{ openMoment(_mid); }catch(e){} }); }catch(e){}
+  try{ var _mv='';try{var _mc=(D.charas||[]).find(function(x){return x.id===((yzCurConv()||{}).charas||[])[0];});if(_mc)_mv=_mc.avatar||'';if(!_mv)_mv=D.avatarHim||'';}catch(e2){} yzTopNotice((D.nick||'他')+' 发了一条动态',(_mtxt||'').replace(/\n/g,' '),function(){ try{ openMoment(_mid); }catch(e){} },3000,_mv); }catch(e){}
   try{ yzNotify((D.nick||'他')+' 发了一条动态',(_mtxt||'').replace(/\n/g,' '),true); }catch(e){}
 }
 /* 他回复评论 / 点赞你的动态 */
@@ -6187,7 +6198,7 @@ function pushLetterByHim(){
   save();
   try{ sys((D.nick||'他')+' 给你寄了一封信'); }catch(e){}
   try{renderHome();}catch(e){}
-  try{ yzTopNotice((D.nick||'他')+' 给你寄了一封信',(txt||'').slice(0,40),function(){ try{ openLetter(_lid); }catch(e){} }); }catch(e){}
+  try{ var _lv='';try{var _lc=(D.charas||[]).find(function(x){return x.id===((yzCurConv()||{}).charas||[])[0];});if(_lc)_lv=_lc.avatar||'';if(!_lv)_lv=D.avatarHim||'';}catch(e2){} yzTopNotice((D.nick||'他')+' 给你寄了一封信',(txt||'').slice(0,40),function(){ try{ openLetter(_lid); }catch(e){} },3000,_lv); }catch(e){}
   try{ yzNotify((D.nick||'他')+' 给你寄了一封信',(txt||'').slice(0,40),true); }catch(e){}
   if($('#letters').classList.contains('active'))renderLetters();
 }
@@ -8220,13 +8231,14 @@ function importCards(inp){
   };
   r.readAsText(f,'UTF-8');
 }
-function yzTopNotice(title,content,onClick,ms){
+function yzTopNotice(title,content,onClick,ms,avatar){
   try{
     var el=document.getElementById('yzTopNotice');
     if(!el){ el=document.createElement('div'); el.id='yzTopNotice'; document.body.appendChild(el); }
     if(el._to)clearTimeout(el._to);
     if(el._rm)clearTimeout(el._rm);
-    el.innerHTML='<div class="ytn-t">'+esc(title||'')+'</div><div class="ytn-c">'+esc(content||'')+'</div><div class="ytn-x">×</div>';
+    var _av=avatar?('<div class="ytn-av">'+(String(avatar).indexOf('data:')===0?('<img src="'+yzAvUrl(avatar)+'">'):(String(avatar).indexOf('blob:')===0||String(avatar).indexOf('http')===0?('<img src="'+avatar+'">'):esc(String(avatar).slice(0,1))))+'</div>'):'';
+    el.innerHTML='<div class="ytn-row">'+_av+'<div class="ytn-tx"><div class="ytn-t">'+esc(title||'')+'</div><div class="ytn-c">'+esc(content||'')+'</div></div></div><div class="ytn-x">×</div>';
     el.onclick=function(){ try{ if(onClick)onClick(); }catch(e){} yzTopNoticeHide(); };
     /* 上滑消失 */
     var sy=0;
@@ -8863,9 +8875,11 @@ function setTheme(t){
 }
 function updateHomeAvatar(){
   var DEFAV='data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23e6e8ef%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2224%22%20r%3D%2211%22%20fill%3D%22%23b8bdcc%22%2F%3E%3Cpath%20d%3D%22M10%2058c0-13%2010-20%2022-20s22%207%2022%2020z%22%20fill%3D%22%23b8bdcc%22%2F%3E%3C%2Fsvg%3E';
+  var _himAv=D.avatarHim;
+  try{ if(D.homeCharaId){ var _hcm=(D.charas||[]).find(function(x){return x.id===D.homeCharaId;}); if(_hcm&&_hcm.avatar)_himAv=_hcm.avatar; } }catch(e){}
   const a=$('#homeAvatar');
   if(a){
-    if(D.avatarHim){a.innerHTML=`<img src="${D.avatarHim}">`;a.style.background='transparent';}
+    if(_himAv){a.innerHTML=`<img src="${_himAv}">`;a.style.background='transparent';}
     else{a.innerHTML=`<img src="${DEFAV}">`;a.style.background='transparent';}
   }
   const b=$('#homeAvatar2');
@@ -9320,7 +9334,7 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
   if(!D.letters)D.letters=[];
   if(!D.listenMsgs)D.listenMsgs=[];
   if(!D.packs)D.packs=[];
-  try{startProactiveLoop();}catch(e){}
+  try{ D.lastChatTs=Date.now(); startProactiveLoop(); }catch(e){}
   try{setTimeout(yzCheckVersion,2500);}catch(e){}
   try{ if(!window._yzLisMetaTimer){ window._yzLisMetaTimer=setInterval(function(){ try{ var l=document.getElementById('listen'); if(l&&l.classList.contains('active')){ yzLisTickMeta(); } }catch(e){} }, 1000); } }catch(e){}
   try{ if(!window._yzStampTimer){ window._yzStampTimer=setInterval(function(){ try{ var c=document.getElementById("chat"); if(c&&c.classList.contains("active")){ renderChat(); } }catch(e){} }, 1800000); } }catch(e){}
