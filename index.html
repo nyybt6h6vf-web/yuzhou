@@ -1733,6 +1733,8 @@ svg [fill="currentColor"]{stroke:none;}
         <div class="row"><div class="lab">梦角主动来信间隔（分钟）</div><input type="number" id="setLetterGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角回信概率（%）</div><input type="number" id="setReplyRate" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角主动来信概率（%）</div><input type="number" id="setLetterRate" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角写日记概率（%）</div><input type="number" id="setDiaryRate" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角发动态概率（%）</div><input type="number" id="setMomRate" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
       </div>
       <div class="group">
         <h4>聊天显示</h4>
@@ -1742,11 +1744,20 @@ svg [fill="currentColor"]{stroke:none;}
       <div class="group">
         <h4>梦角收藏（概率 %）</h4>
         <div class="row"><div class="lab">收藏我的消息</div><input type="number" id="setFavMsg" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">回看你的消息概率（%）</div><input type="number" id="setRereadMsg" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">回看你的消息并收藏的概率（%）</div><input type="number" id="setRereadMsgFav" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">收藏我加的音乐</div><input type="number" id="setFavMusic" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">回看你的音乐概率（%）</div><input type="number" id="setRereadMusic" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">回看你的音乐并收藏的概率（%）</div><input type="number" id="setRereadMusicFav" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">收藏我发的动态</div><input type="number" id="setFavMoment" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">回看你的动态概率（%）</div><input type="number" id="setRereadMoment" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">回看你的动态并收藏的概率（%）</div><input type="number" id="setRereadMomentFav" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">收藏我的日记</div><input type="number" id="setFavDiary" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">回看（翻旧内容）</div><input type="number" id="setFavReread" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">回看后收藏</div><input type="number" id="setFavRereadFav" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">回看你的日记概率（%）</div><input type="number" id="setRereadDiary" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">回看你的日记并收藏的概率（%）</div><input type="number" id="setRereadDiaryFav" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">收藏我的信封</div><input type="number" id="setFavLetter" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">回看你的信封概率（%）</div><input type="number" id="setRereadLetter" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">回看你的信封并收藏的概率（%）</div><input type="number" id="setRereadLetterFav" oninput="saveProfile()" style="max-width:80px"></div>
       </div>
       <div class="group">
         <h4>存储</h4>
@@ -2761,6 +2772,9 @@ function yzPhTick(){
     try{ yzLisAskTick(dt); }catch(e){} /* 一起听邀请累计计时 */
     try{ yzProactiveTick(dt); }catch(e){} /* 主动发消息累计计时 */
     try{ yzTranTick(dt); }catch(e){} /* 主动转账累计计时 */
+    try{ yzDiaryTick(dt); }catch(e){} /* 日记累计计时 */
+    try{ yzMomTick(dt); }catch(e){} /* 动态累计计时 */
+    try{ yzLetterTick(dt); }catch(e){} /* 来信累计计时 */
     /* 电量没变就不写库：避免每秒全量序列化 → 越用越卡 */
     var _phSig=D.ph.my+'/'+D.ph.him+'/'+(D.ph.myCharging?1:0)+'/'+(D.ph.himCharging?1:0)+'/'+(D.ph.himPower?1:0);
     if(window.__yzPhSig!==_phSig){ window.__yzPhSig=_phSig; save(); }
@@ -2864,8 +2878,10 @@ function yzFavInit(){
   if(D.favMusicRate===undefined)D.favMusicRate=30;
   if(D.favMomentRate===undefined)D.favMomentRate=30;
   if(D.favDiaryRate===undefined)D.favDiaryRate=30;
-  if(D.favRereadRate===undefined)D.favRereadRate=20;
-  if(D.favRereadFavRate===undefined)D.favRereadFavRate=20;
+  ['Msg','Music','Moment','Diary','Letter'].forEach(function(k){
+    if(D['reread'+k+'Rate']===undefined)D['reread'+k+'Rate']=20;
+    if(D['reread'+k+'FavRate']===undefined)D['reread'+k+'FavRate']=20;
+  });
   if(D.favLetterRate===undefined)D.favLetterRate=30;
 }
 function yzFavNote(){ try{ var id=yzCurKaoCharId(); return pickCardFor(id); }catch(e){ return ''; } }
@@ -2895,20 +2911,35 @@ function yzFavTry(type,item,srcTime,rateKey){
 function yzFavReread(){
   try{
     yzFavInit();
-    var r=D.favRereadRate; if(r===undefined)r=20;
-    if(Math.random()*100>=r)return;
-    var pool=[];
-    (D.msgs||[]).forEach(function(m){ if(m.from==='me'&&m.text)pool.push({type:'msg',item:m,src:m._t||''}); });
-    (D.moments||[]).forEach(function(x){ if(x.from==='me'&&x.text)pool.push({type:'moment',item:x,src:x.time||''}); });
-    (D.listenSongs||[]).forEach(function(s){ pool.push({type:'music',item:s,src:s.time||''}); });
-    (D.diaries||[]).forEach(function(d){ if((d.from||'me')==='me')pool.push({type:'diary',item:d,src:d.date||''}); });
-    if(!pool.length)return;
-    var pick=pool[Math.floor(Math.random()*pool.length)];
-    var key=(pick.item.id||pick.item.url||pick.item.title||pick.item.text||'')+'';
-    if(D.favs.seen[pick.type+':'+key])return;
-    var rr=D.favRereadFavRate; if(rr===undefined)rr=20;
-    if(Math.random()*100<rr){ yzFavAdd(pick.type,pick.item,pick.src); }
+    /* 每类独立回看概率：msg/music/moment/diary/letter */
+    var pools={};
+    pools.msg=[];
+    (D.msgs||[]).forEach(function(m){ if(m.from==='me'&&m.text)pools.msg.push({type:'msg',item:m,src:m._t||''}); });
+    pools.music=[];
+    (D.listenSongs||[]).forEach(function(sg){ pools.music.push({type:'music',item:sg,src:sg.time||''}); });
+    pools.moment=[];
+    (D.moments||[]).forEach(function(x){ if(x.from==='me'&&x.text)pools.moment.push({type:'moment',item:x,src:x.time||''}); });
+    pools.diary=[];
+    (D.diaries||[]).forEach(function(d){ if((d.from||'me')==='me')pools.diary.push({type:'diary',item:d,src:d.date||''}); });
+    pools.letter=[];
+    (D.letters||[]).forEach(function(lt){ if(lt)poolLetterPush(pools.letter,lt); });
+    Object.keys(pools).forEach(function(t){
+      var pool=pools[t];
+      if(!pool.length)return;
+      var keyCap=t.charAt(0).toUpperCase()+t.slice(1);
+      var r=D['reread'+keyCap+'Rate']; if(r===undefined)r=20;
+      if(Math.random()*100>=r)return;
+      /* 随机抽一条“没有收藏过”的 */
+      var cand=pool.filter(function(x){ var k=(x.item.id||x.item.url||x.item.title||x.item.text||'')+''; return !D.favs.seen[x.type+':'+k]; });
+      if(!cand.length)return;
+      var pick=cand[Math.floor(Math.random()*cand.length)];
+      var rr=D['reread'+keyCap+'FavRate']; if(rr===undefined)rr=20;
+      if(Math.random()*100<rr){ yzFavAdd(pick.type,pick.item,pick.src); }
+    });
   }catch(e){}
+}
+function poolLetterPush(arr,lt){
+  try{ var full=String(lt.text||'').replace(/^[\s\S]*?To[\uFF1A:][^\n]*\n+/,'').trim(); if(!full)full=String(lt.text||lt.preview||'').trim(); arr.push({type:'letter',item:{text:full,id:lt.id},src:lt.time||''}); }catch(e){}
 }
 /* ===== 我的收藏（我收藏梦角的东西） ===== */
 function yzMyFavInit(){
@@ -3308,30 +3339,29 @@ var YZ_SET_MAP={
   'setComboRate':'回复设置','setComboMin':'回复设置','setComboMax':'回复设置',
   'setQuoteRate':'回复设置','setAskDelay':'回复设置','setMainRate':'回复设置',
   'setEmojiMix':'回复设置','setEmojiMixRate':'回复设置','setPackRate':'回复设置','setVoiceRate':'回复设置',
-  'setFavMsg':'回复设置',
+  'setFavMsg':'回复设置','setRereadMsg':'回复设置','setRereadMsgFav':'回复设置',
   'readToggle':'聊天显示','typingToggle':'聊天显示',
   'setCall':'通话',
   'setTran':'转账','setTranTo':'转账','setTranGap':'转账','setTranAmts':'转账','setTranNotes':'转账',
   'setDaifuRate':'代付','setDaifuGap':'代付','setDaifuDelay':'代付',
   'setGiftRate':'送东西','setGiftGap':'送东西','setGiftDelay':'送东西',
-  'setReplyGap':'来信','setLetterMin':'来信','setLetterMax':'来信','setLetterGap':'来信','setReplyRate':'来信','setLetterRate':'来信',
-  'setDiaryGap':'日记','setDiaryMin':'日记','setDiaryMax':'日记','setFavDiary':'日记',
-  'setMomGap':'动态','setMomMin':'动态','setMomMax':'动态','setMomLikeRate':'动态','setCommentRate':'动态','setFavMoment':'动态',
+  'setReplyGap':'来信','setLetterMin':'来信','setLetterMax':'来信','setLetterGap':'来信','setReplyRate':'来信','setLetterRate':'来信','setFavLetter':'来信','setRereadLetter':'来信','setRereadLetterFav':'来信',
+  'setDiaryGap':'日记','setDiaryMin':'日记','setDiaryMax':'日记','setFavDiary':'日记','setRereadDiary':'日记','setRereadDiaryFav':'日记','setDiaryRate':'日记',
+  'setMomGap':'动态','setMomMin':'动态','setMomMax':'动态','setMomLikeRate':'动态','setCommentRate':'动态','setFavMoment':'动态','setRereadMoment':'动态','setRereadMomentFav':'动态','setMomRate':'动态',
   'setFeelGap':'心情库','feelToggle':'心情库','setFeelList':'心情库',
   'setPats':'拍一拍','setPatRate':'拍一拍',
-  'setLisDistance':'一起听','setLisAskRate':'一起听','setLisAskGap':'一起听','setFavMusic':'一起听',
-  'setProactiveGap':'主动消息','proactiveBtn':'主动消息',
-  'keepAliveBtn':'通知与保活','_notify_':'通知与保活',
-  'setFavReread':'梦角回看','setFavRereadFav':'梦角回看'
+  'setLisDistance':'一起听','setLisAskRate':'一起听','setLisAskGap':'一起听','setFavMusic':'一起听','setRereadMusic':'一起听','setRereadMusicFav':'一起听',
+  'setProactiveGap':'主动消息与通知','proactiveBtn':'主动消息与通知',
+  'keepAliveBtn':'主动消息与通知','_notify_':'主动消息与通知'
 };
 /* 分类展示顺序 */
-var YZ_SET_ORDER=['回复设置','聊天显示','通话','转账','代付','送东西','一起听','来信','日记','动态','心情库','拍一拍','主动消息','通知与保活','梦角回看'];
+var YZ_SET_ORDER=['回复设置','聊天显示','通话','转账','代付','送东西','一起听','来信','日记','动态','心情库','拍一拍','主动消息与通知'];
 var _yzSetMoved=false;
 function yzRowGroupKey(r){
   try{
     var el=r.querySelector('input[id],select[id],textarea[id],.chip[id]');
     if(el&&el.id&&YZ_SET_MAP[el.id])return YZ_SET_MAP[el.id];
-    if(r.textContent.indexOf('通知')>=0)return '通知与保活';
+    if(r.textContent.indexOf('通知')>=0)return '主动消息与通知';
   }catch(e){}
   return '';
 }
@@ -5616,9 +5646,23 @@ function himWriteDiary(){
   if($('#himprofile')&&$('#himprofile').classList.contains('active'))renderHimProfile();
 }
 function startDiaryLoop(){
-  if(diaryTimer)clearInterval(diaryTimer);
-  const gap=Math.max(1,(D.diaryGap||30))*60000;
-  diaryTimer=setInterval(function(){himWriteDiary();},gap);
+  if(diaryTimer)clearInterval(diaryTimer);diaryTimer=null;
+  /* 改为累计在线时长：进网站才计，退出暂停，下次续计，累满掷概率 */
+}
+function yzDiaryTick(dt){
+  try{
+    if(!window.__yzUnlocked)return;
+    if(document.hidden)return;
+    if(dt<0)dt=0; if(dt>300000)dt=300000;
+    D.diaryAcc=(D.diaryAcc||0)+dt;
+    var gap=Math.max(1,parseFloat(D.diaryGap)||30)*60000;
+    while(D.diaryAcc>=gap){
+      D.diaryAcc-=gap;
+      var r=(D.diaryRate===undefined?100:parseFloat(D.diaryRate));
+      if(isNaN(r))r=100;
+      if(Math.random()*100<r){ try{ himWriteDiary(); }catch(e){} }
+    }
+  }catch(e){}
 }
 
 /* ===== 经期（日历版） ===== */
@@ -6279,11 +6323,24 @@ function startListenLoop(){
 let listenTimer=null;
 let momTimer=null;
 function startMomLoop(){
-  if(momTimer)clearInterval(momTimer);
-  const gap=Math.max(1,(D.momGap||1))*60000;
-  momTimer=setInterval(()=>{
-    if(Math.random()<0.5)pushMomentByHim();else maybeMomInteract();
-  },gap);
+  if(momTimer)clearInterval(momTimer);momTimer=null;
+  /* 改为累计在线时长 */
+}
+function yzMomTick(dt){
+  try{
+    if(!window.__yzUnlocked)return;
+    if(document.hidden)return;
+    if(dt<0)dt=0; if(dt>300000)dt=300000;
+    D.momAcc=(D.momAcc||0)+dt;
+    var gap=Math.max(1,parseFloat(D.momGap)||1)*60000;
+    while(D.momAcc>=gap){
+      D.momAcc-=gap;
+      var r=(D.momRate===undefined?50:parseFloat(D.momRate));
+      if(isNaN(r))r=50;
+      if(Math.random()*100<r){ try{ pushMomentByHim(); }catch(e){} }
+      else{ try{ maybeMomInteract(); }catch(e){} }
+    }
+  }catch(e){}
 }
 let letterTimer=null;
 function pushLetterByHim(){
@@ -6300,20 +6357,22 @@ function pushLetterByHim(){
   if($('#letters').classList.contains('active'))renderLetters();
 }
 function startLetterLoop(){
-  if(letterTimer)clearInterval(letterTimer);
-  /* 每次进网站重新开始计时，避免离线很久后一上线就立刻发信 */
-  D._yzLetterAt=Date.now();
-  /* 用 setInterval 每 15 秒检查一次"是否到点"：
-     即使某次抽签抛错，下一轮仍然会来，绝不会因为一次异常就永久停摆 */
-  letterTimer=setInterval(function(){
-    try{
-      var gap=Math.max(1,(D.letterGap||10))*60000;
-      if(Date.now()-D._yzLetterAt < gap) return;
-      D._yzLetterAt=Date.now();
-      var _r=(D.letterRate!==undefined?D.letterRate:100);
-      if(Math.random()*100<_r){ pushLetterByHim(); }
-    }catch(e){ /* 单次出错不影响后续 */ }
-  }, 15000);
+  if(letterTimer)clearInterval(letterTimer);letterTimer=null;
+  /* 改为累计在线时长：进网站才计，退出暂停，下次续计，累满掷概率 */
+}
+function yzLetterTick(dt){
+  try{
+    if(!window.__yzUnlocked)return;
+    if(document.hidden)return;
+    if(dt<0)dt=0; if(dt>300000)dt=300000;
+    D.letterAcc=(D.letterAcc||0)+dt;
+    var gap=Math.max(1,parseFloat(D.letterGap)||10)*60000;
+    while(D.letterAcc>=gap){
+      D.letterAcc-=gap;
+      var r=(D.letterRate!==undefined?D.letterRate:100);
+      if(Math.random()*100<r){ try{ pushLetterByHim(); }catch(e){} }
+    }
+  }catch(e){}
 }
 
 /* ===== 一起听 ===== */
@@ -8601,8 +8660,13 @@ function fillSettings(){
   if($('#setFavMusic'))$('#setFavMusic').value=(D.favMusicRate===undefined?30:D.favMusicRate);
   if($('#setFavMoment'))$('#setFavMoment').value=(D.favMomentRate===undefined?30:D.favMomentRate);
   if($('#setFavDiary'))$('#setFavDiary').value=(D.favDiaryRate===undefined?30:D.favDiaryRate);
-  if($('#setFavReread'))$('#setFavReread').value=(D.favRereadRate===undefined?20:D.favRereadRate);
-  if($('#setFavRereadFav'))$('#setFavRereadFav').value=(D.favRereadFavRate===undefined?20:D.favRereadFavRate);
+  if($('#setDiaryRate'))$('#setDiaryRate').value=(D.diaryRate===undefined?100:D.diaryRate);
+  if($('#setMomRate'))$('#setMomRate').value=(D.momRate===undefined?50:D.momRate);
+  ['Msg','Music','Moment','Diary','Letter'].forEach(function(k){
+    var a=$('#setReread'+k), b=$('#setReread'+k+'Fav');
+    if(a)a.value=(D['reread'+k+'Rate']===undefined?20:D['reread'+k+'Rate']);
+    if(b)b.value=(D['reread'+k+'FavRate']===undefined?20:D['reread'+k+'FavRate']);
+  });
   if($('#setPass'))$('#setPass').value=D.pass||'';
   if($('#setMin'))$('#setMin').value=D.sendMin||1;
   if($('#setMax'))$('#setMax').value=D.sendMax||1;
@@ -8921,8 +8985,13 @@ function saveProfile(){
   if($('#setFavMusic'))D.favMusicRate=parseFloat($('#setFavMusic').value)||0;
   if($('#setFavMoment'))D.favMomentRate=parseFloat($('#setFavMoment').value)||0;
   if($('#setFavDiary'))D.favDiaryRate=parseFloat($('#setFavDiary').value)||0;
-  if($('#setFavReread'))D.favRereadRate=parseFloat($('#setFavReread').value)||0;
-  if($('#setFavRereadFav'))D.favRereadFavRate=parseFloat($('#setFavRereadFav').value)||0;
+  if($('#setDiaryRate'))D.diaryRate=Math.max(0,Math.min(100,parseFloat($('#setDiaryRate').value)||0));
+  if($('#setMomRate'))D.momRate=Math.max(0,Math.min(100,parseFloat($('#setMomRate').value)||0));
+  ['Msg','Music','Moment','Diary','Letter'].forEach(function(k){
+    var a=$('#setReread'+k), b=$('#setReread'+k+'Fav');
+    if(a)D['reread'+k+'Rate']=Math.max(0,Math.min(100,parseFloat(a.value)||0));
+    if(b)D['reread'+k+'FavRate']=Math.max(0,Math.min(100,parseFloat(b.value)||0));
+  });
   if($('#setPass'))D.pass=$('#setPass').value.trim();
   if($('#setMin'))D.sendMin=Math.max(1,parseInt($('#setMin').value)||1);
   if($('#setMax'))D.sendMax=Math.max(D.sendMin||1,parseInt($('#setMax').value)||1);
@@ -9432,7 +9501,7 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
   if(!D.letters)D.letters=[];
   if(!D.listenMsgs)D.listenMsgs=[];
   if(!D.packs)D.packs=[];
-  try{ D.lastChatTs=Date.now(); D.proactiveAcc=0; D.tranAcc=0; D.daifuAcc=0; D.giftAcc=0; D.lisAskAcc=0; D.giftAcc=0; startProactiveLoop(); }catch(e){}
+  try{ D.lastChatTs=Date.now(); D.proactiveAcc=0; D.tranAcc=0; D.daifuAcc=0; D.giftAcc=0; D.lisAskAcc=0; D.diaryAcc=0; D.momAcc=0; D.letterAcc=0; startProactiveLoop(); }catch(e){}
   try{ yzBuildSetGroups(); }catch(e){}
   try{setTimeout(yzCheckVersion,2500);}catch(e){}
   try{ if(!window._yzLisMetaTimer){ window._yzLisMetaTimer=setInterval(function(){ try{ var l=document.getElementById('listen'); if(l&&l.classList.contains('active')){ yzLisTickMeta(); } }catch(e){} }, 1000); } }catch(e){}
@@ -9452,8 +9521,7 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
       return {
         gap: D.letterGap,
         rate: D.letterRate,
-        lastAt: D._yzLetterAt?new Date(D._yzLetterAt).toLocaleTimeString():null,
-        agoMin: D._yzLetterAt? Math.round((Date.now()-D._yzLetterAt)/60000*10)/10 : null,
+        accMin: Math.round((D.letterAcc||0)/60000*10)/10,
         timerAlive: !!letterTimer,
         gapMs: Math.max(1,(D.letterGap||10))*60000,
         lettersCount: (D.letters||[]).length
