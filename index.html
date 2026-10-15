@@ -1767,6 +1767,12 @@ svg [fill="currentColor"]{stroke:none;}
     </div>
   </div>
 
+  <div class="screen" id="setSub">
+    <div class="statusbar"><span id="setSubTimeTop">9:41</span><span class="right">●●● 100%</span></div>
+    <div class="navbar"><div class="back" onclick="go('settings')">‹</div><div class="title" id="setSubTitle">设置</div></div>
+    <div class="list" id="setSubBody"></div>
+  </div>
+
   <div class="screen" id="moments">
     <div class="statusbar"><span id="moTimeTop">9:41</span><span class="right">●●● 100%</span></div>
     <div class="navbar">
@@ -2670,7 +2676,8 @@ function go(id){
   if(id==='chat'){D._yzChatEnterMs=Date.now(); try{window.__yzStampArmed=true;}catch(e){} renderChat();$('#chat').style.background=getChatBg();setTimeout(scrollBottom,30); try{var _cv=yzCurConv(); if(_cv){_cv._readLen=(_cv.msgs||[]).length; save();}}catch(e){} try{renderHome();}catch(e){}}
   if(id==='cards'){try{yzBindCards();renderCardTabs();}catch(e){}renderCards();}
   if(id==='together')renderTiles();
-  if(id==='settings'){fillSettings();try{yzBeautyRender();}catch(e){}try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}try{yzMarkSetStatus();}catch(e){}}
+  if(id==='setSub'){ try{yzBuildSetGroups();}catch(e){} try{fillSettings();}catch(e){} }
+  if(id==='settings'){try{yzBuildSetGroups();}catch(e){} fillSettings();try{yzBeautyRender();}catch(e){}try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}try{yzMarkSetStatus();}catch(e){}}
   if(id==='moments'){ try{(D.moments||[]).forEach(function(m){ if(m.from==='him')m.read=true; }); save();}catch(e){} renderMoments(); try{renderHome();}catch(e){} }
   if(id==='listen'){ D._yzLisEnterMs=Date.now(); try{window.__yzStampArmedLis=true;}catch(e){} hideLisFloat(); if(!D.lisBound){ try{ lisOpenPick(); }catch(e){} } else { try{ lisShowPlayer(); }catch(e){} } try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
   if(id!=='listen'){ try{ setTimeout(yzMaybeShowFloat,60); }catch(e){} }
@@ -3292,6 +3299,40 @@ function curFeeling(){
   if(!fl.length||D.feelOn===false)return '';
   if(D.feelIdx<0||D.feelIdx>=fl.length){D.feelIdx=Math.floor(Math.random()*fl.length);save();}
   return fl[D.feelIdx];
+}
+/* ===== 设置分类（子界面）===== */
+var YZ_SET_SUBS=['互动概率','心情库','拍一拍','一起听','来信','聊天显示','梦角收藏（概率 %）'];
+var _yzSetMoved=false;
+function yzBuildSetGroups(){
+  try{
+    if(_yzSetMoved)return; _yzSetMoved=true;
+    var wrap=document.querySelector('#settings .list'); if(!wrap)return;
+    var subs=document.getElementById('setSubBody'); if(!subs)return;
+    var groups=[].slice.call(wrap.querySelectorAll(':scope > .group'));
+    groups.forEach(function(g){
+      var h=g.querySelector('h4'); var name=h?h.textContent.trim():'';
+      if(YZ_SET_SUBS.indexOf(name)<0)return;
+      /* 把该组移到子界面 */
+      subs.appendChild(g);
+      /* 主页面插入入口行 */
+      var row=document.createElement('div'); row.className='row';
+      row.innerHTML='<div class="lab">'+name+'</div><div class="chip">›</div>';
+      row.onclick=function(){ yzOpenSetSub(name); };
+      var entry=document.createElement('div'); entry.className='group yz-subentry'; entry.setAttribute('data-sub',name); entry.appendChild(row);
+      wrap.appendChild(entry);
+    });
+  }catch(e){}
+}
+function yzOpenSetSub(name){
+  try{
+    var subs=document.getElementById('setSubBody'); if(!subs)return;
+    [].slice.call(subs.querySelectorAll('.group')).forEach(function(g){ g.style.display='none'; });
+    var all=[].slice.call(subs.querySelectorAll('.group'));
+    var hit=all.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;})[0];
+    if(hit)hit.style.display='';
+    var t=document.getElementById('setSubTitle'); if(t)t.textContent=name;
+    go('setSub');
+  }catch(e){}
 }
 function renderPlus(){
   const g=$('#plusGrid');if(!g)return;g.innerHTML='';
@@ -9335,6 +9376,7 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
   if(!D.listenMsgs)D.listenMsgs=[];
   if(!D.packs)D.packs=[];
   try{ D.lastChatTs=Date.now(); startProactiveLoop(); }catch(e){}
+  try{ yzBuildSetGroups(); }catch(e){}
   try{setTimeout(yzCheckVersion,2500);}catch(e){}
   try{ if(!window._yzLisMetaTimer){ window._yzLisMetaTimer=setInterval(function(){ try{ var l=document.getElementById('listen'); if(l&&l.classList.contains('active')){ yzLisTickMeta(); } }catch(e){} }, 1000); } }catch(e){}
   try{ if(!window._yzStampTimer){ window._yzStampTimer=setInterval(function(){ try{ var c=document.getElementById("chat"); if(c&&c.classList.contains("active")){ renderChat(); } }catch(e){} }, 1800000); } }catch(e){}
