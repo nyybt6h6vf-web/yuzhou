@@ -3302,63 +3302,76 @@ function curFeeling(){
 }
 /* ===== 设置分类（子界面）===== */
 var YZ_SET_KEEP=['美化','身份','进入密码','存储','备份','数据'];
+/* 设置行 id → 功能分类名 */
+var YZ_SET_MAP={
+  'setDelay':'回复设置','setSendGap':'回复设置','setMin':'回复设置','setMax':'回复设置',
+  'setComboRate':'回复设置','setComboMin':'回复设置','setComboMax':'回复设置',
+  'setQuoteRate':'回复设置','setAskDelay':'回复设置','setMainRate':'回复设置',
+  'setEmojiMix':'回复设置','setEmojiMixRate':'回复设置','setPackRate':'回复设置','setVoiceRate':'回复设置',
+  'setFavMsg':'回复设置',
+  'readToggle':'聊天显示','typingToggle':'聊天显示',
+  'setCall':'通话',
+  'setTran':'转账','setTranTo':'转账','setTranGap':'转账','setTranAmts':'转账','setTranNotes':'转账',
+  'setDaifuRate':'代付','setDaifuGap':'代付','setDaifuDelay':'代付',
+  'setGiftRate':'送东西','setGiftGap':'送东西','setGiftDelay':'送东西',
+  'setReplyGap':'来信','setLetterMin':'来信','setLetterMax':'来信','setLetterGap':'来信','setReplyRate':'来信','setLetterRate':'来信',
+  'setDiaryGap':'日记','setDiaryMin':'日记','setDiaryMax':'日记','setFavDiary':'日记',
+  'setMomGap':'动态','setMomMin':'动态','setMomMax':'动态','setMomLikeRate':'动态','setCommentRate':'动态','setFavMoment':'动态',
+  'setFeelGap':'心情库','feelToggle':'心情库','setFeelList':'心情库',
+  'setPats':'拍一拍','setPatRate':'拍一拍',
+  'setLisDistance':'一起听','setLisAskRate':'一起听','setLisAskGap':'一起听','setFavMusic':'一起听',
+  'setProactiveGap':'主动消息','proactiveBtn':'主动消息',
+  'keepAliveBtn':'通知与保活','_notify_':'通知与保活',
+  'setFavReread':'梦角回看','setFavRereadFav':'梦角回看'
+};
+/* 分类展示顺序 */
+var YZ_SET_ORDER=['回复设置','聊天显示','通话','转账','代付','送东西','一起听','来信','日记','动态','心情库','拍一拍','主动消息','通知与保活','梦角回看'];
 var _yzSetMoved=false;
+function yzRowGroupKey(r){
+  try{
+    var el=r.querySelector('input[id],select[id],textarea[id],.chip[id]');
+    if(el&&el.id&&YZ_SET_MAP[el.id])return YZ_SET_MAP[el.id];
+    if(r.textContent.indexOf('通知')>=0)return '通知与保活';
+  }catch(e){}
+  return '';
+}
 function yzBuildSetGroups(){
   try{
     if(_yzSetMoved)return; _yzSetMoved=true;
     var wrap=document.querySelector('#settings .list'); if(!wrap)return;
     var subs=document.getElementById('setSubBody'); if(!subs)return;
-    var groups=[].slice.call(wrap.querySelectorAll(':scope > .group'));
-    /* 先拆分“互动概率”大组 */
-    var _big=groups.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()==='互动概率';})[0];
-    if(_big){ yzSplitBigGroup(_big); }
-    /* 重新取组（拆分后结构变了） */
-    groups=[].slice.call(wrap.querySelectorAll(':scope > .group'));
-    groups.forEach(function(g){
-      if(g.getAttribute('data-split'))return; /* 拆分生成的小组由后面统一处理 */
+    var all=[].slice.call(wrap.querySelectorAll('.group'));
+    var rowsAll=[];
+    all.forEach(function(g){ [].slice.call(g.querySelectorAll('.row')).forEach(function(r){ rowsAll.push(r); }); });
+    /* 按功能收集行 */
+    var buckets={};
+    rowsAll.forEach(function(r){
+      var k=yzRowGroupKey(r); if(!k)return;
+      if(!buckets[k])buckets[k]=[];
+      buckets[k].push(r);
+    });
+    /* 从原组里移除已归类的行，然后删掉空的普通组 */
+    Object.keys(buckets).forEach(function(k){
+      buckets[k].forEach(function(r){ try{ r.parentNode&&r.parentNode.removeChild(r); }catch(e){} });
+    });
+    all.forEach(function(g){
       var h=g.querySelector('h4'); var name=h?h.textContent.trim():'';
       if(YZ_SET_KEEP.indexOf(name)>=0)return;
-      /* 把该组移到子界面 */
-      subs.appendChild(g);
-      /* 主页面插入入口行 */
+      /* 该组已无内容行 → 删掉 */
+      if(!g.querySelector('.row')) try{ g.parentNode.removeChild(g); }catch(e){}
+    });
+    /* 生成子界面组 + 主页入口 */
+    YZ_SET_ORDER.forEach(function(name){
+      var rows=buckets[name]; if(!rows||!rows.length)return;
+      var box=document.createElement('div'); box.className='group'; box.setAttribute('data-sub',name);
+      var hh=document.createElement('h4'); hh.textContent=name; box.appendChild(hh);
+      rows.forEach(function(r){ box.appendChild(r); });
+      subs.appendChild(box);
       var row=document.createElement('div'); row.className='row';
       row.innerHTML='<div class="lab">'+name+'</div><div class="chip">›</div>';
       row.onclick=function(){ yzOpenSetSub(name); };
-      var entry=document.createElement('div'); entry.className='group yz-subentry'; entry.setAttribute('data-sub',name); entry.appendChild(row);
+      var entry=document.createElement('div'); entry.className='group'; entry.appendChild(row);
       wrap.appendChild(entry);
-    });
-  }catch(e){}
-}
-function yzSplitBigGroup(big){
-  try{
-    var h=big.querySelector('h4'); if(h)h.style.display='none';
-    var rows=[].slice.call(big.querySelectorAll('.row'));
-    var defs=[
-      ['回复与字卡',['setDelay','setSendGap','setMin','setMax','setComboRate','setComboMin','setComboMax','setQuoteRate','setAskDelay','setMainRate','setEmojiMix','setEmojiMixRate','setPackRate','setVoiceRate']],
-      ['通话',['setCall']],
-      ['转账',['setTran','setTranTo','setTranGap','setTranAmts','setTranNotes']],
-      ['代付',['setDaifuRate','setDaifuGap','setDaifuDelay']],
-      ['送东西',['setGiftRate','setGiftGap','setGiftDelay']],
-      ['日记',['setDiaryGap','setDiaryMin','setDiaryMax']],
-      ['动态',['setMomGap','setMomMin','setMomMax','setMomLikeRate','setCommentRate']],
-      ['主动消息与通知',['setProactiveGap','proactiveBtn','keepAliveBtn']]
-    ];
-    var used={};
-    rows.forEach(function(r){
-      var id='';
-      try{ var inp=r.querySelector('input,select,textarea'); if(inp&&inp.id)id=inp.id; }catch(e){}
-      if(!id){ try{ var ch=r.querySelector('.chip[id]'); if(ch)id=ch.id; }catch(e){} }
-      if(!id){ try{ if(r.textContent.indexOf('通知')>=0)id='_notify_'; }catch(e){} }
-      if(!id)return;
-      for(var d=0;d<defs.length;d++){
-        if(defs[d][1].indexOf(id)>=0){
-          var box=used[defs[d][0]];
-          if(!box){ box=document.createElement('div'); box.className='group'; box.setAttribute('data-split','1'); box.setAttribute('data-subname',defs[d][0]);
-            var hh=document.createElement('h4'); hh.textContent=defs[d][0]; box.appendChild(hh);
-            big.parentNode.insertBefore(box,big); used[defs[d][0]]=box; }
-          box.appendChild(r); return;
-        }
-      }
     });
   }catch(e){}
 }
@@ -4342,6 +4355,7 @@ function yzDoProactive(){
 }
 function yzProactiveTick(dt){
   try{
+    if(!window.__yzUnlocked)return; /* 锁屏时不发 */
     if(!D.proactive)return;
     if(document.hidden)return;
     if(dt<0)dt=0; if(dt>300000)dt=300000;
@@ -5200,6 +5214,7 @@ function himGiftMe(){
 }
 function yzGiftTick(dt){
   try{
+    if(!window.__yzUnlocked)return;
     if(document.hidden)return;
     if(dt<0)dt=0; if(dt>300000)dt=300000;
     D.giftAcc=(D.giftAcc||0)+dt;
@@ -5266,6 +5281,7 @@ function openListenCard(i){
 }
 function yzLisAskTick(dt){
   try{
+    if(!window.__yzUnlocked)return;
     if(document.hidden)return;
     if(dt<0)dt=0; if(dt>300000)dt=300000;
     D.lisAskAcc=(D.lisAskAcc||0)+dt;
@@ -5356,6 +5372,7 @@ function startShopLoop(){
 }
 function yzDaifuTick(dt){
   try{
+    if(!window.__yzUnlocked)return;
     if(document.hidden)return;
     if(dt<0)dt=0; if(dt>300000)dt=300000;
     D.daifuAcc=(D.daifuAcc||0)+dt;
@@ -9365,6 +9382,7 @@ function startGiftLoop(){
 }
 function yzTranTick(dt){
   try{
+    if(!window.__yzUnlocked)return;
     if(document.hidden)return;
     if(dt<0)dt=0; if(dt>300000)dt=300000;
     D.tranAcc=(D.tranAcc||0)+dt;
@@ -9406,7 +9424,7 @@ function init(){
   try{renderHome();}catch(e){}
   try{renderPlus();}catch(e){}
   try{applyCustom();}catch(e){}
-  $('#lock').addEventListener('click',()=>{ if(yzLocked()){ openPass(); } else { go('home'); } try{setTimeout(function(){checkPeriodRemind();},600);}catch(e){} });
+  $('#lock').addEventListener('click',()=>{ window.__yzUnlocked=true; if(yzLocked()){ openPass(); } else { go('home'); } try{setTimeout(function(){checkPeriodRemind();},600);}catch(e){} });
 document.addEventListener('click',function(e){var t=e.target;while(t&&t!==document){if(t.classList&&t.classList.contains('back')){try{if(t.closest&&t.closest('#settings')){['passSheet','packSheet','moSend','plusSheet'].forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove('show');});var mk=document.getElementById('mask');if(mk)mk.classList.remove('show');}}catch(err){}return;}t=t.parentNode;}},true);
   renderChat();
   try{document.addEventListener('visibilitychange',function(){if(!document.hidden){try{var ll=document.querySelector('.duo .linkline');if(ll){ll.style.animation='none';void ll.offsetWidth;ll.style.animation='';}}catch(e){}try{yzPassGate();}catch(e){}}});}catch(e){}
