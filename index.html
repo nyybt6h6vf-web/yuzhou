@@ -1635,6 +1635,7 @@ svg [fill="currentColor"]{stroke:none;}
 <div class="row"><div class="lab">聊天字体大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setChatFontSize" min="11" max="22" step="1" value="14" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="chatFontSizeVal" style="min-width:38px;text-align:right">14px</span></div></div>
 <div class="row"><div class="lab">转账卡片大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setTranSize" min="80" max="150" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="tranSizeVal" style="min-width:38px;text-align:right">100%</span></div></div>
 <div class="row"><div class="lab">动态背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('momBg')">上传图</div><div class="chip" onclick="setColor('momBg','')">清</div></div></div>
+<div class="row"><div class="lab">测一测背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('fingerBg')">上传图</div><input type="color" id="setFingerBgColor" oninput="setColor('fingerBg',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fingerBg','')">清</div></div></div>
         <div class="row" style="flex-direction:column;align-items:stretch">
           <div class="lab" style="margin-bottom:8px">气泡 CSS（.msg .bubble 通用，写一条两边都生效）</div>
           <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty();yzPreviewBubbleDebounced();"></textarea>
@@ -1774,6 +1775,18 @@ svg [fill="currentColor"]{stroke:none;}
         <h4>数据</h4>
         <div class="row"><div class="lab">清空聊天记录</div><div class="chip" onclick="clearChat()">清空</div></div>
         <div class="row"><div class="lab">恢复默认字卡</div><div class="chip" onclick="resetCards()">恢复</div></div>
+      </div>
+      <div class="group">
+        <h4>__ph__</h4>
+        <div class="row"><div class="lab">梦角掉电量规则（分钟/度）</div><input type="number" id="setPhHimDrop" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">我掉电量规则（分钟/度）</div><input type="number" id="setPhMyDrop" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角主动充电概率（%）</div><input type="number" id="setPhHimChgRate" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角小手机自动充电</div><div class="chip" id="phHimAutoBtn" onclick="yzPhToggleHimAuto()">关闭</div></div>
+        <div class="row"><div class="lab">梦角默认掉电量到几度充电</div><input type="number" id="setPhHimAutoAt" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">我的小手机自动充电</div><div class="chip" id="phMyAutoBtn" onclick="yzPhToggleMyAuto()">关闭</div></div>
+        <div class="row"><div class="lab">我默认掉电量到几度充电</div><input type="number" id="setPhMyAutoAt" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角充电速度（分钟/度）</div><input type="number" id="setPhHimChgSpeed" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">我充电速度（分钟/度）</div><input type="number" id="setPhMyChgSpeed" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
       </div>
     </div>
   </div>
@@ -2688,7 +2701,7 @@ function go(id){
   if(id==='cards'){try{yzBindCards();renderCardTabs();}catch(e){}renderCards();}
   if(id==='together')renderTiles();
   if(id==='setSub'){ try{yzBuildSetGroups();}catch(e){} try{fillSettings();}catch(e){} }
-  if(id==='settings'){try{yzBuildSetGroups();}catch(e){} fillSettings();try{yzBeautyRender();}catch(e){}try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}try{yzMarkSetStatus();}catch(e){}}
+  if(id==='settings'){try{yzBuildSetGroups();}catch(e){} fillSettings();try{yzPhCondRows();}catch(e){}try{yzBeautyRender();}catch(e){}try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}try{yzMarkSetStatus();}catch(e){}}
   if(id==='moments'){ try{(D.moments||[]).forEach(function(m){ if(m.from==='him')m.read=true; }); save();}catch(e){} renderMoments(); try{renderHome();}catch(e){} }
   if(id==='listen'){ D._yzLisEnterMs=Date.now(); try{window.__yzStampArmedLis=true;}catch(e){} hideLisFloat(); if(!D.lisBound){ try{ lisOpenPick(); }catch(e){} } else { try{ lisShowPlayer(); }catch(e){} } try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
   if(id!=='listen'){ try{ setTimeout(yzMaybeShowFloat,60); }catch(e){} }
@@ -2722,48 +2735,73 @@ function yzPhInit(){
   if(D.ph.chgAcc===undefined)D.ph.chgAcc=0;
   if(D.ph.himChgAcc===undefined)D.ph.himChgAcc=0;
   if(!D.ph.lastTs)D.ph.lastTs=Date.now();
+  if(D.ph.himRerolled===undefined)D.ph.himRerolled=false;
+  if(D.phAutoHim===undefined)D.phAutoHim=false;
+  if(D.phMyDrop===undefined)D.phMyDrop=5;
+  if(D.phHimDrop===undefined)D.phHimDrop=2;
+  if(D.phHimChgRate===undefined)D.phHimChgRate=25;
+  if(D.phHimAutoAt===undefined)D.phHimAutoAt=20;
+  if(D.phMyAutoAt===undefined)D.phMyAutoAt=20;
+  if(D.phHimChgSpeed===undefined)D.phHimChgSpeed=1;
+  if(D.phMyChgSpeed===undefined)D.phMyChgSpeed=1;
+  if(D.phAutoMy===undefined)D.phAutoMy=false;
 }
 function yzPhTick(){
   try{
     yzPhInit();
     var now=Date.now();
-    var dt=now-D.ph.lastTs;
-    if(dt<0)dt=0;
+    var realDt=now-D.ph.lastTs;      /* 真实时间差：梦角用它（离线也掉） */
+    if(realDt<0)realDt=0;
     D.ph.lastTs=now;
-    /* 只在网站开着（页面可见）时才累加 */
-    if(document.hidden){ return; }
-    if(dt>300000)dt=300000;
-    /* 我的手机：累计 5 分钟扣 1 度（离线也累加，因为上线过就计入） */
+    /* 我的：只在网站可见时累计（在线才计） */
+    var dt=document.hidden?0:Math.min(realDt,300000);
+    if(!document.hidden){
+    /* ==== 我的手机 · 掉电（累计在线计时） ==== */
+    var myDropMin=Math.max(1,parseFloat(D.phMyDrop)||5);
     if(!D.ph.myCharging){
       D.ph.accMy+=dt;
-      while(D.ph.accMy>=300000){
-        D.ph.accMy-=300000;
+      var myDropMs=myDropMin*60000;
+      while(D.ph.accMy>=myDropMs){
+        D.ph.accMy-=myDropMs;
         D.ph.my=Math.max(0,D.ph.my-1);
         if(D.ph.my<=20 && !D.ph.meWarned){ D.ph.meWarned=true; try{yzPhWarn();}catch(e){} }
+        /* 我的自动充电：掉到设定值 → 自动开始充 */
+        if(D.phAutoMy && D.ph.my>0 && D.ph.my<=(parseFloat(D.phMyAutoAt)||20)){ D.ph.myCharging=true; D.ph.chgAcc=0; break; }
       }
     } else {
+      /* 充电：按“我充电速度（分钟/度）”，只在网站里计时 */
       D.ph.chgAcc+=dt;
-      while(D.ph.chgAcc>=60000){ D.ph.chgAcc-=60000; D.ph.my=Math.min(100,D.ph.my+1); }
+      var myChgMs=Math.max(1,parseFloat(D.phMyChgSpeed)||1)*60000;
+      while(D.ph.chgAcc>=myChgMs){ D.ph.chgAcc-=myChgMs; D.ph.my=Math.min(100,D.ph.my+1); }
+      if(D.ph.my>20)D.ph.meWarned=false; /* 电量回到 20% 以上→下次可再提醒 */
+      /* 满 100%：我不自动拔，保持充电中（等手动拔） */
     }
-    /* 梦角的手机：2 分钟 1 度，无论我在不在 */
+    } /* end 我的（仅在线） */
+    /* ==== 梦角的手机 · 掉电（离线也掉，用 realDt） ==== */
+    var _hdt=Math.min(realDt,86400000); /* 上限 1 天，防止长时间离线一次巨大 */
+    var himDropMin=Math.max(1,parseFloat(D.phHimDrop)||2);
     if(!D.ph.himPower){ /* 关机不掉 */ }
     else if(D.ph.himCharging){
-      D.ph.himChgAcc+=dt;
-      while(D.ph.himChgAcc>=60000){ D.ph.himChgAcc-=60000; D.ph.him=Math.min(100,D.ph.him+1); }
-      /* 充满 100%，梦角自己悄悄拔充电器 */
-      if(D.ph.him>=100){ D.ph.himCharging=false; D.ph.himChgAcc=0; D.ph.himChgTries=0; }
+      D.ph.himChgAcc+=_hdt;
+      var himChgMs=Math.max(1,parseFloat(D.phHimChgSpeed)||1)*60000;
+      while(D.ph.himChgAcc>=himChgMs){ D.ph.himChgAcc-=himChgMs; D.ph.him=Math.min(100,D.ph.him+1); }
+      /* 满 100%：梦角自动拔充电器 */
+      if(D.ph.him>=100){ D.ph.himCharging=false; D.ph.himChgAcc=0; D.ph.himRerolled=false; }
     } else {
-      D.ph.accHim+=dt;
-      while(D.ph.accHim>=120000){
-        D.ph.accHim-=120000;
+      D.ph.accHim+=_hdt;
+      var himDropMs=himDropMin*60000;
+      while(D.ph.accHim>=himDropMs){
+        D.ph.accHim-=himDropMs;
         D.ph.him=Math.max(0,D.ph.him-1);
-        if(D.ph.him>30){ D.ph.himChgTries=0; } /* 电量回到 30% 以上→重置掷骰次数 */
-        if(D.ph.him>0 && D.ph.him<=30 && (D.ph.himChgTries||0)<3){
-          D.ph.himChgTries=(D.ph.himChgTries||0)+1; /* 最多掷 3 次骰子 */
-          if(Math.random()*100<(D.himChgRate===undefined?25:D.himChgRate)){
-            D.ph.himCharging=true; D.ph.himChgTries=0; break;
-          }
+        if(D.ph.him>30){ D.ph.himRerolled=false; } /* 回到 30% 以上→重置掷骰标记 */
+        /* 自动充电关：掉到 30% 时掷一次骰子 */
+        if(!D.phAutoHim && D.ph.him>0 && D.ph.him<=30 && !D.ph.himRerolled){
+          D.ph.himRerolled=true;
+          var _hr=(D.phHimChgRate===undefined?25:parseFloat(D.phHimChgRate));
+          if(Math.random()*100<_hr){ D.ph.himCharging=true; D.ph.himChgAcc=0; break; }
         }
+        /* 自动充电开：掉到设定值 → 自动充 */
+        if(D.phAutoHim && D.ph.him>0 && D.ph.him<=(parseFloat(D.phHimAutoAt)||20)){ D.ph.himCharging=true; D.ph.himChgAcc=0; break; }
         if(D.ph.him<=0){ D.ph.him=0; D.ph.himPower=false; D.ph.himCharging=false; break; }
       }
     }
@@ -2782,6 +2820,8 @@ function yzPhTick(){
     if($('#phony') && $('#phony').classList.contains('active') && !D.phFavOpen){ try{ yzPhRender(); }catch(e){} }
   }catch(e){}
 }
+function yzPhToggleHimAuto(){ D.phAutoHim=!D.phAutoHim; save(); yzPhCondRows(); toast(D.phAutoHim?'已开启梦角小手机自动充电':'已关闭梦角小手机自动充电'); }
+function yzPhToggleMyAuto(){ D.phAutoMy=!D.phAutoMy; save(); yzPhCondRows(); toast(D.phAutoMy?'已开启我的小手机自动充电':'已关闭我的小手机自动充电'); }
 function yzPhCurPager(){ if(!D.phPage)D.phPage=1; return D.phPage; }
 function yzPhToggle(){ D.phFavOpen=false; D.phPage=(yzPhCurPager()===1?2:1); save(); yzPhRender(); }
 function yzPhPct(v){ return Math.max(0,Math.min(100,Math.round(v))); }
@@ -2867,7 +2907,7 @@ function yzPhThanks(){
   clearTimeout(window.__phThanksT);
   window.__phThanksT=setTimeout(function(){ el.classList.remove('show'); },5200);
 }
-function yzPhCharge(){ yzPhInit(); D.ph.myCharging=true; D.ph.chgAcc=0; save(); yzPhRender(); yzPhStatusIcon(); toast('已插上充电器'); }
+function yzPhCharge(){ yzPhInit(); if(D.phAutoMy){ try{ toast('你开启了自动充电模式哦～现在还不可以充电。'); }catch(e){} return; } D.ph.myCharging=true; D.ph.chgAcc=0; save(); yzPhRender(); yzPhStatusIcon(); toast('已插上充电器'); }
 function yzPhUnplug(){ yzPhInit(); D.ph.myCharging=false; save(); yzPhRender(); yzPhStatusIcon(); toast('已拔充电器'); }
 /* ===== 小手机 · 梦角收藏系统 ===== */
 function yzFavInit(){
@@ -3351,11 +3391,12 @@ var YZ_SET_MAP={
   'setFeelGap':'心情库','feelToggle':'心情库','setFeelList':'心情库',
   'setPats':'拍一拍','setPatRate':'拍一拍',
   'setLisDistance':'一起听','setLisAskRate':'一起听','setLisAskGap':'一起听','setFavMusic':'一起听','setRereadMusic':'一起听','setRereadMusicFav':'一起听',
+  'setPhHimDrop':'小手机与电量','setPhMyDrop':'小手机与电量','setPhHimChgRate':'小手机与电量','phHimAutoBtn':'小手机与电量','setPhHimAutoAt':'小手机与电量','phMyAutoBtn':'小手机与电量','setPhMyAutoAt':'小手机与电量','setPhHimChgSpeed':'小手机与电量','setPhMyChgSpeed':'小手机与电量',
   'setProactiveGap':'主动消息与通知','proactiveBtn':'主动消息与通知',
   'keepAliveBtn':'主动消息与通知','_notify_':'主动消息与通知'
 };
 /* 分类展示顺序 */
-var YZ_SET_ORDER=['回复设置','聊天显示','通话','转账','代付','送东西','一起听','来信','日记','动态','心情库','拍一拍','主动消息与通知'];
+var YZ_SET_ORDER=['回复设置','聊天显示','通话','转账','代付','送东西','一起听','来信','日记','动态','心情库','拍一拍','小手机与电量','主动消息与通知'];
 var _yzSetMoved=false;
 function yzRowGroupKey(r){
   try{
@@ -3405,6 +3446,16 @@ function yzBuildSetGroups(){
     });
   }catch(e){}
 }
+function yzPhCondRows(){
+  try{
+    var ha=!!(D.phAutoHim), ma=!!(D.phAutoMy);
+    var rh=document.getElementById('setPhHimAutoAt'), rm=document.getElementById('setPhMyAutoAt');
+    if(rh){ var row=rh.closest('.row'); if(row)row.style.display=ha?'':'none'; }
+    if(rm){ var row2=rm.closest('.row'); if(row2)row2.style.display=ma?'':'none'; }
+    var bh=document.getElementById('phHimAutoBtn'); if(bh)bh.textContent=ha?'开启':'关闭';
+    var bm=document.getElementById('phMyAutoBtn'); if(bm)bm.textContent=ma?'开启':'关闭';
+  }catch(e){}
+}
 function yzOpenSetSub(name){
   try{
     var subs=document.getElementById('setSubBody'); if(!subs)return;
@@ -3413,6 +3464,7 @@ function yzOpenSetSub(name){
     var hit=all.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;})[0];
     if(hit)hit.style.display='';
     var t=document.getElementById('setSubTitle'); if(t)t.textContent=name;
+    try{ yzPhCondRows(); }catch(e){}
     go('setSub');
   }catch(e){}
 }
@@ -8641,6 +8693,18 @@ function fillSettings(){
   try{if($('#setBubbleSize'))$('#setBubbleSize').value=(D.bubbleSize!==undefined?D.bubbleSize:100);if($('#bubbleSizeVal'))$('#bubbleSizeVal').textContent=(D.bubbleSize!==undefined?D.bubbleSize:100)+'%';}catch(e){}
   try{if($('#setChatFontSize'))$('#setChatFontSize').value=(D.chatFontSize!==undefined?D.chatFontSize:14);if($('#chatFontSizeVal'))$('#chatFontSizeVal').textContent=(D.chatFontSize!==undefined?D.chatFontSize:14)+'px';}catch(e){}
   try{if($('#setTranSize'))$('#setTranSize').value=(D.tranSize!==undefined?D.tranSize:100);if($('#tranSizeVal'))$('#tranSizeVal').textContent=(D.tranSize!==undefined?D.tranSize:100)+'%';}catch(e){}
+  if($('#setPhHimDrop'))$('#setPhHimDrop').value=(D.phHimDrop===undefined?2:D.phHimDrop);
+  if($('#setPhMyDrop'))$('#setPhMyDrop').value=(D.phMyDrop===undefined?5:D.phMyDrop);
+  if($('#setPhHimChgRate'))$('#setPhHimChgRate').value=(D.phHimChgRate===undefined?25:D.phHimChgRate);
+  if($('#setPhHimAutoAt'))$('#setPhHimAutoAt').value=(D.phHimAutoAt===undefined?20:D.phHimAutoAt);
+  if($('#setPhMyAutoAt'))$('#setPhMyAutoAt').value=(D.phMyAutoAt===undefined?20:D.phMyAutoAt);
+  if($('#setPhHimChgSpeed'))$('#setPhHimChgSpeed').value=(D.phHimChgSpeed===undefined?1:D.phHimChgSpeed);
+  if($('#setPhMyChgSpeed'))$('#setPhMyChgSpeed').value=(D.phMyChgSpeed===undefined?1:D.phMyChgSpeed);
+  if($('#setFingerBgColor'))$('#setFingerBgColor').value=((D.fingerBg&&D.fingerBg.startsWith('#'))?D.fingerBg:'#9db2d6');
+
+  try{if($('#phHimAutoBtn'))$('#phHimAutoBtn').textContent=D.phAutoHim?'开启':'关闭';}catch(e){}
+  try{if($('#phMyAutoBtn'))$('#phMyAutoBtn').textContent=D.phAutoMy?'开启':'关闭';}catch(e){}
+  try{yzPhCondRows();}catch(e){}
   try{yzPreviewBubble();}catch(e){}
   try{yzBeautyRender();}catch(e){}
   try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}
@@ -8773,6 +8837,14 @@ function saveBeauty(){
   if($('#setBubbleSize')){D.bubbleSize=parseInt($('#setBubbleSize').value)||100;var _bv=document.getElementById('bubbleSizeVal');if(_bv)_bv.textContent=D.bubbleSize+'%';}
   if($('#setChatFontSize')){D.chatFontSize=parseInt($('#setChatFontSize').value)||14;var _fv=document.getElementById('chatFontSizeVal');if(_fv)_fv.textContent=D.chatFontSize+'px';}
   if($('#setTranSize')){D.tranSize=parseInt($('#setTranSize').value)||100;var _tv=document.getElementById('tranSizeVal');if(_tv)_tv.textContent=D.tranSize+'%';}
+  if($('#setPhHimDrop'))D.phHimDrop=Math.max(1,parseFloat($('#setPhHimDrop').value)||2);
+  if($('#setPhMyDrop'))D.phMyDrop=Math.max(1,parseFloat($('#setPhMyDrop').value)||5);
+  if($('#setPhHimChgRate'))D.phHimChgRate=Math.max(0,Math.min(100,parseFloat($('#setPhHimChgRate').value)||0));
+  if($('#setPhHimAutoAt'))D.phHimAutoAt=Math.max(0,Math.min(100,parseFloat($('#setPhHimAutoAt').value)||0));
+  if($('#setPhMyAutoAt'))D.phMyAutoAt=Math.max(0,Math.min(100,parseFloat($('#setPhMyAutoAt').value)||0));
+  if($('#setPhHimChgSpeed'))D.phHimChgSpeed=Math.max(1,parseFloat($('#setPhHimChgSpeed').value)||1);
+  if($('#setPhMyChgSpeed'))D.phMyChgSpeed=Math.max(1,parseFloat($('#setPhMyChgSpeed').value)||1);
+
   saveSoon();scheduleApply();
   try{yzPreviewBubbleDebounced();}catch(e){}
 }
@@ -8782,7 +8854,7 @@ function scheduleApply(){
 _applyTimer=setTimeout(()=>{_applyTimer=null;applyCustom();},800);
 }
 /* ===== 美化方案槽位 ===== */
-var YZ_BEAUTY_KEYS=['favicon','avatarShape','accentColor','theme','themeAuto','lockName','lockBg','himLetterBg','meLetterBg','lockFg','slogan','pageBg','page2Bg','chatBg','fontColor','bubbleHim','bubbleMe','tranColor','himFontColor','meFontColor','bubbleSize','chatFontSize','tranSize','momBg','bubble'];
+var YZ_BEAUTY_KEYS=['favicon','avatarShape','accentColor','theme','themeAuto','lockName','lockBg','himLetterBg','meLetterBg','lockFg','slogan','pageBg','page2Bg','chatBg','fontColor','bubbleHim','bubbleMe','tranColor','himFontColor','meFontColor','bubbleSize','chatFontSize','tranSize','momBg','bubble','fingerBg'];
 function yzBeautySnap(){
   var o={};
   YZ_BEAUTY_KEYS.forEach(function(k){ o[k]=(D[k]===undefined?'':D[k]); });
@@ -9114,6 +9186,7 @@ function applyCustom(){
     css+='#lock #lockTimeTop,#lock #lockH,#lock #lockD,#lock .name,#lock .hint,#lock .statusbar span,#lock .right{color:'+lf+' !important;}';
   }
   try{ yzApplyLockFg(lf); }catch(e){}
+  try{ var _fb=(D.fingerBg||'').trim(); var _fs=document.getElementById('fingerSheet'); if(_fs){ if(_fb&&(_fb.startsWith('http')||_fb.startsWith('data:'))){ _fs.style.background="linear-gradient(rgba(0,0,0,.15),rgba(0,0,0,.15)),url('"+_fb+"') center/cover no-repeat"; } else if(_fb){ _fs.style.background=_fb; } else { _fs.style.background=''; } } }catch(e){}
   /* 转账卡片色(先记录，最后统一应用) */
   /* 气泡大小 */
   const bs=(D.bubbleSize!==undefined?D.bubbleSize:100);
