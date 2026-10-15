@@ -741,10 +741,10 @@ svg [fill="currentColor"]{stroke:none;}
 .yz-badge.conv-badge{top:50%;right:12px;transform:translateY(-50%);}
 #yzToast{position:fixed;left:50%;bottom:12%;transform:translate(-50%,10px);background:rgba(0,0,0,.82);color:#fff;font-size:13px;padding:9px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:.22s;z-index:99999;max-width:76%;text-align:center;}
 #yzToast.show{opacity:1;transform:translate(-50%,0);}
-#yzTopNotice{position:fixed;left:50%;top:8px;transform:translate(-50%,-140%);width:92%;max-width:420px;background:rgba(28,30,36,.96);color:#fff;border-radius:16px;padding:12px 14px 13px;box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:100000;transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .3s;opacity:0;cursor:pointer;touch-action:pan-y;}
+#yzTopNotice{position:fixed;left:50%;top:8px;transform:translate(-50%,-140%);width:92%;max-width:420px;background:var(--panel,#fff);color:var(--text,#1c1c1e);border:1px solid var(--line,rgba(0,0,0,.08));border-radius:16px;padding:12px 14px 13px;box-shadow:0 10px 30px rgba(0,0,0,.3);z-index:100000;transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .3s;opacity:0;cursor:pointer;touch-action:pan-y;}
 #yzTopNotice.show{transform:translate(-50%,0);opacity:1;}
 #yzTopNotice .ytn-t{font-size:13.5px;font-weight:800;letter-spacing:.3px;display:flex;align-items:center;gap:6px;}
-#yzTopNotice .ytn-c{font-size:12.8px;color:rgba(255,255,255,.82);margin-top:5px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+#yzTopNotice .ytn-c{font-size:12.8px;color:var(--sub,#8e8e93);margin-top:5px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 #yzTopNotice .ytn-x{position:absolute;top:8px;right:10px;font-size:14px;opacity:.7;}
 
 /* ==== 引用回复 ==== */
@@ -3399,7 +3399,7 @@ function renderChat(){
   if(cf){const t=curFeeling();cf.textContent=t||'';cf.style.display=t?'':'none';}
   if(!D.msgs.length){b.innerHTML='';}
   var _yzSessMs=D._yzChatEnterMs||yzNowMs();
-  D.msgs.forEach((m,i)=>{
+  D.msgs.forEach((m,i)=>{ try{
     /* 时间戳：已作为真实消息存在记录里，永久保留 */
     if(m&&m.type==='sept'){ b.insertAdjacentHTML('beforeend',yzStampHtml(yzMsOf(m,_yzSessMs))); return; }
     if(m.type==='sys'){b.insertAdjacentHTML('beforeend',`<div class="sys">${esc(m.text)}</div>`);return;}
@@ -3437,7 +3437,7 @@ function renderChat(){
       quoteHtml='<div class="qbox" onclick="jumpMsg('+(m.quote.i)+')">'+qsrc+'<div class="qtxt">'+esc(_qw)+((m.quote.type==='img')?'[图片]':esc(m.quote.brief))+'</div></div>';
     }
     b.insertAdjacentHTML('beforeend',`<div class="msg ${me?'me':'him'}${(!me&&m.auto)?' yz-auto':''}" data-mi="${i}">${(!me&&m.auto)?'<span class="auto-dot"></span>':''}${avHTML(me?'me':'him',m.who)}<div class="bubwrap">${nameHtml}${quoteHtml}${bubbleHTML(m,i)}${readHtml}${himStamp}${meStamp}</div></div>`);
-  });
+  }catch(_e){} });
   if(D.typingOn&&D._typing&&$('#chat').classList.contains('active')){
     b.insertAdjacentHTML('beforeend',`<div class="typing-ind"><span>对方正在输入中</span><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div>`);
   }
