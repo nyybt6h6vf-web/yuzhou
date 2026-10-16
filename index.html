@@ -74,7 +74,7 @@ body{
 #lock .name{margin-top:30px;text-align:center;font-size:15px;letter-spacing:8px;color:var(--sub);}
 #lock .hint{margin-bottom:9vh;text-align:center;font-size:13px;color:var(--sub);animation:bl 2s infinite;}
 /* 性能模式：通话/一起听时开启，去掉最耗性能的 backdrop-filter 与重阴影 */
-body.perf-lite .sheet,body.perf-lite #callbar,body.perf-lite .navbar,body.perf-lite #plusSheet,body.perf-lite .statusbar,body.perf-lite #passSheet,body.perf-lite #packSheet,body.perf-lite #moSend,body.perf-lite .groupsheet,body.perf-lite #recOverlay{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;}
+body.perf-lite .sheet,body.perf-lite #callbar,body.perf-lite .navbar,body.perf-lite #plusSheet,body.perf-lite .statusbar,body.perf-lite #passSheet,body.perf-lite #packSheet,body.perf-lite #moSend,body.perf-lite .groupsheet,body.perf-lite #recOverlay,body.perf-lite .inputbar{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;}
 body.perf-lite .dlg{box-shadow:0 8px 22px rgba(0,0,0,.22)!important;}
 body.perf-lite #call .cav{box-shadow:none;}
 body.perf-lite #call .cbtn{box-shadow:none;}
@@ -299,8 +299,8 @@ svg [fill="currentColor"]{stroke:none;}
 .mask{position:absolute;inset:0;background:rgba(10,12,25,.35);opacity:0;pointer-events:none;transition:.25s;z-index:15;}
 .mask.show{opacity:1;pointer-events:auto;}
 
-#call{position:absolute;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:space-between;padding:80px 0 70px;background:#0a0a0a;color:#fff;transform:translateZ(0);backface-visibility:hidden;}
-#call.show{display:flex;}
+#call{position:absolute;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:space-between;padding:80px 0 70px;background:#0a0a0a;color:#fff;}
+#call.show{display:flex;transform:translateZ(0);backface-visibility:hidden;}
 #call .cav{width:110px;height:110px;border-radius:38px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:700;background:#1c1c1e;box-shadow:0 10px 24px rgba(0,0,0,.35);}
 #call .cav img{width:100%;height:100%;object-fit:cover;}
 #call .cname{margin-top:22px;font-size:24px;font-weight:700;}
@@ -384,8 +384,8 @@ svg [fill="currentColor"]{stroke:none;}
 #callbar .cend{width:28px;height:28px;border-radius:50%;background:#ff5a6e;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;flex:0 0 28px;}
 
 /* 全屏来电（仅呼入） */
-#call{position:absolute;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:space-between;padding:80px 0 70px;background:#0a0a0a;color:#fff;transform:translateZ(0);backface-visibility:hidden;}
-#call.show{display:flex;}
+#call{position:absolute;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:space-between;padding:80px 0 70px;background:#0a0a0a;color:#fff;}
+#call.show{display:flex;transform:translateZ(0);backface-visibility:hidden;}
 #call .cav{width:110px;height:110px;border-radius:38px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:700;background:#1c1c1e;box-shadow:0 10px 24px rgba(0,0,0,.35);}
 #call .cav img{width:100%;height:100%;object-fit:cover;}
 #call .cname{margin-top:22px;font-size:24px;font-weight:700;}
@@ -2722,6 +2722,8 @@ function go(id){
   if(id==='gomoku'){try{_gmk._yzEnterMs=Date.now();window.__yzStampArmedGmk=true;renderGomoku();}catch(e){}}
   if(id==='ttt'){try{_ttt._yzEnterMs=Date.now();window.__yzStampArmedTtt=true;renderTtt();}catch(e){}}
   try{ window.__yzPhIconSig=''; yzPhStatusIcon(); }catch(e){}
+  /* 兜底：不在通话/通话胶囊中，却残留性能模式 → 清掉（避免退出通话后磨砂层卡顿） */
+  try{ var _calling=($('#call')&&$('#call').classList.contains('show'))||($('#callbar')&&$('#callbar').classList.contains('show')); if(!_calling && document.body.classList.contains('perf-lite')) yzPerfOff(); }catch(e){}
   if(id==='himprofile'){ try{(D.diaries||[]).forEach(function(x){ if(x.from==='him')x.read=true; }); save();}catch(e){} renderHimProfile(); try{renderHome();}catch(e){} }
   if(id==='letterWrite'){const to=$('#lwTo');if(to)to.textContent=letterTo(D.nick);}
   if(id==='diaryWrite'){const dt=$('#dwDate');if(dt)dt.textContent=dToday();}
@@ -8425,7 +8427,9 @@ function hangCall(wasIncoming){
   if($('#call').dataset.to)clearTimeout(+$('#call').dataset.to);
   $('#call').classList.remove('show');
   $('#callbar').classList.remove('show');
-  try{if(!($('#callbar')&&$('#callbar').classList.contains('show')))yzPerfOff();}catch(e){}
+  /* 延迟一帧再恢复磨砂层，避免同一帧内所有 backdrop-filter 同时重启导致瞬间卡顿 */
+  try{ requestAnimationFrame(function(){ setTimeout(function(){ try{if(!($('#callbar')&&$('#callbar').classList.contains('show')))yzPerfOff();}catch(e){} }, 60); }); }catch(e){}
+
   if(wasIncoming===true&&callType==='in'){
     sys('未接来电 · '+(D.nick||'他'));
     push({from:'him',text:pickCard(),type:'text'});
