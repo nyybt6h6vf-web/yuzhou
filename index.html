@@ -7591,6 +7591,22 @@ function gmkThreat(x,y,c){
   if(open2>=1) return 1;
   return 0;
 }
+function gmkMaxRun(c){
+  /* 某方当前棋盘上的最大连续子数（只看相邻连续，双端是否被堵不影响） */
+  var dirs=[[1,0],[0,1],[1,1],[1,-1]]; var best=0;
+  for(var y=0;y<GMK_N;y++)for(var x=0;x<GMK_N;x++){
+    if(_gmk.board[y][x]!==c)continue;
+    for(var d=0;d<4;d++){
+      var dx=dirs[d][0],dy=dirs[d][1];
+      var px=x-dx,py=y-dy;
+      if(gmkInB(px,py)&&_gmk.board[py][px]===c)continue; /* 只从连续段起点数 */
+      var cnt=0,cx=x,cy=y;
+      while(gmkInB(cx,cy)&&_gmk.board[cy][cx]===c){cnt++;cx+=dx;cy+=dy;}
+      if(cnt>best)best=cnt;
+    }
+  }
+  return best;
+}
 function gmkAIMove(){
   if(_gmk.over||!(_gmk.turn===_gmk.youColor)){ _gmk.busy=false; return; }
   var me=_gmk.youColor, foe=_gmk.meColor;
@@ -7613,6 +7629,9 @@ function gmkAIMove(){
     }
   } else {
     /* ===== 困难：威胁分级 + 强制进攻次序 ===== */
+    /* 对手当前最大连子长度：<3 表示对手还没成三，此时不做“预判堵活三延伸点” */
+    var foeMaxRun=gmkMaxRun(foe);
+    var doPreBlock = foeMaxRun>=3;
     var list=cands.map(function(p){
       return {x:p.x,y:p.y,atk:gmkShape(p.x,p.y,me),def:gmkShape(p.x,p.y,foe),mt:gmkThreat(p.x,p.y,me),ft:gmkThreat(p.x,p.y,foe)};
     });
@@ -7651,8 +7670,9 @@ function gmkAIMove(){
       if(foeThree.length){ pick=gmkPickRand(foeThree); }
     }
 
-    /* ⑦ 对手将形成活三而我无冲四可走 → 堵 */
-    if(!pick){
+    /* ⑦ 对手将形成活三：仅当对手已有三连（已成气候）时才预判堵；
+       对手还只是二连时，不预判堵，改为去做自己的进攻 */
+    if(!pick && doPreBlock){
       var foeOpen3=list.filter(function(o){return o.ft===2;});
       if(foeOpen3.length){ pick=gmkPickRand(foeOpen3); }
     }
