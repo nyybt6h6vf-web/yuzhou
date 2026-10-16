@@ -7567,59 +7567,121 @@ function gmkFoeAfter(me, foe, p){
   _gmk.board[p.y][p.x]=0;
   return {five:five, fours:fours};
 }
+function gmkThreat(x,y,c){
+  /* 返回该点对 c 方的威胁等级：5=成五 4=活四/双四 3=冲四 2=活三 1=冲三/活二 0=无 */
+  var dirs=[[1,0],[0,1],[1,1],[1,-1]];
+  var five=0, open4=0, four=0, open3=0, any3=0, open2=0;
+  for(var d=0;d<4;d++){
+    var dx=dirs[d][0],dy=dirs[d][1];
+    var cnt=1, openA=0, openB=0;
+    for(var s=1;s<5;s++){var nx=x+dx*s,ny=y+dy*s;if(!gmkInB(nx,ny)){openA=-1;break;}var v=_gmk.board[ny][nx];if(v===c)cnt++;else if(v===0){openA++;break;}else{openA=-1;break;}}
+    for(var s2=1;s2<5;s2++){var nx2=x-dx*s2,ny2=y-dy*s2;if(!gmkInB(nx2,ny2)){openB=-1;break;}var v2=_gmk.board[ny2][nx2];if(v2===c)cnt++;else if(v2===0){openB++;break;}else{openB=-1;break;}}
+    var op=0; if(openA>0)op++; if(openB>0)op++;
+    if(cnt>=5) five++;
+    else if(cnt===4){ if(op>=2) open4++; else if(op===1) four++; }
+    else if(cnt===3){ if(op>=2) open3++; else if(op===1) any3++; }
+    else if(cnt===2){ if(op>=2) open2++; }
+  }
+  if(five) return 5;
+  if(open4>=1) return 4;
+  if(four>=2) return 4;      /* 双冲四也极危 */
+  if(four>=1) return 3;
+  if(open3>=1) return 2;
+  if(any3>=1) return 1;
+  if(open2>=1) return 1;
+  return 0;
+}
 function gmkAIMove(){
   if(_gmk.over||!(_gmk.turn===_gmk.youColor)){ _gmk.busy=false; return; }
   var me=_gmk.youColor, foe=_gmk.meColor;
   var cands=gmkEmptyNeighbors(2);
   if(!cands.length)cands=gmkEmptyNeighbors(999);
   var pick=null;
-
   if(_gmk.mode==='random'){
     pick=gmkPickRand(cands);
+  } else if(_gmk.mode==='easy'){
+    /* 简单：只看基础分，攻防都看，不加成 */
+    var listE=cands.map(function(p){ return {x:p.x,y:p.y,atk:gmkShape(p.x,p.y,me),def:gmkShape(p.x,p.y,foe)}; });
+    var winE=listE.filter(function(o){return o.atk>=100000000;});
+    var foeWinE=listE.filter(function(o){return o.def>=100000000;});
+    if(winE.length)pick=gmkPickRand(winE);
+    else if(foeWinE.length)pick=gmkPickRand(foeWinE);
+    else{
+      var bestE=-1e18,bArrE=[];
+      for(var e=0;e<listE.length;e++){ var oE=listE[e]; var vE=oE.atk+oE.def*0.5+Math.random()*20; if(vE>bestE){bestE=vE;bArrE=[oE];} else if(vE===bestE)bArrE.push(oE); }
+      pick=bArrE.length?gmkPickRand(bArrE):gmkPickRand(cands);
+    }
   } else {
+    /* ===== 困难：威胁分级 + 强制进攻次序 ===== */
     var list=cands.map(function(p){
-      return {x:p.x,y:p.y,atk:gmkShape(p.x,p.y,me),def:gmkShape(p.x,p.y,foe)};
+      return {x:p.x,y:p.y,atk:gmkShape(p.x,p.y,me),def:gmkShape(p.x,p.y,foe),mt:gmkThreat(p.x,p.y,me),ft:gmkThreat(p.x,p.y,foe)};
     });
-    var win=list.filter(function(o){return o.atk>=100000000;});   /* 我能成五 */
-    var foeWin=list.filter(function(o){return o.def>=100000000;}); /* 对手能成五 */
 
+    /* ① 我能一步成五 */
+    var win=list.filter(function(o){return o.atk>=100000000;});
     if(win.length){ pick=gmkPickRand(win); }
-    else if(foeWin.length){ pick=gmkPickRand(foeWin); }
-    else {
-      /* 1 先筛出“不漏防”的点：我下完后对手没有一步成五 */
-      var safeAt=[];   /* {o, fours} */
-      var oneFour=[];  /* 只留一个四威胁的点（次优） */
-      for(var i=0;i<list.length;i++){
-        var o=list[i]; if(_gmk.board[o.y][o.x]!==0)continue;
-        if(_gmk.mode==='easy'){ safeAt.push({o:o,fours:0}); continue; }
-        var f=gmkFoeAfter(me,foe,o);
-        if(f.five) continue;               /* 送对手成五，直接否掉 */
-        if(f.fours===0) safeAt.push({o:o,fours:0});
-        else if(f.fours===1) oneFour.push({o:o,fours:1});
-      }
-      var pool = safeAt.length? safeAt : (oneFour.length? oneFour : list.map(function(o){return {o:o,fours:0};}));
 
-      /* 2 在池子里选“攻防综合最高” */
+    /* ② 对手能一步成五 → 必堵 */
+    if(!pick){
+      var foeWin=list.filter(function(o){return o.def>=100000000;});
+      if(foeWin.length){ pick=gmkPickRand(foeWin); }
+    }
+
+    /* ③ 我做出活四/双四（= 必应之击） */
+    if(!pick){
+      var myFour=list.filter(function(o){return o.mt>=4;});
+      if(myFour.length){ pick=gmkPickRand(myFour); }
+    }
+
+    /* ④ 对手将形成活四/双四 → 必堵 */
+    if(!pick){
+      var foeFour=list.filter(function(o){return o.ft>=4;});
+      if(foeFour.length){ pick=gmkPickRand(foeFour); }
+    }
+
+    /* ⑤ 我做冲四，逼迫对手应手（抢主动权） */
+    if(!pick){
+      var myFour2=list.filter(function(o){return o.mt===3;});
+      if(myFour2.length){ pick=gmkPickRand(myFour2); }
+    }
+
+    /* ⑥ 对手将形成冲四/活三 → 堵 */
+    if(!pick){
+      var foeThree=list.filter(function(o){return o.ft>=3;});
+      if(foeThree.length){ pick=gmkPickRand(foeThree); }
+    }
+
+    /* ⑦ 对手将形成活三而我无冲四可走 → 堵 */
+    if(!pick){
+      var foeOpen3=list.filter(function(o){return o.ft===2;});
+      if(foeOpen3.length){ pick=gmkPickRand(foeOpen3); }
+    }
+
+    /* ⑧ 都没急事：做自己的活三/活二，攻优先；顺手堵活二 */
+    if(!pick){
       var bestVal=-1e18, bestArr=[];
-      for(var t=0;t<pool.length;t++){
-        var o2=pool[t].o;
-        var v = o2.atk*1.0 + o2.def*0.9;
-        /* 进攻加成：我下完后，自己是否有下一步能成活四的点（= 形成活三威胁链） */
-        if(_gmk.mode!=='easy'){
-          _gmk.board[o2.y][o2.x]=me;
-          var cs2=gmkEmptyNeighbors(2);
-          var myFour=gmkFindFour(cs2, me).length;
-          _gmk.board[o2.y][o2.x]=0;
-          if(myFour>=1) v += 30000;      /* 能继续做四：进攻强 */
-          if(myFour>=2) v += 60000;      /* 双四：几乎必胜 */
-        } else {
-          v = o2.atk*1.0 + o2.def*0.5;
+      for(var i=0;i<list.length;i++){
+        var o=list[i];
+        var v = o.atk*1.3 + o.def*0.45;
+        /* 我下完后自己能否形成下一步冲四/活四 → 进攻链加成 */
+        _gmk.board[o.y][o.x]=me;
+        var cs2=gmkEmptyNeighbors(2);
+        var myNextFour=0, myNextOpen3=0;
+        for(var q=0;q<cs2.length;q++){
+          var pp=cs2[q]; if(_gmk.board[pp.y][pp.x]!==0)continue;
+          var th=gmkThreat(pp.x,pp.y,me);
+          if(th>=3) myNextFour++; else if(th===2) myNextOpen3++;
         }
-        v += Math.random()*20;
-        if(v>bestVal){ bestVal=v; bestArr=[o2]; }
-        else if(Math.abs(v-bestVal)<1e-6){ bestArr.push(o2); }
+        _gmk.board[o.y][o.x]=0;
+        v += myNextFour*26000;      /* 能造冲四以上：极强进攻 */
+        v += myNextOpen3*6000;      /* 能造活三：强进攻 */
+        /* 活二只在完全没有进攻价值时才略看重 */
+        if(o.mt<=1 && o.ft<=1) v += o.def*0.25;
+        v += Math.random()*15;
+        if(v>bestVal){ bestVal=v; bestArr=[o]; }
+        else if(Math.abs(v-bestVal)<1e-6){ bestArr.push(o); }
       }
-      pick = bestArr.length? gmkPickRand(bestArr) : (pool.length? pool[0].o : null);
+      pick = bestArr.length? gmkPickRand(bestArr) : gmkPickRand(cands);
     }
   }
   if(!pick)pick=gmkPickRand(cands);
@@ -7629,7 +7691,8 @@ function gmkAIMove(){
   _gmk.turn=foe;
   gmkRender();gmkRenderPlayers();
   gmkStatus('轮到你了');
-}function gmkNearCount(x,y){
+}
+function gmkNearCount(x,y){
   var n=0;
   for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){
     if(!dx&&!dy)continue;
