@@ -3805,7 +3805,7 @@ function yzReadChatSettingsLive(){
     rd('setMax','sendMax',1);
     rd('setQuoteRate','quoteRate',0,100);
     rd('setPackRate','packRate',0,100);
-    rd('setMainRate','mainRate',0,100);
+    try{var _b_mr=D.mainRate;}catch(e){} rd('setMainRate','mainRate',0,100); try{if(typeof _b_mr!=='undefined'&&_b_mr!==D.mainRate){window.__yzMRLog=window.__yzMRLog||[];window.__yzMRLog.push('live:'+_b_mr+'->'+D.mainRate+'@'+new Date().toLocaleTimeString()+' el='+(document.getElementById('setMainRate')?document.getElementById('setMainRate').value:'NA'));if(window.__yzMRLog.length>30)window.__yzMRLog.shift();}}catch(e){}
     rd('setEmojiMixRate','emojiMixRate',0,100);
     try{var _em=document.getElementById('setEmojiMix'); if(_em)_em.value=String(parseInt(D.emojiMix)||0);}catch(e){}
     rd('setAskDelay','askDelay',0);
@@ -9086,7 +9086,7 @@ function saveProfile(){
   if($('#setMomLikeRate'))D.momLikeRate=Math.max(0,Math.min(100,parseFloat($('#setMomLikeRate').value)||0));
   if($('#setFavLetter'))D.favLetterRate=Math.max(0,Math.min(100,parseFloat($('#setFavLetter').value)||0));
   if($('#setCommentRate'))D.commentRate=Math.max(0,Math.min(100,parseFloat($('#setCommentRate').value)||0));
-  if($('#setMainRate'))D.mainRate=Math.max(0,Math.min(100,parseFloat($('#setMainRate').value)||0));
+  if($('#setMainRate')){var _old_mr=D.mainRate;D.mainRate=Math.max(0,Math.min(100,parseFloat($('#setMainRate').value)||0));try{if(_old_mr!==D.mainRate){window.__yzMRLog=window.__yzMRLog||[];window.__yzMRLog.push('sp:'+_old_mr+'->'+D.mainRate+'@'+new Date().toLocaleTimeString()+' v=\''+$('#setMainRate').value+'\'');if(window.__yzMRLog.length>30)window.__yzMRLog.shift();}}catch(e){}}
   if($('#setEmojiMix'))D.emojiMix=parseInt($('#setEmojiMix').value)||0;
   if($('#setEmojiMixRate'))D.emojiMixRate=Math.max(0,Math.min(100,parseFloat($('#setEmojiMixRate').value)||0));
   if($('#setFavMsg'))D.favMsgRate=parseFloat($('#setFavMsg').value)||0;
