@@ -1044,13 +1044,20 @@ svg [fill="currentColor"]{stroke:none;}
 .phbtn:active{opacity:.7;}
 .phstate{font-size:12.5px;color:#4caf50;}
 .phmini{margin-top:14px;font-size:13px;color:#9aa0ad;}
-.phoff{position:absolute;inset:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;border-radius:0;}
-.phofflogo{width:44px;height:44px;border:2px solid #333;border-radius:10px;opacity:.5;}
-.phofftxt{color:#555;font-size:13px;}
+.phoff{position:absolute;inset:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;border-radius:0;transition:background 1.1s ease;}
+.phoff.phoff-dark{background:#000;}
+.phofflogo{width:44px;height:44px;opacity:0;}
+.phoff.offlogo-show .phofflogo{opacity:.5;transition:opacity .6s ease;}
+.phofftxt{color:#555;font-size:13px;opacity:0;transition:opacity .6s ease;}
+.phoff.show .phofftxt{opacity:1;}
+.phoffbtns{display:flex;flex-direction:column;gap:12px;margin-top:18px;width:100%;max-width:280px;opacity:0;pointer-events:none;transition:opacity .5s ease;}
+.phoff.btns-show .phoffbtns{opacity:1;pointer-events:auto;}
 .statusbar .right .phchg{color:#4caf50;font-size:11px;margin-right:3px;}
-.phoffbtns{display:flex;flex-direction:column;gap:12px;margin-top:18px;width:100%;max-width:280px;}
-.phboot{position:absolute;inset:0;background:#000;display:flex;align-items:center;justify-content:center;}
-.phbootlogo{font-size:52px;opacity:0;transform:scale(.8);transition:opacity 1.1s ease,transform 1.1s ease;}
+.phoffbtns2{display:flex;flex-direction:column;gap:12px;margin-top:18px;width:100%;max-width:280px;}
+.phboot{position:absolute;inset:0;background:#000;display:flex;align-items:center;justify-content:center;transition:background 1.1s ease;}
+.phboot.phboot-light{background:#fff;}
+.phbootlogo{font-size:52px;opacity:0;transform:scale(.8);transition:opacity 1.1s ease,transform 1.1s ease;color:#fff;}
+.phbootlogo svg{width:1em;height:1em;fill:#fff!important;stroke:none!important;}
 .phbootlogo.show{opacity:1;transform:scale(1);}
 .favwrap{padding:4px 2px 20px;}
 .favback{font-size:14px;color:#9aa0ad;margin-bottom:10px;}
@@ -2720,6 +2727,7 @@ function go(id){
   if(id==='diaryWrite'){const dt=$('#dwDate');if(dt)dt.textContent=dToday();}
 }
 /* ===== 小手机 · 电量系统 ===== */
+var YZ_PH_APPLE='<svg viewBox="0 0 24 24"><path d="M16.6 12.9c0-2.1 1.7-3.1 1.8-3.2-1-1.4-2.5-1.6-3-1.6-1.3-.1-2.5.7-3.1.7-.6 0-1.6-.7-2.7-.7-1.4 0-2.7.8-3.4 2.1-1.4 2.5-.4 6.2 1 8.2.7 1 1.5 2.1 2.6 2.1 1 0 1.4-.7 2.7-.7 1.2 0 1.6.7 2.7.7 1.1 0 1.8-1 2.5-2 .8-1.2 1.1-2.3 1.1-2.4-.1 0-2.2-.9-2.2-3.2z"/><path d="M14.6 6.8c.6-.7 1-1.6 .9-2.6-.9 0-1.9.6-2.5 1.3-.5.6-1 1.6-.8 2.5.9.1 1.9-.5 2.4-1.2z"/></svg>';
 var YZ_PH={ my:100, myCharging:false, him:100, himCharging:false, himPower:true, lastTick:0, lastHimTick:0, myAcc:0, himAcc:0, meWarned:false };
 function yzPhInit(){
   if(!D.ph){ D.ph={my:100,myCharging:false,him:100,himCharging:false,himPower:true,meWarned:false,accMy:0,accHim:0,accHimOff:0}; }
@@ -2862,11 +2870,26 @@ function yzPhRenderHim(body){
   if(!D.ph.himPower){
     body.innerHTML='<div class="phoff" id="phOff">'
       +'<div class="phofflogo"></div>'
-      +'<div class="phofftxt">'+(D.nick||'他')+'的手机关机了</div></div>'
+      +'<div class="phofftxt">'+(D.nick||'他')+'的手机关机了</div>'
       +'<div class="phoffbtns">'
       +'<div class="phbtn on" id="phHelpBtn" onclick="yzPhHelpCharge()">帮'+yzPhHimName()+'充电</div>'
       +'<div class="phbtn" id="phLeaveBtn" onclick="yzPhLeave()">不管他，离开</div>'
-      +'</div>';
+      +'</div></div>';
+    /* 关机动画：白屏→渐渐变黑屏→显示提示文字→3秒后弹出选项（每次进入只播一次） */
+    try{
+      var off=document.getElementById('phOff');
+      if(off){
+        if(window.__yzOffPlayed){
+          /* 已播过（tick 重渲染）→ 直接定态，不再重播动画 */
+          off.classList.add('phoff-dark','show','btns-show');
+        }else{
+          window.__yzOffPlayed=true;
+          setTimeout(function(){ off.classList.add('phoff-dark'); },40);
+          setTimeout(function(){ off.classList.add('show'); },1150);
+          setTimeout(function(){ off.classList.add('btns-show'); }, 1150+3000);
+        }
+      }
+    }catch(e){}
     return;
   }
   var h='<div class="phcard phhim">';
@@ -2879,19 +2902,22 @@ function yzPhRenderHim(body){
 }
 function yzPhHelpCharge(){
   var body=$('#phBody'); if(!body)return;
-  /* 开机动画：黑底 -> 苹果标志淡入 -> 亮起 */
-  body.innerHTML='<div class="phboot"><div class="phbootlogo">'+yzi('apple',40)+'</div></div>';
+  /* 开机动画：黑屏 -> 白苹果标志淡入 -> 转白屏亮起 */
+  body.innerHTML='<div class="phboot"><div class="phbootlogo">'+YZ_PH_APPLE+'</div></div>';
   var lg=body.querySelector('.phbootlogo');
-  setTimeout(function(){ if(lg)lg.classList.add('show'); },60);
+  var bt=body.querySelector('.phboot');
+  setTimeout(function(){ if(lg)lg.classList.add('show'); },120);
+  setTimeout(function(){ if(bt)bt.classList.add('phboot-light'); },1500);
   setTimeout(function(){
     yzPhInit();
+    window.__yzOffPlayed=false;
     D.ph.himPower=true; D.ph.himCharging=true; D.ph.himChgAcc=0; D.ph.himChgTries=0;
     if(D.ph.him<5)D.ph.him=5;
     save();
     yzPhRender();
     /* 道谢弹窗 */
     yzPhThanks();
-  },1600);
+  },2200);
 }
 function yzPhLeave(){
   go('home');
@@ -4097,6 +4123,9 @@ function pickQuoteRefFrom(arr){
 function himSayFor(who,opt){
   /* 连发（免打扰）模式：梦角一条也不发 */
   try{ if(D.sendHold) return; }catch(e){}
+  /* 非主动/非后台的回复（表情包、图片、语音、文字等所有路径）：一开始就显示“对方正在输入中”，发完第一条前都显示 */
+  var _showTyping=!(opt&&(opt.auto||opt.sync||opt.pushInto));
+  if(_showTyping){ try{ setTyping(true); }catch(e){} }
   var _p=(opt&&opt.push)?opt.push:push;
   var _into=(opt&&opt.pushInto)?opt.pushInto:null;
   var _cid=(opt&&opt.cid)?opt.cid:(who||null);
@@ -4119,6 +4148,10 @@ function himSayFor(who,opt){
       if(opt&&opt.sync){ _doSend(); } else { setTimeout(_doSend, t); }
     })(item);
   });
+  if(_showTyping){
+    var _endT=delay+gap*Math.max(0,plan.length-1);
+    setTimeout(function(){ try{ setTyping(false); }catch(e){} }, Math.max(300,_endT));
+  }
 }
 function himPat(){
   try{ if(D.sendHold) return; }catch(e){}
