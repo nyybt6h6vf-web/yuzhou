@@ -2704,7 +2704,7 @@ function go(id){
   if(id==='home'){try{yzApplyHomeChara();}catch(e){}
   try{yzBindLisFloatDrag();}catch(e){}}
   if(id==='chatlist')renderChatList();
-  if(id==='chat'){D._yzChatEnterMs=Date.now(); try{window.__yzStampArmed=true;}catch(e){} renderChat();$('#chat').style.background=getChatBg();setTimeout(scrollBottom,30); try{var _cv=yzCurConv(); if(_cv){var _nl=(_cv.msgs||[]).length; if(_cv._readLen!==_nl){ _cv._readLen=_nl; save(); }}}catch(e){} try{renderHome();}catch(e){}}
+  if(id==='chat'){D._yzChatEnterMs=Date.now(); try{window.__yzPatRolled=false;}catch(e){} try{window.__yzStampArmed=true;}catch(e){} renderChat();$('#chat').style.background=getChatBg();setTimeout(scrollBottom,30); try{var _cv=yzCurConv(); if(_cv){var _nl=(_cv.msgs||[]).length; if(_cv._readLen!==_nl){ _cv._readLen=_nl; save(); }}}catch(e){} try{renderHome();}catch(e){}}
   if(id==='cards'){try{yzBindCards();renderCardTabs();}catch(e){}renderCards();}
   if(id==='together')renderTiles();
   if(id==='setSub'){ try{yzBuildSetGroups();}catch(e){} try{fillSettings();}catch(e){} }
@@ -8278,6 +8278,10 @@ function maybeCall(){
 }
 function maybePat(){
   if(D.sendHold)return;
+  /* A：每轮对话只掷一次（你把消息拆成多条连发，也只按一个轮次掷一次） */
+  var _now=Date.now();
+  if(window.__yzPatLast && (_now-window.__yzPatLast)<12000)return;
+  window.__yzPatLast=_now;
   if(Math.random()*100>=(D.patRate||0))return;
   if(!(D.pats||[]).length)return;
   setTimeout(function(){ try{ if(!D.sendHold) himPat(); }catch(e){} }, Math.max(200,(typeof sendGapMs==='function'?sendGapMs():1200)));
