@@ -3712,7 +3712,7 @@ function sendText(){
   try{ updateQuoteBar(); }catch(e){}
   /* 免打扰模式：只发，不回。等关闭按钮时再一起回 */
   if(D.sendHold){ return; }
-  respond();maybeCall();maybePat();
+  respond();maybeCall();
 }
 /* 免打扰（连发）按钮：开启时发送不触发回复 */
 function toggleSendHold(){
@@ -3723,7 +3723,7 @@ function toggleSendHold(){
   toast(D.sendHold?'已开启连发（梦角暂不回复）':'连发已关，梦角这就回你');
   if(!D.sendHold && D.sendHoldWasOn){
     D.sendHoldWasOn=false;
-    try{ respond(); maybeCall(); maybePat(); }catch(e){}
+    try{ respond(); maybeCall(); }catch(e){}
   }
   if(D.sendHold) D.sendHoldWasOn=true;
 }
@@ -3994,6 +3994,8 @@ function respond(){
   const delay=replyDelayMs();
   const gap=sendGapMs();
   var plan=yzBuildPlan({cid:yzCurKaoCharId()});
+  /* 拍一拍：梦角这一轮回复只掷一次骰子（与他发几条无关） */
+  try{ maybePat(); }catch(e){}
   function _emit(item){
     try{
       if(item.kind==='voice'){ push({from:'him',type:'voice',sec:item.sec||3,text:item.text,_t:clockStr()}); }
@@ -8278,10 +8280,7 @@ function maybeCall(){
 }
 function maybePat(){
   if(D.sendHold)return;
-  /* A：每轮对话只掷一次（你把消息拆成多条连发，也只按一个轮次掷一次） */
-  var _now=Date.now();
-  if(window.__yzPatLast && (_now-window.__yzPatLast)<12000)return;
-  window.__yzPatLast=_now;
+  /* 在 respond() 里每轮调用一次：梦角一轮回复只掷一次骰子，与他发几条无关 */
   if(Math.random()*100>=(D.patRate||0))return;
   if(!(D.pats||[]).length)return;
   setTimeout(function(){ try{ if(!D.sendHold) himPat(); }catch(e){} }, Math.max(200,(typeof sendGapMs==='function'?sendGapMs():1200)));
