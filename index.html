@@ -6423,13 +6423,21 @@ function pushMomentByHim(){
   try{ yzNotify((D.nick||'他')+' 发了一条动态',(_mtxt||'').replace(/\n/g,' '),true); }catch(e){}
 }
 /* 他回复评论 / 点赞你的动态 */
-function momReply(m){
-  try{ var _cr=(D.commentRate===undefined?50:parseFloat(D.commentRate))||0; if(Math.random()*100>=_cr)return; }catch(e){}
+function momReply(m,skipRate){
+  if(!skipRate){
+    try{ var _cr=(D.commentRate===undefined?50:parseFloat(D.commentRate))||0; if(Math.random()*100>=_cr)return; }catch(e){}
+  }
   m.comments=m.comments||[];
-  var last=m.comments[m.comments.length-1];
-  var rp=last?(last.from==='me'?(D.myNick||'我'):(D.nick||'他')):'';
-  m.comments.push({from:'him',text:pickCard(),replyTo:rp});
+  /* 只有当这条动态下确实有我发的评论时，才带“回复XX” */
+  var rp='';
+  for(var i=m.comments.length-1;i>=0;i--){ if(m.comments[i].from==='me'){ rp=(D.myNick||'我'); break; } }
+  var _txt=pickCard();
+  var item={from:'him',text:_txt};
+  if(rp)item.replyTo=rp;
+  m.comments.push(item);
   save();if($('#moments').classList.contains('active'))renderMoments();
+  try{ scheduleHomeBadges(); }catch(e){}
+  try{ yzTopNotice((D.nick||'他')+' 评论了你的动态',(_txt||'').slice(0,30),null,2600); }catch(e){}
 }
 function maybeMomInteract(){
   const list=(D.moments||[]).filter(m=>m.from==='me');
@@ -6440,11 +6448,11 @@ function maybeMomInteract(){
   var did=false;
   if(Math.random()*100<_lr){
     m.likedBy=m.likedBy||[];
-    if(!m.likedBy.includes('him'))m.likedBy.push('him');
+    if(!m.likedBy.includes('him')){ m.likedBy.push('him'); try{ yzTopNotice((D.nick||'他')+' 赞了你的动态','',null,2400); }catch(e){} }
     save(); did=true;
   }
   if(Math.random()*100<_cr){
-    momReply(m); did=true;
+    momReply(m,true); did=true;
   }
   if(!did){
     /* 两个概率都没中，就不互动 */
@@ -6475,14 +6483,21 @@ function yzMomTick(dt){
     if(!window.__yzUnlocked)return;
     if(document.hidden)return;
     if(dt<0)dt=0; if(dt>300000)dt=300000;
-    D.momAcc=(D.momAcc||0)+dt;
     var gap=Math.max(1,parseFloat(D.momGap)||1)*60000;
+    /* ① 梦角发动态：独立计时 */
+    D.momAcc=(D.momAcc||0)+dt;
     while(D.momAcc>=gap){
       D.momAcc-=gap;
       var r=(D.momRate===undefined?50:parseFloat(D.momRate));
       if(isNaN(r))r=50;
       if(Math.random()*100<r){ try{ pushMomentByHim(); }catch(e){} }
-      else{ try{ maybeMomInteract(); }catch(e){} }
+    }
+    /* ② 梦角点赞/评论我的动态：独立计时，不再和发动态抢同一个周期 */
+    D.momIntAcc=(D.momIntAcc||0)+dt;
+    var igap=Math.max(1,parseFloat(D.momIntGap)||3)*60000;
+    while(D.momIntAcc>=igap){
+      D.momIntAcc-=igap;
+      try{ maybeMomInteract(); }catch(e){}
     }
   }catch(e){}
 }
