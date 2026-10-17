@@ -5425,17 +5425,12 @@ function giftUserAct(accept){
     try{save();}catch(e){}
   }
   if($('#chat')&&$('#chat').classList.contains('active'))renderChat();
+  /* 我收/拒梦角的礼物：2秒后只弹一张新卡片（由我发出），不发任何文字消息 */
   try{
-    var _line=(accept?'你喜欢就好，':'好吧，下次再给你买')+pickCard();
-    /* 第1步：2秒后另发一张新卡片（不在原卡片上改状态） */
     setTimeout(function(){
       try{
-        push({from:'him',type:'gift',noSt:true,text:(accept?'礼物收下啦':'礼退回给你了'),gname:m.gname,gprice:m.gprice,gimg:m.gimg,st:(accept?'got':'no'),mine:false,_t:clockStr()});
+        push({from:'me',type:'gift',noSt:true,text:(accept?'礼物收下啦':'礼物退回去了'),gname:m.gname,gprice:m.gprice,gimg:m.gimg,st:(accept?'got':'no'),mine:true,_t:clockStr()});
       }catch(e){}
-      /* 第2步：再过3秒发文字 */
-      setTimeout(function(){
-        try{ push({from:'him',text:_line,_t:clockStr()}); }catch(e){}
-      }, 3000);
     }, 2000);
   }catch(e){}
 }
