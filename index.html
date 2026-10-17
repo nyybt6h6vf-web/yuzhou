@@ -1700,7 +1700,7 @@ svg [fill="currentColor"]{stroke:none;}
            <div class="lab" style="margin-bottom:8px">转账文案（每行一条，随机抽一条）</div>
            <textarea id="setTranNotes" placeholder="给你的&#10;拿去买奶茶" oninput="saveTrans()"></textarea>
          </div>
-         <div class="row"><div class="lab">主字卡回复概率（%）</div><input type="number" id="setMainRate" oninput="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">emoji混入主字卡</div><select id="setEmojiMix" onchange="saveProfile()" style="max-width:100px"><option value="0">关</option><option value="1">开</option></select></div><div class="row"><div class="lab">emoji混入概率（%）</div><input type="number" id="setEmojiMixRate" oninput="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">发表情包概率（%）（通用）</div><input type="number" id="setPackRate" oninput="saveProfile()" style="max-width:80px"></div>
+         <div class="row"><div class="lab">主字卡回复概率（%）</div><input type="number" id="setMainRate" onchange="yzSaveMainRate()" onblur="yzSaveMainRate()" style="max-width:80px"></div><div class="row"><div class="lab">emoji混入主字卡</div><select id="setEmojiMix" onchange="saveProfile()" style="max-width:100px"><option value="0">关</option><option value="1">开</option></select></div><div class="row"><div class="lab">emoji混入概率（%）</div><input type="number" id="setEmojiMixRate" oninput="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">发表情包概率（%）（通用）</div><input type="number" id="setPackRate" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">梦角发语音概率（%）</div><input type="number" id="setVoiceRate" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">主动来电概率（%）</div><input type="number" id="setCall" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">开启消息通知</div><div class="chip" onclick="yzAskNotify()">开启 / 检查</div></div>
@@ -2400,13 +2400,25 @@ function yzBindSwipe(){
   var l=document.getElementById('convList');if(!l)return;
   var rows=l.querySelectorAll('.convrow');
   var open=null;
+  function closeRow(r){
+    if(!r)return;
+    var oi=r.querySelector('.convitem');
+    if(oi){ oi.style.transition='transform .22s cubic-bezier(.2,.8,.2,1)'; oi.style.transform='translateX(0)'; }
+    r._open=false;
+  }
+  function openRow(r,w){
+    var oi=r.querySelector('.convitem');
+    if(oi){ oi.style.transition='transform .22s cubic-bezier(.2,.8,.2,1)'; oi.style.transform='translateX('+(-w)+'px)'; }
+    r._open=true;
+  }
   rows.forEach(function(row){
     var item=row.querySelector('.convitem');
     var acts=row.querySelector('.convacts');
-    var w=acts?acts.offsetWidth:0;
-    var sx=0,sy=0,dx=0,dy=0,dragging=false,cur=0;
+    if(!item||!acts)return;
+    var sx=0,sy=0,dx=0,dy=0,dragging=false,cur=0,w=0;
     item.addEventListener('touchstart',function(e){
       var t=e.touches[0];sx=t.clientX;sy=t.clientY;dx=0;dy=0;dragging=false;
+      w=acts.offsetWidth||0;                    /* 每次触摸时重新量，避免首次为 0 */
       cur=(row._open?1:0)*w;
     },{passive:true});
     item.addEventListener('touchmove',function(e){
@@ -2417,17 +2429,30 @@ function yzBindSwipe(){
       item.style.transition='none';item.style.transform='translateX('+nx+'px)';
     },{passive:true});
     item.addEventListener('touchend',function(e){
-      if(!dragging)return;
+      if(!dragging){
+        /* 没拖动：如果该行是打开状态，点一下就关掉（解决“划不回来”） */
+        if(row._open){ closeRow(row); if(open===row)open=null; }
+        return;
+      }
+      if(!w) w=acts.offsetWidth||0;
       var nx=cur+dx;
       var openIt=(nx<-w/2);
-      if(openIt){nx=-w;} else {nx=0;}
-      item.style.transition='transform .22s cubic-bezier(.2,.8,.2,1)';
-      item.style.transform='translateX('+nx+'px)';
-      row._open=openIt;
-      if(open&&open!==row){var oi=open.querySelector('.convitem');if(oi){oi.style.transition='transform .22s cubic-bezier(.2,.8,.2,1)';oi.style.transform='translateX(0)';}open._open=false;}
+      if(openIt){ openRow(row,w); }
+      else { closeRow(row); }
+      if(openIt&&open&&open!==row){ closeRow(open); }
       open=openIt?row:null;
     },{passive:true});
   });
+  /* 点击列表空白处：关闭已打开的行 */
+  if(!l._yzSwipeBlank){
+    l._yzSwipeBlank=true;
+    l.addEventListener('touchstart',function(e){
+      if(e.target.closest('.convitem'))return;
+      l.querySelectorAll('.convrow').forEach(function(r){
+        if(r._open){ var oi=r.querySelector('.convitem'); if(oi){ oi.style.transition='transform .22s cubic-bezier(.2,.8,.2,1)'; oi.style.transform='translateX(0)'; } r._open=false; }
+      });
+    },{passive:true});
+  }
 }
 function yzChatPlus(){var p=document.getElementById('clPlus'),m=document.getElementById('clMask');var on=p.classList.toggle('show');m.classList.toggle('show',on);}
 function yzCloseChatPlus(){document.getElementById('clPlus').classList.remove('show');document.getElementById('clMask').classList.remove('show');}
@@ -2679,7 +2704,7 @@ function save(){
 /* 立即落盘（关键操作如退出/切页时用） */
 function saveFlush(){ try{ if(_yzSaveTimer2){clearTimeout(_yzSaveTimer2);_yzSaveTimer2=null;} _yzSavePending=false; saveNow(); }catch(e){} }
 var _yzBigT=null,_yzBigSig='';function yzSaveBigs(){try{var o={},sig='';for(var i=0;i<YZ_BIGKEYS.length;i++){var k=YZ_BIGKEYS[i];if(D[k]){o[k]=D[k];sig+=k+':'+String(D[k]).length+';';}}if(sig===_yzBigSig)return; /* 没变不写 */ _yzBigSig=sig;if(_yzBigT)clearTimeout(_yzBigT);_yzBigT=setTimeout(function(){_yzBigT=null;try{localStorage.setItem(DKEY+'_big',JSON.stringify(o));}catch(e){}},2000);}catch(e){}}
-function saveNow(){var __j='';try{__j=JSON.stringify(D,function(k,v){ if(k&&YZ_BIGKEYS.indexOf(k)>=0)return undefined; return v;});}catch(e){return;}try{yzSaveBigs();}catch(e){}try{YZDB.set(DKEY,__j);}catch(e){}if(YZDB&&YZDB.ready){window.__yzSaveErr=false;/* localStorage 黎身版改为防抖写，避免每次写大字符串卡顿 */try{if(window.__yzSlenderT)clearTimeout(window.__yzSlenderT);window.__yzSlenderT=setTimeout(function(){window.__yzSlenderT=null;try{var sl=yzSlender();if(sl)localStorage.setItem(DKEY,sl);}catch(e){}},2500);}catch(e){}}else{try{localStorage.setItem(DKEY,__j);window.__yzSaveErr=false;}catch(e){window.__yzSaveErr=true;}}}
+function saveNow(){var __j='';try{var _top=[];__j=JSON.stringify(D,function(k,v){ if(k&&YZ_BIGKEYS.indexOf(k)>=0&&_top.indexOf(k)<0&&this===D)return undefined; return v;});}catch(e){return;}try{yzSaveBigs();}catch(e){}try{YZDB.set(DKEY,__j);}catch(e){}if(YZDB&&YZDB.ready){window.__yzSaveErr=false;/* localStorage 黎身版改为防抖写，避免每次写大字符串卡顿 */try{if(window.__yzSlenderT)clearTimeout(window.__yzSlenderT);window.__yzSlenderT=setTimeout(function(){window.__yzSlenderT=null;try{var sl=yzSlender();if(sl)localStorage.setItem(DKEY,sl);}catch(e){}},2500);}catch(e){}}else{try{localStorage.setItem(DKEY,__j);window.__yzSaveErr=false;}catch(e){window.__yzSaveErr=true;}}}
 function $(s){return document.querySelector(s);}
 function pad(n){return n<10?'0'+n:''+n;}
 
@@ -3807,7 +3832,7 @@ function yzReadChatSettingsLive(){
     rd('setMax','sendMax',1);
     rd('setQuoteRate','quoteRate',0,100);
     rd('setPackRate','packRate',0,100);
-    try{var _b_mr=D.mainRate;}catch(e){} rd('setMainRate','mainRate',0,100); try{if(typeof _b_mr!=='undefined'&&_b_mr!==D.mainRate){window.__yzMRLog=window.__yzMRLog||[];window.__yzMRLog.push('live:'+_b_mr+'->'+D.mainRate+'@'+new Date().toLocaleTimeString()+' el='+(document.getElementById('setMainRate')?document.getElementById('setMainRate').value:'NA'));if(window.__yzMRLog.length>30)window.__yzMRLog.shift();}}catch(e){}
+    /* 主字卡回复概率：不再实时从输入框读，改由输入框 change 事件显式保存（避免 iOS 输入中间态把值写坏） */
     rd('setEmojiMixRate','emojiMixRate',0,100);
     try{var _em=document.getElementById('setEmojiMix'); if(_em)_em.value=String(parseInt(D.emojiMix)||0);}catch(e){}
     rd('setAskDelay','askDelay',0);
@@ -3892,6 +3917,16 @@ function yzMaybeMixEmoji(txt,cid){
     return (Math.random()<0.5)?(e+txt):(txt+e);
   }catch(e){}
   return txt;
+}
+function yzSaveMainRate(){
+  try{
+    var el=document.getElementById('setMainRate'); if(!el)return;
+    var v=String(el.value).trim(); if(v==='')return;   /* 空值不写，避免被清成 0 */
+    var n=parseFloat(v); if(!isFinite(n))return;
+    n=Math.max(0,Math.min(100,n));
+    if(D.mainRate===n)return;
+    D.mainRate=n; el.value=String(n); save();
+  }catch(e){}
 }
 function yzMainRate(){
   var r=parseFloat(D.mainRate);
@@ -8894,7 +8929,7 @@ function fillSettings(){
   // 通用兜底：扫描页面上所有 id 以 set 开头的输入框，逐个从 D 回填
   document.querySelectorAll('input[id^="set"],textarea[id^="set"],select[id^="set"]').forEach(function(el){
     const id=el.id;
-    if(id==='setFeelList'||id==='setPats'||id==='setTranAmts'||id==='setTranNotes')return;
+    if(id==='setFeelList'||id==='setPats'||id==='setTranAmts'||id==='setTranNotes'||id==='setMainRate')return;
     if(el.type==='color')return;
     const key=id.slice(3);
     const k=key.charAt(0).toLowerCase()+key.slice(1);
@@ -9176,7 +9211,7 @@ function saveProfile(){
   if($('#setMomLikeRate'))D.momLikeRate=Math.max(0,Math.min(100,parseFloat($('#setMomLikeRate').value)||0));
   if($('#setFavLetter'))D.favLetterRate=Math.max(0,Math.min(100,parseFloat($('#setFavLetter').value)||0));
   if($('#setCommentRate'))D.commentRate=Math.max(0,Math.min(100,parseFloat($('#setCommentRate').value)||0));
-  if($('#setMainRate')){var _old_mr=D.mainRate;D.mainRate=Math.max(0,Math.min(100,parseFloat($('#setMainRate').value)||0));try{if(_old_mr!==D.mainRate){window.__yzMRLog=window.__yzMRLog||[];window.__yzMRLog.push('sp:'+_old_mr+'->'+D.mainRate+'@'+new Date().toLocaleTimeString()+' v=\''+$('#setMainRate').value+'\'');if(window.__yzMRLog.length>30)window.__yzMRLog.shift();}}catch(e){}}
+  /* 主字卡回复概率：只由 yzSaveMainRate()（输入框 change/失焦）写入，saveProfile 不再读它 */
   if($('#setEmojiMix'))D.emojiMix=parseInt($('#setEmojiMix').value)||0;
   if($('#setEmojiMixRate'))D.emojiMixRate=Math.max(0,Math.min(100,parseFloat($('#setEmojiMixRate').value)||0));
   if($('#setFavMsg'))D.favMsgRate=parseFloat($('#setFavMsg').value)||0;
