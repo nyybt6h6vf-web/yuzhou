@@ -5143,6 +5143,37 @@ function editGoods(id){
   var sv=$('#goodsSaveBtn'); if(sv)sv.textContent='保存修改';
   openSheet2('goodsSheet');
 }
+/* ===== 商城：商品图上传 ===== */
+function pickGoodsImg(){
+  try{
+    pickTarget='goods';
+    var f=document.getElementById('filePick');
+    if(!f){ toast('当前浏览器不支持选图'); return; }
+    f.value='';
+    try{ f.removeAttribute('multiple'); }catch(e){}
+    f.click();
+  }catch(e){}
+}
+function setGoodsImg(res){
+  try{
+    goodsImgTmp=res||'';
+    var p=document.getElementById('gimgPick');
+    if(!p)return;
+    if(goodsImgTmp){
+      p.innerHTML='';
+      p.style.background='';
+      p.style.backgroundImage='url("'+goodsImgTmp+'")';
+      p.style.backgroundSize='cover';
+      p.style.backgroundPosition='center';
+      p.classList.add('hasimg');
+    }else{
+      p.innerHTML='＋ 商品图';
+      p.style.backgroundImage='';
+      p.classList.remove('hasimg');
+    }
+    toast('商品图已选好');
+  }catch(e){}
+}
 function addGoodsPrompt(){
   goodsEditId=''; goodsImgTmp='';
   var t=$('#goodsSheetTitle'); if(t)t.textContent='添加商品';
