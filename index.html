@@ -1734,7 +1734,7 @@ svg [fill="currentColor"]{stroke:none;}
           <div class="lab" style="margin-bottom:8px">梦角拍你内容（每行一条，随机抽一条；会自动加上梦角昵称，如你填「拍了拍你的脑袋」→「梦角拍了拍你的脑袋」）</div>
           <textarea id="setPats" placeholder="揉了揉你的头&#10;捏了捏你的脸&#10;从背后抱住你" oninput="savePats()"></textarea>
         </div>
-        <div class="row"><div class="lab">梦角主动拍你概率（%）</div><input type="number" id="setPatRate" min="0" max="100" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角主动拍你概率（%）</div><input type="number" id="setPatRate" min="0" max="100" oninput="savePats()" onchange="savePats()" onblur="savePats()" style="max-width:80px"></div>
       </div>
       <div class="group">
         <h4>一起听</h4>
@@ -8469,9 +8469,8 @@ function saveFeel(){
   D.feelIdx=-1;save();updateHomeAvatar();
 }
 function savePats(){
-  const v=$('#setPats').value;
-  D.pats=v.split('\n').map(s=>s.trim()).filter(Boolean);
-  try{var _pr=$('#setPatRate');if(_pr&&String(_pr.value).trim()!=='')D.patRate=Math.max(0,Math.min(100,parseFloat(_pr.value)||0));}catch(e){}
+  try{ var _el=$('#setPats'); if(_el){ D.pats=String(_el.value||'').split('\n').map(function(s){return s.trim();}).filter(Boolean); } }catch(e){}
+  try{ var _pr=$('#setPatRate'); if(_pr && String(_pr.value).trim()!==''){ D.patRate=Math.max(0,Math.min(100,parseFloat(_pr.value)||0)); } }catch(e){}
   save();
 }
 function saveTrans(){
@@ -9347,6 +9346,7 @@ function saveProfile(){
   if($('#setMomLikeRate'))D.momLikeRate=Math.max(0,Math.min(100,parseFloat($('#setMomLikeRate').value)||0));
   if($('#setFavLetter'))D.favLetterRate=Math.max(0,Math.min(100,parseFloat($('#setFavLetter').value)||0));
   if($('#setCommentRate'))D.commentRate=Math.max(0,Math.min(100,parseFloat($('#setCommentRate').value)||0));
+  if($('#setPatRate')&&String($('#setPatRate').value).trim()!=='')D.patRate=Math.max(0,Math.min(100,parseFloat($('#setPatRate').value)||0));
   if($('#setMomCmtMax'))D.momCmtMax=Math.max(1,parseInt($('#setMomCmtMax').value)||3);
   if($('#setMomCmtMax'))D.momCmtMax=Math.max(1,parseInt($('#setMomCmtMax').value)||3);
   /* 主字卡回复概率：只由 yzSaveMainRate()（输入框 change/失焦）写入，saveProfile 不再读它 */
