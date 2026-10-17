@@ -310,9 +310,11 @@ svg [fill="currentColor"]{stroke:none;}
 #call .cname{margin-top:22px;font-size:24px;font-weight:700;}
 #call .cstat{margin-top:10px;font-size:14px;opacity:.7;letter-spacing:1px;}
 #call .cbtns{display:flex;gap:70px;}
-.cbtn{width:66px;height:66px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;color:#fff;}
+.cbtn{position:relative;width:66px;height:66px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;color:#fff;transform:translateZ(0);}
 .cbtn.no{background:#ff5a6e;box-shadow:0 8px 24px rgba(255,90,110,.5);}
-.cbtn.yes{background:#3ddc84;box-shadow:0 8px 24px rgba(61,220,132,.5);animation:pu 1.2s infinite;}
+.cbtn.yes{background:#3ddc84;animation:pu-yes 1.2s ease-in-out infinite;}
+.cbtn.yes::after{content:'';position:absolute;left:-6px;right:-6px;top:-6px;bottom:-6px;border-radius:50%;box-shadow:0 8px 24px rgba(61,220,132,.5);z-index:-1;pointer-events:none;}
+@keyframes pu-yes{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 @keyframes pu{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 
 #recOverlay{position:absolute;inset:0;z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,22,34,.55);backdrop-filter:blur(6px);color:#fff;}
@@ -377,10 +379,10 @@ svg [fill="currentColor"]{stroke:none;}
 .homeslogan{font-size:13px;color:var(--sub);text-align:center;line-height:1.4;padding:14px 26px 2px;}
 
 /* 电话条（小胶囊·可拖动） */
-#callbar{position:absolute;top:44px;left:10px;z-index:45;display:none;align-items:center;gap:8px;padding:6px 8px 6px 6px;border-radius:22px;background:#141416;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.3);cursor:grab;user-select:none;touch-action:none;}
+#callbar{position:absolute;top:44px;left:10px;z-index:45;display:none;align-items:center;gap:8px;padding:6px 8px 6px 6px;border-radius:22px;background:var(--card,#fff);color:var(--text,#1c1c1e);box-shadow:0 6px 18px rgba(0,0,0,.14);border:1px solid var(--line,rgba(0,0,0,.08));cursor:grab;user-select:none;touch-action:none;}
 #callbar.show{display:flex;}
 #callbar.dragging{cursor:grabbing;opacity:.92;}
-#callbar .cavb{width:28px;height:28px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:12px;background:#2a2a2e;flex:0 0 28px;pointer-events:none;}
+#callbar .cavb{width:28px;height:28px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:12px;background:var(--icon-bg,#eee);color:var(--icon-fg,#333);flex:0 0 28px;pointer-events:none;}
 #callbar .cavb img{width:100%;height:100%;object-fit:cover;}
 #callbar .cinfo{display:flex;flex-direction:column;pointer-events:none;line-height:1.15;}
 #callbar .cnameb{font-size:12px;font-weight:600;}
@@ -395,13 +397,13 @@ svg [fill="currentColor"]{stroke:none;}
 #call .cname{margin-top:22px;font-size:24px;font-weight:700;}
 #call .cstat{margin-top:10px;font-size:14px;opacity:.7;letter-spacing:1px;}
 #call .cbtns{display:flex;gap:50px;justify-content:center;align-items:center;}
-.cbtn{width:66px;height:66px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;color:#fff;}
+.cbtn{position:relative;width:66px;height:66px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;color:#fff;transform:translateZ(0);}
 .cbtn.no{background:#ff5a6e;box-shadow:0 8px 24px rgba(255,90,110,.5);}
 .cbtn.mini{background:#2c2c30;font-size:20px;font-weight:700;}
 
 /* 电话条（小胶囊·可拖动） */
-.cbtn.yes{background:#3ddc84;box-shadow:0 8px 24px rgba(61,220,132,.5);animation:pu 1.2s infinite;will-change:transform;}
-.cbtn.willcall{animation:pu 1.2s infinite;}
+.cbtn.yes{background:#3ddc84;animation:pu-yes 1.2s ease-in-out infinite;will-change:transform;}
+.cbtn.willcall{animation:pu-yes 1.2s ease-in-out infinite;transform:translateZ(0);}
 @keyframes pu{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 
 /* 通用自绘弹层 */
@@ -1684,7 +1686,7 @@ svg [fill="currentColor"]{stroke:none;}
         <div class="row"><div class="lab">日记间隔（分钟）</div><input type="number" id="setDiaryGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">日记最少句数</div><input type="number" id="setDiaryMin" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">日记最多句数</div><input type="number" id="setDiaryMax" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-<div class="row"><div class="lab">评论概率（%）（评论/回复评论通用）</div><input type="number" id="setCommentRate" oninput="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">梦角动态评论最大条数</div><input type="number" id="setMomCmtMax" oninput="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">梦角动态评论最大条数</div><input type="number" id="setMomCmtMax" oninput="saveProfile()" style="max-width:80px"></div>
+<div class="row"><div class="lab">评论概率（%）（评论/回复评论通用）</div><input type="number" id="setCommentRate" oninput="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">梦角动态评论最大条数</div><input type="number" id="setMomCmtMax" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角找你代付概率（%）</div><input type="number" id="setDaifuRate" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">代付检查间隔（分钟）</div><input type="number" id="setDaifuGap" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角代付处理时长（秒）</div><input type="number" id="setDaifuDelay" oninput="saveProfile()" style="max-width:80px"></div>
