@@ -373,14 +373,14 @@ svg [fill="currentColor"]{stroke:none;}
 .homeslogan{font-size:13px;color:var(--sub);text-align:center;line-height:1.4;padding:14px 26px 2px;}
 
 /* 电话条（小胶囊·可拖动） */
-#callbar{position:absolute;top:44px;left:10px;z-index:45;display:none;align-items:center;gap:8px;padding:6px 8px 6px 6px;border-radius:22px;background:rgba(20,20,22,.94);color:#fff;backdrop-filter:blur(12px);box-shadow:0 8px 24px rgba(0,0,0,.3);cursor:grab;user-select:none;touch-action:none;}
+#callbar{position:absolute;top:44px;left:10px;z-index:45;display:none;align-items:center;gap:8px;padding:6px 8px 6px 6px;border-radius:22px;background:#141416;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.3);cursor:grab;user-select:none;touch-action:none;}
 #callbar.show{display:flex;}
 #callbar.dragging{cursor:grabbing;opacity:.92;}
 #callbar .cavb{width:28px;height:28px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:12px;background:#2a2a2e;flex:0 0 28px;pointer-events:none;}
 #callbar .cavb img{width:100%;height:100%;object-fit:cover;}
 #callbar .cinfo{display:flex;flex-direction:column;pointer-events:none;line-height:1.15;}
 #callbar .cnameb{font-size:12px;font-weight:600;}
-#callbar .ctimeb{font-size:10px;opacity:.7;letter-spacing:.3px;}
+#callbar .ctimeb{font-size:10px;opacity:.7;letter-spacing:.3px;min-width:44px;display:inline-block;}
 #callbar .cend{width:28px;height:28px;border-radius:50%;background:#ff5a6e;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;flex:0 0 28px;}
 
 /* 全屏来电（仅呼入） */
@@ -2671,7 +2671,7 @@ var YZDB={db:null,ready:false,
 };
 /* 启动时打开 IDB，并把 localStorage 老数据迁移进去（仅首次） */
 YZDB.open(function(ok){
-  if(!ok)return;
+  if(!ok){ window.__yzBigReady=true; return; }
   YZDB.get(DKEY,function(existing){
     if(existing){
       /* IDB 已有数据：以 IDB 为准，异步刷新内存与页面 */
@@ -2683,6 +2683,7 @@ YZDB.open(function(ok){
           try{ var _bg=JSON.parse(localStorage.getItem(DKEY+'_big')||'{}'); for(var _bk in _bg){ if(_bg[_bk])D[_bk]=_bg[_bk]; } }catch(e){}
           try{ if(D.themeAuto){ applyThemeAuto(true); yzBindThemeAuto(); } else { document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light'); } }catch(_){}
           try{renderHome();applyCustom();}catch(_){}
+          window.__yzBigReady=true;
           try{if(typeof yzBindAvatarKey==='function')yzBindAvatarKey();}catch(_){}
           try{if(window.__YZ_AFTER_IDB)window.__YZ_AFTER_IDB();}catch(_){}
         }
@@ -2690,6 +2691,7 @@ YZDB.open(function(ok){
     }else{
       /* IDB 没数据：把 localStorage 现有数据迁移进去 */
       try{var raw=localStorage.getItem(DKEY);if(raw){YZDB.set(DKEY,raw);}}catch(e){}
+      window.__yzBigReady=true;
     }
   });
 });
@@ -3646,6 +3648,8 @@ function bubbleHTML(m,i){
 }
 function renderChat(){
   try{ var _cc=yzCurConv(); if(_cc&&_cc.msgs&&D.msgs!==_cc.msgs){ if(!D.msgs||!D.msgs.length||D.msgs.length<_cc.msgs.length){ D.msgs=_cc.msgs; } } }catch(e){}
+  try{ if($('#call')&&$('#call').classList.contains('show')){ window.__yzLastRk=''; return; } }catch(e){}
+  try{ if($('#call')&&$('#call').classList.contains('show')){ window.__yzLastRk=''; return; } }catch(e){}
   try{ var _rk=(D.curConv||'')+'|'+((D.msgs||[]).length)+'|'+(D._typing?1:0); if(window.__yzLastRk===_rk && document.getElementById('chatBody') && document.getElementById('chatBody').children.length){ return; } window.__yzLastRk=_rk; }catch(e){}
   const b=$('#chatBody');b.innerHTML='';
   var _cvT=yzCurConv();$('#chatTitle').textContent=_cvT?yzConvTitle(_cvT):(D.nick||'他');
@@ -3707,7 +3711,7 @@ function yzPushInto(arr,m,isCurrent,convId){
     try{ if(window.__yzStampArmed&&m&&m.type!=='sept'){ arr.push({type:'sept',_dms:Date.now()}); window.__yzStampArmed=false; } }catch(e){}
     arr.push(m);
     save();
-    var _chA2=$('#chat').classList.contains('active');try{ if(m&&m.from==='him'){ var _t2=(m.type==='img')?'[表情]':(m.text||''); yzNotify((D.nick||'他'),_t2.slice(0,40),!_chA2); } }catch(e){}
+    var _chA2=$('#chat').classList.contains('active');try{ if(m&&m.from==='him'){ var _ic2=($('#call')&&$('#call').classList.contains('show'))||($('#callbar')&&$('#callbar').classList.contains('show')); if(!_ic2){ var _t2=(m.type==='img')?'[表情]':(m.text||''); yzNotify((D.nick||'他'),_t2.slice(0,40),!_chA2); } } }catch(e){}
     var _onThis=(String(D.curConv)===String(convId||(yzCurConv()||{}).id));
     if(_onThis){ try{ D.msgs=arr; }catch(e){} }
     var _chatActive=$("#chat").classList.contains("active")&&_onThis;
