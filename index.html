@@ -1484,7 +1484,7 @@ svg [fill="currentColor"]{stroke:none;}
   <div class="sheet" id="tttPickSheet" onclick="if(event.target===this)closeSheet2('tttPickSheet')"><div class="gmk-pickbox"><div class="gmk-picktitle">选择梦角</div><div class="gmk-picklist" id="tttPickList"></div><div class="gmk-pickcancel" onclick="closeSheet2('tttPickSheet')">取消</div></div></div>
   <div class="screen" id="letters">
     <div class="statusbar apple" id="letterBar"><span id="letTimeTop">9:41</span><span class="right">100%</span></div>
-    <div class="navbar"><div class="back" onclick="go('home')">‹</div><div class="title">来信</div><div class="act" onclick="writeLetter()">＋ 写信</div></div>
+    <div class="navbar"><div class="back" onclick="go('home')">‹</div><div class="title">来信</div><div class="act" onclick="markAllLettersRead()" style="margin-right:12px;font-size:13px">一键已读</div><div class="act" onclick="writeLetter()">＋ 写信</div></div>
     <div class="letter-list" id="letterList"></div>
   </div>
 
@@ -4859,6 +4859,20 @@ function himTransfer(){
   setTimeout(()=>himSay({auto:true}),Math.max(600,sendGapMs()));
 }
 /* ===== 来信 ===== */
+/* 一键已读：只把梦角发的信（来信/回信）标为已读，我写的/我回的不动 */
+function markAllLettersRead(){
+  try{
+    var n=0;
+    (D.letters||[]).forEach(function(lt){
+      if(!lt)return;
+      if((lt.from||'me')==='me')return;   /* 我写/我回的 → 跳过 */
+      if(!lt.read){ lt.read=true; n++; }
+    });
+    save();
+    try{ renderLetters(); }catch(e){}
+    toast(n?('已全部标为已读（'+n+' 封）'):'没有未读的信');
+  }catch(e){}
+}
 function renderLetters(){
   const l=$('#letterList');if(!l)return;l.innerHTML='';
   const list=(D.letters||[]).slice().reverse();
@@ -5711,7 +5725,7 @@ function renderHimDiary(){
   const l=$('#himDiaryList');if(!l)return;l.innerHTML='';
   D.diaries=D.diaries||[];
   let list=D.diaries.filter(function(x){return x.from==='him';});
-  list.sort(function(a,b){return (a.time||'')<(b.time||'')?-1:1;});
+  list.sort(function(a,b){return (a.time||'')<(b.time||'')?1:-1;});
   if(!list.length){l.innerHTML='<div class="empty">他还没有写日记。</div>';return;}
   list.forEach(function(d){ l.insertAdjacentHTML('beforeend', diaryItemHTML(d)); });
   try{yzFavBtnSyncAll(l);}catch(e){}
@@ -5747,7 +5761,7 @@ function renderDiary(){
   const l=$('#diaryList');if(!l)return;l.innerHTML='';
   D.diaries=D.diaries||[];
   let list=D.diaries.filter(function(x){return (x.from||'me')==='me';});
-  list.sort(function(a,b){return (a.time||'')<(b.time||'')?-1:1;});
+  list.sort(function(a,b){return (a.time||'')<(b.time||'')?1:-1;});
   if(!list.length){l.innerHTML='<div class="empty">还没有日记。</div>';return;}
   list.forEach(function(d){ l.insertAdjacentHTML('beforeend', diaryItemHTML(d)); });
 }
