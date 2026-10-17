@@ -368,8 +368,8 @@ svg [fill="currentColor"]{stroke:none;}
 .duo .avatar,.duo .avatar2{width:64px;height:64px;flex:0 0 64px;min-width:64px;max-width:64px;border-radius:22px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;background:var(--icon-bg);color:var(--icon-fg);box-shadow:0 6px 16px rgba(0,0,0,.22);cursor:pointer;border:2.5px solid var(--panel);position:relative;aspect-ratio:1/1;box-sizing:border-box;}
 .duo .avatar img,.duo .avatar2 img{width:100%!important;height:100%!important;min-width:100%!important;max-width:100%!important;min-height:100%!important;max-height:100%!important;object-fit:cover!important;object-position:center!important;display:block!important;border-radius:0;}
 .duo .avatar,.duo .avatar2{flex:0 0 64px!important;width:64px!important;height:64px!important;}
-    .duo .linkline{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44%;height:40px;overflow:visible;}
-    .duo .linkline svg{width:100%;height:100%;display:block;overflow:visible;}
+    .duo .linkline{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44%;height:40px;overflow:visible;contain:layout paint;isolation:isolate;}
+    .duo .linkline svg{width:100%;height:100%;display:block;overflow:visible;contain:paint;}
     .duo .linkline .ecg{fill:none;stroke:#e0567a;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;opacity:.9;stroke-dasharray:900;stroke-dashoffset:900;animation:ecgdraw 2.4s cubic-bezier(.6,0,.4,1) infinite;will-change:stroke-dashoffset;transform:translateZ(0);}
     @keyframes ecgdraw{0%{stroke-dashoffset:900}70%{stroke-dashoffset:0}100%{stroke-dashoffset:0}}
     @keyframes ecgline{0%,100%{opacity:.5}35%{opacity:1}60%{opacity:.75}}
@@ -1588,8 +1588,8 @@ svg [fill="currentColor"]{stroke:none;}
   </div>
   <div class="screen" id="giftwall">
     <div class="statusbar"><span id="gwTimeTop">9:41</span><span class="right">●●● 100%</span></div>
-    <div class="navbar"><div class="back" onclick="go('shop')">‹</div><div class="title">礼正墙</div><div class="act"></div></div>
-    <div class="gwtabs"><div class="gwtab on" id="gwTabHim" onclick="setGiftTab('him')">梦角送我</div><div class="gwtab" id="gwTabME" onclick="setGiftTab('me')">我送梦蠒</div></div>
+    <div class="navbar"><div class="back" onclick="go('shop')">‹</div><div class="title">礼物墙</div><div class="act"></div></div>
+    <div class="gwtabs"><div class="gwtab on" id="gwTabHim" onclick="setGiftTab('him')">梦角送我</div><div class="gwtab" id="gwTabMe" onclick="setGiftTab('me')">我送梦角</div></div>
     <div class="gwgrid" id="giftWallBody"></div>
   </div>
 
@@ -2559,6 +2559,7 @@ if(o.daifuRate===undefined)o.daifuRate=20;
 if(o.daifuGap===undefined)o.daifuGap=20;
 if(o.balanceHim===undefined)o.balanceHim=5200;
 if(o.giftRate===undefined)o.giftRate=20;
+if(o.giftAcceptRate===undefined)o.giftAcceptRate=70;
 if(o.giftGap===undefined)o.giftGap=20;
 if(o.giftDelay===undefined)o.giftDelay=8;
 if(!o.giftWall)o.giftWall=[];
@@ -5202,9 +5203,23 @@ function giveGoods(id){
     try{ pushGiftWall(D.nick||'他',g,'me'); }catch(e){}
     push({from:'me',type:'goods',text:'送给你「'+g.name+'」',gname:g.name,gprice:g.price,gimg:g.img,_t:clockStr()});
     renderShop();toast('已经送出去了');
+    /* 梦角按概率收下 / 拒绝 */
+    var _ar=(D.giftAcceptRate===undefined?70:parseFloat(D.giftAcceptRate))||0;
+    var _acc=(Math.random()*100<_ar);
     setTimeout(function(){
-      push({from:'him',text:pickCard(),_t:clockStr()});
-    },Math.max(600,sendGapMs()));
+      try{
+        if(_acc){
+          push({from:'him',type:'gift',noSt:true,text:'礼物收下啦',gname:g.name,gprice:g.price,gimg:g.img,st:'got',mine:false,_t:clockStr()});
+          try{ pushGiftWall(D.myNick||'我',g,'me'); }catch(e){}
+        }else{
+          push({from:'him',type:'gift',noSt:true,text:'礼物退回给你了',gname:g.name,gprice:g.price,gimg:g.img,st:'no',mine:false,_t:clockStr()});
+          try{ D.balance=(D.balance||0)+g.price; save(); refreshBalUI(); }catch(e){}
+        }
+      }catch(e){}
+      setTimeout(function(){
+        try{ push({from:'him',text:(_acc?'谢谢，':'不用你破费啦')+pickCard(),_t:clockStr()}); }catch(e){}
+      }, 3000);
+    }, 2000);
   });
 }
 var _dfActIdx=-1;
@@ -5408,13 +5423,16 @@ function giftUserAct(accept){
   if($('#chat')&&$('#chat').classList.contains('active'))renderChat();
   try{
     var _line=(accept?'你喜欢就好，':'好吧，下次再给你买')+pickCard();
+    /* 第1步：2秒后另发一张新卡片（不在原卡片上改状态） */
     setTimeout(function(){
-      setTyping(true);
+      try{
+        push({from:'him',type:'gift',noSt:true,text:(accept?'礼物收下啦':'礼退回给你了'),gname:m.gname,gprice:m.gprice,gimg:m.gimg,st:(accept?'got':'no'),mine:false,_t:clockStr()});
+      }catch(e){}
+      /* 第2步：再过3秒发文字 */
       setTimeout(function(){
-        try{setTyping(false);}catch(e){}
         try{ push({from:'him',text:_line,_t:clockStr()}); }catch(e){}
-      }, Math.max(500,(typeof sendGapMs==='function'?sendGapMs():1200)));
-    }, 1600);
+      }, 3000);
+    }, 2000);
   }catch(e){}
 }
 function himGiftMe(){
@@ -8992,6 +9010,7 @@ function fillSettings(){
   if($('#setDaifuGap'))$('#setDaifuGap').value=(D.daifuGap===undefined?20:D.daifuGap);
   if($('#setDaifuDelay'))$('#setDaifuDelay').value=(D.daifuDelay===undefined?8:D.daifuDelay);
   if($('#setGiftRate'))$('#setGiftRate').value=(D.giftRate===undefined?20:D.giftRate);
+  if($('#setGiftAcceptRate'))$('#setGiftAcceptRate').value=(D.giftAcceptRate===undefined?70:D.giftAcceptRate);
   if($('#setGiftGap'))$('#setGiftGap').value=(D.giftGap===undefined?20:D.giftGap);
   if($('#setGiftDelay'))$('#setGiftDelay').value=(D.giftDelay===undefined?8:D.giftDelay);
   if($('#setLisAskRate'))$('#setLisAskRate').value=(D.lisAskRate===undefined?20:D.lisAskRate);
@@ -9329,6 +9348,7 @@ function saveProfile(){
   if($('#setDaifuGap'))D.daifuGap=Math.max(1,parseFloat($('#setDaifuGap').value)||20);
   if($('#setDaifuDelay'))D.daifuDelay=Math.max(1,parseFloat($('#setDaifuDelay').value)||8);
   if($('#setGiftRate'))D.giftRate=Math.max(0,Math.min(100,parseFloat($('#setGiftRate').value)||0));
+  if($('#setGiftAcceptRate'))D.giftAcceptRate=Math.max(0,Math.min(100,parseFloat($('#setGiftAcceptRate').value)||0));
   if($('#setGiftGap'))D.giftGap=Math.max(1,parseFloat($('#setGiftGap').value)||20);
   if($('#setGiftDelay'))D.giftDelay=Math.max(1,parseFloat($('#setGiftDelay').value)||8);
   if($('#setLisAskRate'))D.lisAskRate=Math.max(0,Math.min(100,parseFloat($('#setLisAskRate').value)||0));
