@@ -64,6 +64,10 @@ body{
 }
 .screen{position:absolute;inset:0;display:none;flex-direction:column;background:var(--page-bg);}
 .screen.active{display:flex;}
+/* 通话中：非活动屏彻底不参与渲染 */
+body.in-call .screen:not(.active){display:none!important;}
+/* 通话中：把重排/重绘限制在手机内，避免整页重算 */
+body.in-call #phone{contain:layout paint style;}
 .statusbar{height:34px;flex:0 0 34px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:13px;font-weight:600;color:var(--status);letter-spacing:.5px;z-index:5;}
 .statusbar .right{display:flex;gap:6px;align-items:center;font-size:11px;}
 
@@ -2712,6 +2716,36 @@ function saveNow(){var __j='';try{var _top=[];__j=JSON.stringify(D,function(k,v)
 function $(s){return document.querySelector(s);}
 function pad(n){return n<10?'0'+n:''+n;}
 
+function yzProbeStart(){
+  try{
+    if(!window.PerformanceObserver)return;
+    window.__yzLong=window.__yzLong||[];
+    if(window.__yzProbeOn)return; window.__yzProbeOn=true;
+    var po=new PerformanceObserver(function(list){
+      list.getEntries().forEach(function(e){
+        window.__yzLong.push(Math.round(e.duration)+'ms@'+new Date().toLocaleTimeString());
+        if(window.__yzLong.length>40)window.__yzLong.shift();
+      });
+    });
+    po.observe({entryTypes:['longtask']});
+  }catch(e){}
+}
+try{ yzProbeStart(); }catch(e){}
+function yzProbeStart(){
+  try{
+    if(!window.PerformanceObserver)return;
+    window.__yzLong=window.__yzLong||[];
+    if(window.__yzProbeOn)return; window.__yzProbeOn=true;
+    var po=new PerformanceObserver(function(list){
+      list.getEntries().forEach(function(e){
+        window.__yzLong.push(Math.round(e.duration)+'ms@'+new Date().toLocaleTimeString());
+        if(window.__yzLong.length>40)window.__yzLong.shift();
+      });
+    });
+    po.observe({entryTypes:['longtask']});
+  }catch(e){}
+}
+try{ yzProbeStart(); }catch(e){}
 function tick(){
   try{ yzMigrateMainRate(); }catch(e){}
   const d=new Date(),t=d.getHours()+':'+pad(d.getMinutes());
@@ -8464,15 +8498,19 @@ function showCallBar(stat){
 }
 function startCallTimer(){
   clearInterval(callTimer);
-  callTimer=setInterval(()=>{
+  var elStat=document.getElementById('callStat');
+  var elBarT=document.getElementById('callBarTime');
+  var elCall=document.getElementById('call');
+  var elBar=document.getElementById('callbar');
+  callTimer=setInterval(function(){
     callSec++;
-    const t='通话中 '+pad(Math.floor(callSec/60))+':'+pad(callSec%60);
-    if($('#call').classList.contains('show'))$('#callStat').textContent=t;
-    if($('#callbar').classList.contains('show'))$('#callBarTime').textContent=t;
+    var t='通话中 '+pad(Math.floor(callSec/60))+':'+pad(callSec%60);
+    try{ if(elCall&&elCall.classList.contains('show')&&elStat)elStat.textContent=t; }catch(e){}
+    try{ if(elBar&&elBar.classList.contains('show')&&elBarT)elBarT.textContent=t; }catch(e){}
   },1000);
 }
-function yzPerfOn(){ try{ document.body.classList.add('perf-lite'); }catch(e){} }
-function yzPerfOff(){ try{ document.body.classList.remove('perf-lite'); }catch(e){} }
+function yzPerfOn(){ try{ document.body.classList.add('perf-lite'); document.body.classList.add('in-call'); }catch(e){} }
+function yzPerfOff(){ try{ document.body.classList.remove('perf-lite'); if(!($('#call')&&$('#call').classList.contains('show'))&&!($('#callbar')&&$('#callbar').classList.contains('show')))document.body.classList.remove('in-call'); }catch(e){} }
 function callConnected(){
   if($('#call').dataset.to)clearTimeout(+$('#call').dataset.to);
   callSec=0;
