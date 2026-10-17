@@ -1690,7 +1690,7 @@ svg [fill="currentColor"]{stroke:none;}
         <div class="row"><div class="lab">梦角找你代付概率（%）</div><input type="number" id="setDaifuRate" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">代付检查间隔（分钟）</div><input type="number" id="setDaifuGap" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角代付处理时长（秒）</div><input type="number" id="setDaifuDelay" oninput="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">梦角主动送东西概率（%）</div><input type="number" id="setGiftRate" oninput="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">梦角主动送东西概率（%）</div><input type="number" id="setGiftRate" oninput="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">梦角收礼物概率（%）</div><input type="number" id="setGiftAcceptRate" oninput="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">梦角拒收礼物概率（%）</div><input type="number" id="setGiftRejectRate" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">送东西检查间隔（分钟）</div><input type="number" id="setGiftGap" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角送东西处理时长（秒）</div><input type="number" id="setGiftDelay" oninput="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角主动发一起听概率（%）</div><input type="number" id="setLisAskRate" oninput="saveProfile()" style="max-width:80px"></div>
@@ -2559,6 +2559,8 @@ if(o.daifuRate===undefined)o.daifuRate=20;
 if(o.daifuGap===undefined)o.daifuGap=20;
 if(o.balanceHim===undefined)o.balanceHim=5200;
 if(o.giftRate===undefined)o.giftRate=20;
+if(o.giftAcceptRate===undefined)o.giftAcceptRate=70;
+if(o.giftRejectRate===undefined)o.giftRejectRate=30;
 if(o.giftAcceptRate===undefined)o.giftAcceptRate=70;
 if(o.giftGap===undefined)o.giftGap=20;
 if(o.giftDelay===undefined)o.giftDelay=8;
@@ -3482,7 +3484,7 @@ var YZ_SET_MAP={
   'setCall':'通话',
   'setTran':'转账','setTranTo':'转账','setTranGap':'转账','setTranAmts':'转账','setTranNotes':'转账',
   'setDaifuRate':'代付','setDaifuGap':'代付','setDaifuDelay':'代付',
-  'setGiftRate':'送东西','setGiftGap':'送东西','setGiftDelay':'送东西',
+  'setGiftRate':'送东西','setGiftAcceptRate':'送东西','setGiftRejectRate':'送东西','setGiftGap':'送东西','setGiftDelay':'送东西',
   'setReplyGap':'来信','setLetterMin':'来信','setLetterMax':'来信','setLetterGap':'来信','setReplyRate':'来信','setLetterRate':'来信','setFavLetter':'来信','setRereadLetter':'来信','setRereadLetterFav':'来信',
   'setDiaryGap':'日记','setDiaryMin':'日记','setDiaryMax':'日记','setFavDiary':'日记','setRereadDiary':'日记','setRereadDiaryFav':'日记','setDiaryRate':'日记',
   'setMomGap':'动态','setMomMin':'动态','setMomMax':'动态','setMomLikeRate':'动态','setCommentRate':'动态','setMomCmtMax':'动态','setMomCmtMax':'动态','setFavMoment':'动态','setRereadMoment':'动态','setRereadMomentFav':'动态','setMomRate':'动态',
@@ -5203,9 +5205,11 @@ function giveGoods(id){
     try{ pushGiftWall(D.nick||'他',g,'me'); }catch(e){}
     push({from:'me',type:'goods',text:'送给你「'+g.name+'」',gname:g.name,gprice:g.price,gimg:g.img,_t:clockStr()});
     renderShop();toast('已经送出去了');
-    /* 梦角按概率收下 / 拒绝 */
+    /* 梦角掎骰：收礼物概率 vs 拒收礼物概率 */
     var _ar=(D.giftAcceptRate===undefined?70:parseFloat(D.giftAcceptRate))||0;
-    var _acc=(Math.random()*100<_ar);
+    var _rr=(D.giftRejectRate===undefined?30:parseFloat(D.giftRejectRate))||0;
+    var _tot=_ar+_rr; if(_tot<=0)_tot=1;
+    var _acc=(Math.random()*_tot<_ar);
     setTimeout(function(){
       try{
         if(_acc){
@@ -9011,6 +9015,7 @@ function fillSettings(){
   if($('#setDaifuDelay'))$('#setDaifuDelay').value=(D.daifuDelay===undefined?8:D.daifuDelay);
   if($('#setGiftRate'))$('#setGiftRate').value=(D.giftRate===undefined?20:D.giftRate);
   if($('#setGiftAcceptRate'))$('#setGiftAcceptRate').value=(D.giftAcceptRate===undefined?70:D.giftAcceptRate);
+  if($('#setGiftRejectRate'))$('#setGiftRejectRate').value=(D.giftRejectRate===undefined?30:D.giftRejectRate);
   if($('#setGiftGap'))$('#setGiftGap').value=(D.giftGap===undefined?20:D.giftGap);
   if($('#setGiftDelay'))$('#setGiftDelay').value=(D.giftDelay===undefined?8:D.giftDelay);
   if($('#setLisAskRate'))$('#setLisAskRate').value=(D.lisAskRate===undefined?20:D.lisAskRate);
@@ -9349,6 +9354,7 @@ function saveProfile(){
   if($('#setDaifuDelay'))D.daifuDelay=Math.max(1,parseFloat($('#setDaifuDelay').value)||8);
   if($('#setGiftRate'))D.giftRate=Math.max(0,Math.min(100,parseFloat($('#setGiftRate').value)||0));
   if($('#setGiftAcceptRate'))D.giftAcceptRate=Math.max(0,Math.min(100,parseFloat($('#setGiftAcceptRate').value)||0));
+  if($('#setGiftRejectRate'))D.giftRejectRate=Math.max(0,Math.min(100,parseFloat($('#setGiftRejectRate').value)||0));
   if($('#setGiftGap'))D.giftGap=Math.max(1,parseFloat($('#setGiftGap').value)||20);
   if($('#setGiftDelay'))D.giftDelay=Math.max(1,parseFloat($('#setGiftDelay').value)||8);
   if($('#setLisAskRate'))D.lisAskRate=Math.max(0,Math.min(100,parseFloat($('#setLisAskRate').value)||0));
