@@ -3027,6 +3027,8 @@ function yzFavAdd(type,item,srcTime){
   try{
     yzFavInit();
     if(!item)return;
+    /* 梦角只能收藏我发的内容，绝不收藏自己的 */
+    if(item.from && item.from!=='me')return;
     var key=(item.id||item.url||item.title||item.text||'')+'';
     if(!key)return;
     if(D.favs.seen[type+':'+key])return;
@@ -3076,7 +3078,7 @@ function yzFavReread(){
   }catch(e){}
 }
 function poolLetterPush(arr,lt){
-  try{ var full=String(lt.text||'').replace(/^[\s\S]*?To[\uFF1A:][^\n]*\n+/,'').trim(); if(!full)full=String(lt.text||lt.preview||'').trim(); arr.push({type:'letter',item:{text:full,id:lt.id},src:lt.time||''}); }catch(e){}
+  try{ if(!lt)return; if((lt.from||'me')!=='me')return; var full=String(lt.text||'').replace(/^[\s\S]*?To[\uFF1A:][^\n]*\n+/,'').trim(); if(!full)full=String(lt.text||lt.preview||'').trim(); arr.push({type:'letter',item:{text:full,id:lt.id,from:lt.from||'me'},src:lt.time||''}); }catch(e){}
 }
 /* ===== 我的收藏（我收藏梦角的东西） ===== */
 function yzMyFavInit(){
@@ -3168,11 +3170,7 @@ function yzFavShowFull(t,i){
   try{
     yzMyFavInit();
     var f=(D.myFavs[t]||[])[i]; if(!f)return;
-    var _full='';
-    if(t==='msg'||t==='moment'){ _full=(f.msgType==='voice')?('\u{1F3A4} '+(f.sec||'')+'\u2033 '+(f.text||'')):(f.text||''); }
-    if(t==='music') _full='\u{1F3B5} '+(f.title||'')+(f.by?' \u00b7 '+f.by:'');
-    if(t==='diary') _full='\u{1F4D6} '+(f.title||'')+(f.text?('\n\n'+f.text):'');
-    if(t==='letter') _full=(f.text||'');
+    var _full=yzFavFullOf(t,f);
     var el=document.getElementById('favDetail');
     if(!el){ el=document.createElement('div'); el.id='favDetail';
       el.innerHTML='<div class="fdhead"><span class="fdback" onclick="yzFavDetailClose()">\u2039 \u8fd4\u56de</span><span class="fdtitle" id="favDetailTitle"></span><span class="fbspacer"></span></div><div class="fdbody" id="favDetailBody"></div>';
@@ -3183,6 +3181,38 @@ function yzFavShowFull(t,i){
     var bb=document.getElementById('favDetailBody'); if(bb)bb.textContent=_full+(f.favTime?('\n\n—— 收藏于 '+f.favTime+(f.srcTime?(' · 发于 '+f.srcTime):'')):'');
     el.classList.add('show');
   }catch(e){}
+}
+/* 取收藏项的完整内容：优先用原始数据里的全文，避免旧数据只存了截断/preview */
+function yzFavFullOf(t,f){
+  try{
+    if(!f)return '';
+    var _txt=String(f.text||'');
+    if(t==='letter'){
+      var lt=(D.letters||[]).find(function(x){return String(x.id)===String(f.k);});
+      if(lt){
+        var _f=String(lt.text||'').replace(/^[\s\S]*?To[\uFF1A:][^\n]*\n+/,'').trim();
+        if(!_f)_f=String(lt.text||'').trim();
+        if(_f)_txt=_f;
+      }
+      return _txt;
+    }
+    if(t==='diary'){
+      var d=(D.diaries||[]).find(function(x){return String(x.id)===String(f.k);});
+      if(d && String(d.text||'').length>_txt.length) _txt=String(d.text||'');
+      return (f.title?('\u{1F4D6} '+f.title+'\n\n'):'')+_txt;
+    }
+    if(t==='moment'){
+      var m=(D.moments||[]).find(function(x){return String(x.id)===String(f.k);});
+      if(m && String(m.text||'').length>_txt.length) _txt=String(m.text||'');
+      return (f.msgType==='voice')?('\u{1F3A4} '+(f.sec||'')+'\u2033 '+_txt):_txt;
+    }
+    if(t==='msg'){
+      if(f.msgType==='voice')return '\u{1F3A4} '+(f.sec||'')+'\u2033 '+_txt;
+      return _txt;
+    }
+    if(t==='music') return '\u{1F3B5} '+(f.title||'')+(f.by?' \u00b7 '+f.by:'');
+    return _txt;
+  }catch(e){ return String((f&&f.text)||''); }
 }
 function yzFavDetailClose(){ try{ var el=document.getElementById('favDetail'); if(el)el.classList.remove('show'); }catch(e){} }
 function yzMyFavDel(t,i){ try{ yzMyFavInit(); D.myFavs[t].splice(i,1); save(); yzMyFavOpenCat(t); }catch(e){} }
@@ -4851,7 +4881,7 @@ function renderLetters(){
 /* ===== 收藏按钮：统一处理（只有点☆/文字才算）+ 状态切换 ===== */
 function yzFavItemData(type,id){
   try{
-    if(type==='letter'){ var lt=(D.letters||[]).find(function(x){return x.id===id;}); if(!lt)return null; return {id:lt.id,text:lt.preview||lt.text,srcTime:lt.time||''}; }
+    if(type==='letter'){ var lt=(D.letters||[]).find(function(x){return x.id===id;}); if(!lt)return null; var _fullT=String(lt.text||'').replace(/^[\s\S]*?To[\uFF1A:][^\n]*\n+/,'').trim(); if(!_fullT)_fullT=String(lt.text||'').trim(); if(!_fullT)_fullT=lt.preview||''; return {id:lt.id,text:_fullT,srcTime:lt.time||''}; }
     if(type==='diary'){ var d=(D.diaries||[]).find(function(x){return x.id===id;}); if(!d)return null; return {id:d.id,title:d.title||'',text:d.text,date:d.date||'',srcTime:d.date||''}; }
     if(type==='moment'){ var m=(D.moments||[]).find(function(x){return x.id===id;}); if(!m)return null; return {id:m.id,text:m.text,src:m.img||'',srcTime:m.time||''}; }
   }catch(e){}
