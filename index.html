@@ -79,8 +79,8 @@ body.perf-lite .dlg{box-shadow:0 8px 22px rgba(0,0,0,.22)!important;}
 body.perf-lite #call .cav{box-shadow:none;}
 body.perf-lite #call .cbtn{box-shadow:none;}
 body.perf-lite .cbtn.yes{animation:none!important;}
-body.perf-lite .duo .linkline,body.perf-lite .duo .linkline .ecg{animation:none!important;}
-body.perf-lite .duo .linkline .ecg{stroke-dashoffset:0!important;}
+
+
 body.perf-lite .cbtn.yes,body.perf-lite .gmk-startbtn,body.perf-lite .ttt-startbtn,body.perf-lite .phchg{animation:none!important;}
 @keyframes bl{0%,100%{opacity:.35}50%{opacity:1}}
 
@@ -8515,51 +8515,57 @@ function hangCall(wasIncoming){
 
 /* 通话小胶囊拖动 */
 (function bindCallDrag(){
-  const bar=$('#callbar');if(!bar)return;
-  let drag=null;
-  const clamp=()=>{
-    const p=$('#phone');
-    const pw=p.clientWidth,ph=p.clientHeight;
-    const bw=bar.offsetWidth,bh=bar.offsetHeight;
-    let x=parseFloat(bar.style.left||'0');
-    let y=parseFloat(bar.style.top||'0');
-    x=Math.max(4,Math.min(pw-bw-4,x));
-    y=Math.max(4,Math.min(ph-bh-4,y));
-    bar.style.left=x+'px';bar.style.top=y+'px';
-  };
-  const start=e=>{
+  var bar=$('#callbar');if(!bar)return;
+  var drag=null, pg=null, PW=0, PH=0, BW=0, BH=0;
+  function measure(){
+    pg=$('#phone');
+    if(!pg)return;
+    PW=pg.clientWidth; PH=pg.clientHeight;
+    BW=bar.offsetWidth; BH=bar.offsetHeight;
+  }
+  function onStart(e){
     if(e.target.closest('.cend'))return;
-    const p=e.touches?e.touches[0]:e;
-    const r=bar.getBoundingClientRect();
-    const pr=$('#phone').getBoundingClientRect();
-    bar.style.left=(r.left-pr.left)+'px';
-    bar.style.top=(r.top-pr.top)+'px';
-    drag={sx:p.clientX,sy:p.clientY,ox:parseFloat(bar.style.left),oy:parseFloat(bar.style.top),moved:false,t:Date.now()};
+    var p=e.touches?e.touches[0]:e;
+    var r=bar.getBoundingClientRect();
+    pg=$('#phone');
+    if(!pg)return;
+    var pr=pg.getBoundingClientRect();
+    var ox=r.left-pr.left, oy=r.top-pr.top;
+    bar.style.left=ox+'px'; bar.style.top=oy+'px';
+    bar.style.transform='none';
+    measure();            /* 只在按下时量一次，拖动过程不再读布局 */
+    drag={sx:p.clientX,sy:p.clientY,ox:ox,oy:oy,moved:false,t:Date.now()};
     bar.classList.add('dragging');
-    e.preventDefault();
-  };
-  const move=e=>{
+    window.addEventListener('touchmove',onMove,{passive:false});
+    window.addEventListener('mousemove',onMove,{passive:false});
+  }
+  var raf=0, lx=0, ly=0;
+  function onMove(e){
     if(!drag)return;
     e.preventDefault();
-    const p=e.touches?e.touches[0]:e;
-    const dx=p.clientX-drag.sx,dy=p.clientY-drag.sy;
+    var p=e.touches?e.touches[0]:e;
+    var dx=p.clientX-drag.sx, dy=p.clientY-drag.sy;
     if(Math.abs(dx)>4||Math.abs(dy)>4)drag.moved=true;
-    bar.style.left=(drag.ox+dx)+'px';
-    bar.style.top=(drag.oy+dy)+'px';
-    clamp();
-  };
-  const end=()=>{
+    lx=Math.max(4,Math.min(PW-BW-4, drag.ox+dx));
+    ly=Math.max(4,Math.min(PH-BH-4, drag.oy+dy));
+    if(!raf) raf=requestAnimationFrame(function(){
+      raf=0;
+      bar.style.left=lx+'px'; bar.style.top=ly+'px';
+    });
+  }
+  function onEnd(){
     if(drag&&!drag.moved&&Date.now()-drag.t<350)expandCall();
-    drag=null;bar.classList.remove('dragging');
-  };
-  bar.addEventListener('mousedown',start);
-  bar.addEventListener('touchstart',start,{passive:false});
-  window.addEventListener('mousemove',move,{passive:false});
-  window.addEventListener('touchmove',move,{passive:false});
-  window.addEventListener('mouseup',end);
-  window.addEventListener('touchend',end);
+    drag=null;
+    bar.classList.remove('dragging');
+    if(raf){cancelAnimationFrame(raf);raf=0;bar.style.left=lx+'px';bar.style.top=ly+'px';}
+    window.removeEventListener('touchmove',onMove,{passive:false});
+    window.removeEventListener('mousemove',onMove,{passive:false});
+  }
+  bar.addEventListener('mousedown',onStart);
+  bar.addEventListener('touchstart',onStart,{passive:false});
+  window.addEventListener('mouseup',onEnd);
+  window.addEventListener('touchend',onEnd);
 })();
-
 let cardMulti=false;
 let cardSel={};
 function toggleCardMulti(){
