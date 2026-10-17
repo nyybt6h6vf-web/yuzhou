@@ -8509,7 +8509,7 @@ function startCallTimer(){
     try{ if(elBar&&elBar.classList.contains('show')&&elBarT)elBarT.textContent=t; }catch(e){}
   },1000);
 }
-function yzPerfOn(){ try{ document.body.classList.add('perf-lite'); document.body.classList.add('in-call'); }catch(e){} }
+function yzPerfOn(){ try{ document.body.classList.add('in-call'); }catch(e){} }
 function yzPerfOff(){ try{ document.body.classList.remove('perf-lite'); if(!($('#call')&&$('#call').classList.contains('show'))&&!($('#callbar')&&$('#callbar').classList.contains('show')))document.body.classList.remove('in-call'); }catch(e){} }
 function callConnected(){
   if($('#call').dataset.to)clearTimeout(+$('#call').dataset.to);
