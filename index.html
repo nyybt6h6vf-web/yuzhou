@@ -3750,9 +3750,15 @@ function bubbleHTML(m,i){
     if(m.type==='patcenter')return `<div class="patline">${esc(m.text)}</div>`;
   return `<div class="bubble">${esc(m.text)}</div>`;
 }
+/* 群聊/连发时多条消息同时到达：合并 40ms 内的重绘，只画一次 */
+function yzRenderChatSoon(){
+  try{
+    if(window.__yzRcT)return;
+    window.__yzRcT=setTimeout(function(){ window.__yzRcT=null; try{ renderChat(); }catch(e){} },40);
+  }catch(e){ renderChat(); }
+}
 function renderChat(){
   try{ var _cc=yzCurConv(); if(_cc&&_cc.msgs&&D.msgs!==_cc.msgs){ if(!D.msgs||!D.msgs.length||D.msgs.length<_cc.msgs.length){ D.msgs=_cc.msgs; } } }catch(e){}
-  try{ if($('#call')&&$('#call').classList.contains('show')){ window.__yzLastRk=''; return; } }catch(e){}
   try{ if($('#call')&&$('#call').classList.contains('show')){ window.__yzLastRk=''; return; } }catch(e){}
   try{ var _rk=(D.curConv||'')+'|'+((D.msgs||[]).length)+'|'+(D._typing?1:0); if(window.__yzLastRk===_rk && document.getElementById('chatBody') && document.getElementById('chatBody').children.length){ return; } window.__yzLastRk=_rk; }catch(e){}
   const b=$('#chatBody');b.innerHTML='';
@@ -3828,7 +3834,7 @@ function yzPushInto(arr,m,isCurrent,convId){
     } }catch(e){}
   }catch(e){}
 }
-function push(m){try{if(m&&!m._dms)m._dms=Date.now();}catch(e){}try{if(window.__yzStampArmed&&m&&m.type!=='sept'){D.msgs.push({type:'sept',_dms:Date.now()});window.__yzStampArmed=false;}}catch(e){}try{if(m&&m.from==='him'&&m.type!=='sept'&&(window.__yzActiveMsg||(window.__yzActiveMsgUntil&&Date.now()<window.__yzActiveMsgUntil))){m.auto=true;}}catch(e){}D.msgs.push(m);try{if(m&&(m.from==='me'||m.from==='him')&&!m.auto){D.lastChatTs=Date.now();}}catch(e){}saveSoon();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}var _chAct=$('#chat').classList.contains('active');if(_chAct){renderChat();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40),!_chAct);}}catch(e){}try{if(m&&m.from==='him'&&!$('#chat').classList.contains('active')){scheduleHomeBadges();var _tt=(m.type==='img')?'[表情]':(m.type==='voice'?('[语音]'+(m.text||'')):(m.type==='transfer'?('[转账] ¥'+(m.amt||'')):(m.type==='pat'?(m.text||'拍一拍'):(m.text||''))));try{ var _pv='';try{var _pc=(D.charas||[]).find(function(x){return x.id===((yzCurConv()||{}).charas||[])[0];});if(_pc)_pv=_pc.avatar||'';}catch(e2){} if(!_pv)_pv=D.avatarHim||''; yzTopNotice((D.nick||'他'),_tt,function(){ try{ yzOpenConv((yzCurConv()||{}).id); }catch(e){} },3000,_pv); }catch(e){}}}catch(e){}}
+function push(m){try{if(m&&!m._dms)m._dms=Date.now();}catch(e){}try{if(window.__yzStampArmed&&m&&m.type!=='sept'){D.msgs.push({type:'sept',_dms:Date.now()});window.__yzStampArmed=false;}}catch(e){}try{if(m&&m.from==='him'&&m.type!=='sept'&&(window.__yzActiveMsg||(window.__yzActiveMsgUntil&&Date.now()<window.__yzActiveMsgUntil))){m.auto=true;}}catch(e){}D.msgs.push(m);try{if(m&&(m.from==='me'||m.from==='him')&&!m.auto){D.lastChatTs=Date.now();}}catch(e){}saveSoon();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}var _chAct=$('#chat').classList.contains('active');if(_chAct){yzRenderChatSoon();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40),!_chAct);}}catch(e){}try{if(m&&m.from==='him'&&!$('#chat').classList.contains('active')){scheduleHomeBadges();var _tt=(m.type==='img')?'[表情]':(m.type==='voice'?('[语音]'+(m.text||'')):(m.type==='transfer'?('[转账] ¥'+(m.amt||'')):(m.type==='pat'?(m.text||'拍一拍'):(m.text||''))));try{ var _pv='';try{var _pc=(D.charas||[]).find(function(x){return x.id===((yzCurConv()||{}).charas||[])[0];});if(_pc)_pv=_pc.avatar||'';}catch(e2){} if(!_pv)_pv=D.avatarHim||''; yzTopNotice((D.nick||'他'),_tt,function(){ try{ yzOpenConv((yzCurConv()||{}).id); }catch(e){} },3000,_pv); }catch(e){}}}catch(e){}}
 function jumpMsg(i){
   const list=document.querySelectorAll('#chatBody .msg');
   const el=list[i];if(!el)return;
@@ -4108,6 +4114,9 @@ function yzBuildPlan(opt){
   var _kaoPool=yzKaoPoolFor(_cid);
   var _minN=Math.max(1,parseInt(D.sendMin)||1);
   var _maxN=Math.max(_minN,parseInt(D.sendMax)||1);
+  /* 群聊：成员各自的连发条数优先（固定条数，不再用全局 sendMin/sendMax） */
+  var _fixedN=(opt&&opt.count)?Math.max(1,parseInt(opt.count)||1):0;
+  if(_fixedN){ _minN=_fixedN; _maxN=_fixedN; }
   function _roll(pr){ if(!(pr>0))return false; if(pr>=100)return true; return Math.random()*100<pr; }
   function _mkMain(){ var t=pickMultiCardsFor(_cid); return t?{kind:'main',text:yzMaybeMixEmoji(t,_cid)}:null; }
   function _mkPack(){ return _packs.length?{kind:'img',src:_packs[Math.floor(Math.random()*_packs.length)]}:null; }
@@ -4220,14 +4229,15 @@ function respondGroup(cv){
   setTyping(true);
   var t=delay;
   var _all=[];
+  /* 群聊：每个成员只生成 1 条任务，条数由其自己的 min/max 决定，交给 himSayFor 控制 */
   plan.forEach(function(p){
-    for(var k=0;k<p.count;k++){ _all.push({pid:p.id,t:t}); t+=gap; }
+    _all.push({pid:p.id,t:t,cnt:(p.count||1)}); t+=gap;
   });
   _all.forEach(function(it,idx){
     if(idx===_all.length-1){
-      setTimeout(function(){ setTyping(false); markRead(); himSayFor(it.pid); },it.t);
+      setTimeout(function(){ setTyping(false); markRead(); himSayFor(it.pid,{count:it.cnt}); },it.t);
     }else{
-      setTimeout(function(){ himSayFor(it.pid); },it.t);
+      setTimeout(function(){ himSayFor(it.pid,{count:it.cnt}); },it.t);
     }
   });
 }
@@ -4316,7 +4326,9 @@ function himSayFor(who,opt){
   var _cid=(opt&&opt.cid)?opt.cid:(who||null);
   var delay=replyDelayMs();
   var gap=sendGapMs();
-  var plan=yzBuildPlan({cid:_cid});
+  var plan=yzBuildPlan({cid:_cid,count:(opt&&opt.count)?opt.count:0});
+  /* 指定条数时，严格截断到该条数，绝不多发 */
+  if(opt&&opt.count){ var _lim=Math.max(1,parseInt(opt.count)||1); if(plan.length>_lim)plan=plan.slice(0,_lim); }
   plan.forEach(function(item,idx){
     var t=delay+gap*idx;
     if(opt&&opt.sync)t=0;
