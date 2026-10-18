@@ -2278,6 +2278,7 @@ function yzCurConv(){return (D.convs||[]).find(function(c){return c.id===D.curCo
 function yzConvTitle(cv){
   if(!cv)return '他';
   if(cv.type==='group'){
+    if(cv.gname && String(cv.gname).trim()) return String(cv.gname).trim();
     var ns=(cv.charas||[]).map(function(id){var c=(D.charas||[]).find(function(x){return x.id===id;});return c?c.nick:'';}).filter(Boolean);
     return ns.join('、')||'群聊';
   }
@@ -2349,7 +2350,7 @@ function renderChatList(){
   arr.forEach(function(cv){
     var title=yzConvTitle(cv);
     var av='';
-    if(cv.type==='group'){av='群';}
+    if(cv.type==='group'){av=(cv.gavatar?('<img src="'+cv.gavatar+'">'):'群');}
     else{
       var ch=(D.charas||[]).find(function(c){return c.id===cv.charas[0];});
       if(ch&&ch.avatar){av='<img src="'+ch.avatar+'">';}
@@ -2490,13 +2491,46 @@ function yzRenameChara(id){askInput('新昵称','',function(t){var ch=(D.charas|
 function syncCharaToConv(ch){try{if(D.curConv){var cv=yzCurConv();if(cv&&cv.type!=='group'&&cv.charas[0]===ch.id){D.nick=ch.nick;D.avatarHim=ch.avatar||'';}}}catch(e){}}
 function syncedDiaryId(ch){try{if(D.diaryHim&&ch&&ch.accId!==undefined){D.diaryHim.id=ch.accId;save();}}catch(e){}}
 /* 群聊设置 */
+/* 群聊：换头像 / 改昵称 */
+function yzPickGroupAvatar(){
+  try{
+    var cv=yzCurConv(); if(!cv||cv.type!=='group')return;
+    window.__yzGroupAvatarCid=cv.id;
+    pickTarget='groupav';
+    var f=document.getElementById('filePick'); if(!f)return;
+    f.value='';
+    try{ f.removeAttribute('multiple'); }catch(e){}
+    f.click();
+  }catch(e){}
+}
+function yzRenameGroup(){
+  try{
+    var cv=yzCurConv(); if(!cv||cv.type!=='group')return;
+    askInput('群昵称',yzConvTitle(cv),function(t){
+      var v=String(t||'').trim();
+      cv.gname=v;   /* 空则回退到默认（成员名单） */
+      save();
+      try{ $('#chatTitle').textContent=yzConvTitle(cv); }catch(e){}
+      try{ renderChatList(); }catch(e){}
+      try{ yzGroupSetting(cv); }catch(e){}
+      toast(v?'群昵称已改':'已恢复默认昵称');
+    },'留空就显示成员名字');
+  }catch(e){}
+}
 function yzGroupSetting(cv){
   var d=document.getElementById('groupSheet');
   var names=(cv.charas||[]).map(function(id){var c=(D.charas||[]).find(function(x){return x.id===id;});return c?c.nick:'';}).join('、');
   d.querySelector('.gtitle').textContent='群聊设置 · '+names;
   if(!cv.members)cv.members={};
   var box=d.querySelector('.gsel');
-  var html='';
+  /* 群头像 + 群昵称 + 多梦角同时回复概率 */
+  var _gav=cv.gavatar?('<img src="'+cv.gavatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'):'<span style="font-size:16px;color:var(--sub)">群</span>';
+  var html='<div class="gitem" style="align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)">'
+    +'<div style="font-size:13px;font-weight:600;color:var(--text)">群头像</div>'
+    +'<div onclick="yzPickGroupAvatar()" style="width:52px;height:52px;border-radius:50%;overflow:hidden;background:var(--icon-bg,#eee);display:flex;align-items:center;justify-content:center;margin-left:auto;cursor:pointer">'+_gav+'</div>'
+    +'</div>'
+    +'<div class="gitem" style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)">群昵称：<span style="margin-left:auto;color:var(--accent,#859ecb);cursor:pointer" onclick="yzRenameGroup()">'+esc(yzConvTitle(cv))+'</span></div>'
+    +'<div class="gitem" style="margin-bottom:14px">多梦角同时回复概率(%)：<input type="number" id="gMultiRate" min="0" max="100" value="'+(cv.multiRate===undefined?60:cv.multiRate)+'" style="width:70px;margin-left:auto"></div>';
   (cv.charas||[]).forEach(function(id){
     var c=(D.charas||[]).find(function(x){return x.id===id;});
     var nm=c?c.nick:'梦角';
@@ -2521,6 +2555,7 @@ function yzGroupSetting(cv){
     });
     // 规范化 min<=max
     for(var mid in cv.members){var m=cv.members[mid];m.min=Math.max(1,m.min||1);m.max=Math.max(m.min,m.max||m.min);}
+    try{ var _mr=document.getElementById('gMultiRate'); if(_mr && String(_mr.value).trim()!==''){ cv.multiRate=Math.max(0,Math.min(100,parseFloat(_mr.value)||0)); } }catch(e){}
     save();d.classList.remove('show');toast('群聊设置已保存');
   };
   d.classList.add('show');
@@ -4156,6 +4191,27 @@ function respondGroup(cv){
     var cnt=mn+Math.floor(Math.random()*(mx-mn+1));
     plan.push({id:id,count:cnt});
   });
+  // 多梦角同时回复：按群设置的概率决定本轮是否强制多人发言
+  var _mr=(cv.multiRate===undefined?60:parseFloat(cv.multiRate));
+  if(!isFinite(_mr))_mr=60;
+  var _multiWant=(Math.random()*100<_mr);
+  if(_multiWant && (cv.charas||[]).length>=2){
+    // 目标人数：至少 2 个，最多全员
+    var _want=2+Math.floor(Math.random()*((cv.charas||[]).length-1));
+    if(_want>(cv.charas||[]).length)_want=(cv.charas||[]).length;
+    // 补齐到 _want 人（已在 plan 里的不重复）
+    var _have={}; plan.forEach(function(p){_have[p.id]=1;});
+    var _pool=(cv.charas||[]).filter(function(id){return !_have[id];});
+    while(plan.length<_want && _pool.length){
+      var _i=Math.floor(Math.random()*_pool.length);
+      var _id=_pool.splice(_i,1)[0];
+      var _m=cv.members[_id]||{rate:30,min:1,max:2};
+      var _mn=Math.max(1,parseInt(_m.min)||1);
+      var _mx=Math.max(_mn,parseInt(_m.max)||_mn);
+      var _cnt=_mn+Math.floor(Math.random()*(_mx-_mn+1));
+      plan.push({id:_id,count:_cnt});
+    }
+  }
   // 一个都没中，就随机抽一个至少发一条（避免死寂）
   if(!plan.length&&(cv.charas||[]).length){
     var pick=cv.charas[Math.floor(Math.random()*cv.charas.length)];
@@ -6272,6 +6328,12 @@ $('#filePick').addEventListener('change',function(){
       else if(target==='album'){push({from:'me',type:'img',src:res});setTimeout(himSay,Math.max(300,(D.delay||1.2)*1000));done();}
       else if(target==='pack'){D.packs=D.packs||[];D.packs.push(res);save();renderPacks();done();}
       else if(target==='goods'){setGoodsImg(res);done();}
+      else if(target==='groupav'){
+        var _gcid=window.__yzGroupAvatarCid;
+        var _gcv=(D.convs||[]).find(function(x){return x.id===_gcid;});
+        if(_gcv){ _gcv.gavatar=res; save(); try{renderChatList();}catch(e){} try{if(yzCurConv()&&yzCurConv().id===_gcid)yzGroupSetting(_gcv);}catch(e){} toast('群头像已更新'); }
+        done();
+      }
       else if(target==='tilebg'){setTileBg(res);done();}
       else if(target==='photocard'){D['photo'+(_photoN||1)]=res;save();renderPhotoWall();done();toast('照片已放上');}
       else if(target==='diarybg'){D.diaryBg=res;save();renderDiaryProfile();done();toast('背景已更新');}
