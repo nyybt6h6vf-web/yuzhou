@@ -2976,31 +2976,26 @@ function yzPhPickHim(){
     var el=document.getElementById('yzPhPickSheet');
     if(!el){
       el=document.createElement('div'); el.id='yzPhPickSheet'; el.className='sheet';
-      el.onclick=function(e){ if(e.target===el)closeSheet2('yzPhPickSheet'); };
+      el.addEventListener('click',function(e){
+        if(e.target===el){ closeSheet2('yzPhPickSheet'); return; }
+        var row=e.target.closest('[data-phcid]');
+        if(row){ yzPhViewHim(row.getAttribute('data-phcid')); return; }
+        var cn=e.target.closest('[data-phcancel]');
+        if(cn){ closeSheet2('yzPhPickSheet'); return; }
+      });
       document.body.appendChild(el);
     }
-    var _q=String.fromCharCode(34);
     var h='<div class="cdial" style="max-height:70vh;overflow:auto">'
       +'<div style="font-size:16px;font-weight:700;text-align:center;margin-bottom:12px">看谁的手机</div>';
     list.forEach(function(c){
       var av=c.avatar?('<img src="'+c.avatar+'" style="width:34px;height:34px;border-radius:50%;object-fit:cover">'):('<span style="width:34px;height:34px;border-radius:50%;background:var(--icon-bg,#eee);display:inline-flex;align-items:center;justify-content:center;font-size:14px">'+esc((c.nick||'他')[0])+'</span>');
-      h+="<div class=\"gitem\" onclick=\"yzPhViewHim("+_q+c.id+_q+")\" style=\"display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer\">"
+      h+='<div class="gitem" data-phcid="'+c.id+'" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer">'
         +av+'<span style="flex:1;font-size:15px">'+esc(c.nick||'他')+'</span>'
-        +'<span style="color:var(--sub)">\u203a</span></div>';
+        +'<span style="color:var(--sub)">›</span></div>';
     });
-    h+='<div class="gb cancel" onclick="closeSheet2('+_q+'yzPhPickSheet'+_q+')">取消</div></div>';
+    h+='<div class="gb cancel" data-phcancel="1" style="text-align:center;padding:13px 0;border-radius:14px;font-size:14.5px;font-weight:600;color:var(--sub);cursor:pointer;margin-top:10px">取消</div></div>';
     el.innerHTML=h;
     openSheet2('yzPhPickSheet');
-  }catch(e){}
-}
-function yzPhViewHim(cid){
-  try{
-    D.phHimId=cid;
-    D.phPage=2;
-    try{ window.__yzOffPlayed=false; }catch(e){}
-    save();
-    try{ closeSheet2('yzPhPickSheet'); }catch(e){}
-    yzPhRender();
   }catch(e){}
 }
 function yzPhToggle(){ D.phFavOpen=false; D.phPage=1; try{ window.__yzOffPlayed=false; }catch(e){} save(); yzPhRender(); }
@@ -4135,26 +4130,32 @@ function yzChPick(){
     var el=document.getElementById('yzChPickSheet');
     if(!el){
       el=document.createElement('div'); el.id='yzChPickSheet'; el.className='sheet';
-      el.onclick=function(e){ if(e.target===el)closeSheet2('yzChPickSheet'); };
+      el.addEventListener('click',function(e){
+        if(e.target===el){ closeSheet2('yzChPickSheet'); return; }
+        var row=e.target.closest('[data-chcid]');
+        if(row){ yzChPickDo(row.getAttribute('data-chkey'),row.getAttribute('data-chcid')); return; }
+        var cn=e.target.closest('[data-chcancel]');
+        if(cn){ closeSheet2('yzChPickSheet'); return; }
+      });
       document.body.appendChild(el);
     }
-    var _q=String.fromCharCode(34);
+    el.setAttribute('data-curkey',key);
     var h='<div class="cdial" style="max-height:70vh;overflow:auto">'
       +'<div style="font-size:16px;font-weight:700;text-align:center;margin-bottom:12px">看谁的</div>';
     (D.charas||[]).forEach(function(c){
       var av=c.avatar?('<img src="'+c.avatar+'" style="width:34px;height:34px;border-radius:50%;object-fit:cover">'):('<span style="width:34px;height:34px;border-radius:50%;background:var(--icon-bg,#eee);display:inline-flex;align-items:center;justify-content:center;font-size:14px">'+esc((c.nick||'他')[0])+'</span>');
       var on=(c.id===cur);
-      h+="<div class=\"gitem\" onclick=\"yzChPickDo("+_q+key+_q+","+_q+c.id+_q+")\" style=\"display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer\">"
+      h+='<div class="gitem" data-chcid="'+c.id+'" data-chkey="'+key+'" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer">'
         +av+'<span style="flex:1;font-size:15px">'+esc(c.nick||'他')+'</span>'
         +'<span style="color:var(--accent,#859ecb)">'+(on?'✓':'')+'</span></div>';
     });
-    h+='<div class="gb cancel" onclick="closeSheet2('+_q+'yzChPickSheet'+_q+')">取消</div></div>';
+    h+='<div class="gb cancel" data-chcancel="1" style="text-align:center;padding:13px 0;border-radius:14px;font-size:14.5px;font-weight:600;color:var(--sub);cursor:pointer;margin-top:10px">取消</div></div>';
     el.innerHTML=h;
     openSheet2('yzChPickSheet');
   }catch(e){}
 }
 function yzChPickDo(key,cid){
-  try{ D[key]=cid; save(); }catch(e){}
+  try{ key=key||'viewCharaId'; D[key]=cid; save(); }catch(e){}
   try{ closeSheet2('yzChPickSheet'); }catch(e){}
   try{ yzChRefresh(); }catch(e){}
 }
