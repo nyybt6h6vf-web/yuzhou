@@ -5346,7 +5346,7 @@ function renderLetters(){
     l.insertAdjacentHTML('beforeend',
       `<div class="letter-item" onclick="openLetter('${lt.id}')">
         <div class="lh">${esc(lt.from==='me'?(D.myNick||'我')+' 写给 '+yzChNick(lt.cid):yzChNick(lt.cid)+' 写给你')} · ${esc(lt.time||'')} · <span style="color:${_rdColor};font-weight:${_rdWeight}">${_rdText}</span></div>
-        <div class="lt">${esc(lt.isReply?(lt.from==='me'?('我回复了'+(D.nick||'他')+'的信'):((D.nick||'他')+'回复了你的信')):(lt.from==='him'?(D.nick||'他')+'给你写了一封信':(lt.preview||'（空信）')))}</div>
+        <div class="lt">${esc(lt.isReply?(lt.from==='me'?('我回复了'+yzChNick(lt.cid)+'的信'):(yzChNick(lt.cid)+'回复了你的信')):(lt.from==='him'?(yzChNick(lt.cid)+'给你写了一封信'):(lt.preview||'（空信）')))}</div>
         <div><span class="lfav favbtn" data-favbtn="1" data-favtype="letter" data-favid="${lt.id}">☆ 收藏</span></div>
       </div>`);
   });
@@ -6044,7 +6044,7 @@ function giftUserAct(accept){
   if(accept){
     m.st='got';
     try{ D.balanceHim=balHim()-(m.gprice||0); save(); refreshBalUI(); }catch(e){}
-    try{ pushGiftWall(D.nick||'他',{name:m.gname,price:m.gprice,img:m.gimg},'him'); }catch(e){}
+    try{ pushGiftWall(yzChNick(m&&m.cid)||D.nick||'他',{name:m.gname,price:m.gprice,img:m.gimg},'him'); }catch(e){}
   }else{
     m.st='no';
     try{save();}catch(e){}
@@ -7188,7 +7188,7 @@ function momReply(m,skipRate){
   }
   save();if($('#moments').classList.contains('active'))renderMoments();
   try{ scheduleHomeBadges(); }catch(e){}
-  try{ yzTopNotice((D.nick||'他')+' 评论了你的动态',(last||'').slice(0,30),null,2600); }catch(e){}
+  try{ yzTopNotice(yzChNick(m&&m.cid)+' 评论了你的动态',(last||'').slice(0,30),null,2600); }catch(e){}
 }
 function maybeMomInteract(){
   const list=(D.moments||[]).filter(m=>m.from==='me');
@@ -7199,7 +7199,7 @@ function maybeMomInteract(){
   var did=false;
   if(Math.random()*100<_lr){
     m.likedBy=m.likedBy||[];
-    if(!m.likedBy.includes('him')){ m.likedBy.push('him'); try{ yzTopNotice((D.nick||'他')+' 赞了你的动态','',null,2400); }catch(e){} }
+    if(!m.likedBy.includes('him')){ m.likedBy.push('him'); try{ yzTopNotice(yzChNick(m&&m.cid)+' 赞了你的动态','',null,2400); }catch(e){} }
     save(); did=true;
   }
   if(Math.random()*100<_cr){
