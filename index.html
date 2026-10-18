@@ -50,7 +50,7 @@
   --accent-soft:#9db2d6;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
-html,body{overscroll-behavior:none;overscroll-behavior:none;height:100%;background:var(--page-bg);}
+html,body{overscroll-behavior:none!important;-webkit-overflow-scrolling:auto!important;overscroll-behavior:none;height:100%;background:var(--page-bg);}
 
 body{
   font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
@@ -58,7 +58,7 @@ body{
   display:flex;align-items:center;justify-content:center;overflow:hidden;
   width:100%;height:100%;
 }
-#phone{position:relative;width:100%;height:100%;max-width:430px;overflow:hidden;background:var(--page-bg);padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);box-sizing:content-box;}
+#phone{position:relative;width:100%;height:100%;max-width:430px;overflow:hidden;overscroll-behavior:none;background:var(--page-bg);padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);box-sizing:content-box;}
 @media(min-width:520px){
   #phone{height:900px;max-height:96vh;border-radius:46px;box-shadow:0 30px 80px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.08);}
 }
@@ -224,9 +224,9 @@ svg [fill="currentColor"]{stroke:none;}
 .convitem .clast{font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px;}
 /* 聊天列表左滑 */
 .convrow{position:relative;overflow:hidden;border-bottom:1px solid var(--line);}
-.convrow .convitem{border-bottom:none;transition:transform .22s cubic-bezier(.2,.8,.2,1);will-change:transform;position:relative;z-index:2;background:var(--card,#fff);}
+.convrow .convitem{border-bottom:none;transition:transform .22s cubic-bezier(.2,.8,.2,1);will-change:transform;position:relative;z-index:2;background:var(--card,#fff);touch-action:pan-y;}
 .convrow .convacts{position:absolute;top:0;right:0;height:100%;display:flex;z-index:1;opacity:0;pointer-events:none;transition:opacity .18s;overflow:hidden;}
-.convrow .convacts .cact{height:100%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600;padding:0 22px;}
+.convrow .convacts .cact{height:100%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600;padding:0 18px;box-sizing:border-box;}
 .convrow .convacts .cact.pin{background:#859ecb;}
 .convrow .convacts .cact.del{background:#ff3b30;}
 .convrow .cnm .pintag{display:inline-block;font-size:10px;color:#859ecb;border:1px solid #859ecb;border-radius:6px;padding:0 4px;margin-right:6px;vertical-align:1px;}
@@ -895,12 +895,12 @@ svg [fill="currentColor"]{stroke:none;}
 .tbtn{font-size:12px;padding:5px 10px;border-radius:9px;background:var(--card,#f5f5f7);color:var(--sub);cursor:pointer;}
 .tbtn.on{background:var(--accent,#859ecb);color:#fff;}
 /* ===== 日记个人主页 ===== */
-.pfbgwrap{position:relative;margin:0 0 12px;padding-bottom:40px;}
+.pfbgwrap{position:relative;margin:0 0 12px;padding-bottom:8px;flex:0 0 auto;}
 .pfbg{position:relative;height:150px;background:#e8e8ee;background-size:cover;background-position:center;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .pfbg .pfbgtip{font-size:12px;color:#9aa0ad;pointer-events:none;}
 .pfbg[style*="background-image"] .pfbgtip{display:none;}
-.pfav{position:absolute;left:18px;bottom:-30px;width:72px;height:72px;border-radius:50%;background:#dfe2ea center/cover no-repeat;border:3px solid var(--bg,#fff);box-shadow:0 2px 10px rgba(0,0,0,.12);cursor:pointer;}
-.pfinfo{position:absolute;left:100px;bottom:-24px;}
+.pfav{position:relative;margin:-30px 0 0 18px;width:72px;height:72px;border-radius:50%;background:#dfe2ea center/cover no-repeat;border:3px solid var(--bg,#fff);box-shadow:0 2px 10px rgba(0,0,0,.12);cursor:pointer;z-index:2;}
+.pfinfo{position:relative;margin:6px 18px 0;padding-bottom:4px;}
 .pfname{font-size:17px;font-weight:600;color:var(--fg);}
 .pfid{font-size:12.5px;color:var(--sub);margin-top:2px;cursor:pointer;}
 .pfbtn{margin:44px 14px 10px;padding:12px;text-align:center;border-radius:14px;background:var(--card,#f5f5f7);color:var(--accent,#859ecb);font-size:14px;font-weight:600;cursor:pointer;}
@@ -2434,7 +2434,8 @@ function yzBindSwipe(){
       var t=e.touches[0];dx=t.clientX-sx;dy=t.clientY-sy;
       if(!dragging){ if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>8){dragging=true;} else {return;} }
       var nx=cur+dx;
-      if(nx>0)nx=0; if(nx<-w)nx=-w;
+      var _rw=row.offsetWidth||w;
+      if(nx>0)nx=0; if(nx<-w)nx=-w; if(nx<-_rw)nx=-_rw;
       item.style.transition='none';item.style.transform='translateX('+nx+'px)';
     },{passive:true});
     item.addEventListener('touchend',function(e){
@@ -5723,8 +5724,18 @@ function yzPushToChar(cid,m){
   try{
     var cv=yzEnsureSingleConv(cid);
     if(!cv)return;
+    try{ if(m&&!m.cid)m.cid=cid; }catch(e){}
+    try{ if(m&&m.from==='him')m._fromCid=cid; }catch(e){}
     var isCur=(D.curConv===cv.id);
-    if(isCur){ try{ push(m); }catch(e){} }
+    if(isCur){
+      /* 当前就在该会话：直接把身份切到该梦角再 push，避免用错头像昵称 */
+      try{
+        var _ch=yzChOf(cid);
+        var _on=D.nick,_oa=D.avatarHim;
+        if(_ch){ D.nick=_ch.nick||D.nick; D.avatarHim=_ch.avatar||''; }
+        try{ push(m); } finally { D.nick=_on; D.avatarHim=_oa; }
+      }catch(e){}
+    }
     else{
       cv.msgs=cv.msgs||[];
       try{ m._read=false; }catch(e){}
@@ -5732,6 +5743,13 @@ function yzPushToChar(cid,m){
       try{ saveSoon(); }catch(e){ save(); }
       try{ renderChatList(); }catch(e){}
       try{ scheduleHomeBadges(); }catch(e){}
+      /* 不在该会话也给通知，用正确的身份 */
+      try{
+        if(m&&m.from==='him'){
+          var _tt=(m.type==='img')?'[表情]':(m.text||'');
+          yzTopNotice(yzChNick(cid),_tt.slice(0,40),function(){ try{ yzOpenConv(cv.id); }catch(e){} },3000,yzChAvatar(cid));
+        }
+      }catch(e){}
     }
   }catch(e){}
 }
@@ -5821,12 +5839,12 @@ function giveGoodsTo(id,_pcid,_pnm){
           yzPushToChar(_pcid,{from:'him',type:'gift',noSt:true,text:'礼物收下啦',gname:g.name,gprice:g.price,gimg:g.img,st:'got',mine:false,_t:clockStr()});
           try{ pushGiftWall(D.myNick||'我',g,'me'); }catch(e){}
         }else{
-          push({from:'him',type:'gift',noSt:true,text:'礼物退回给你了',gname:g.name,gprice:g.price,gimg:g.img,st:'no',mine:false,_t:clockStr()});
+          yzPushToChar(_pcid,{from:'him',type:'gift',noSt:true,text:'礼物退回给你了',gname:g.name,gprice:g.price,gimg:g.img,st:'no',mine:false,_t:clockStr()});
           try{ D.balance=(D.balance||0)+g.price; save(); refreshBalUI(); }catch(e){}
         }
       }catch(e){}
       setTimeout(function(){
-        try{ push({from:'him',text:(_acc?'谢谢，':'不用你破费啦')+pickCard(),_t:clockStr()}); }catch(e){}
+        try{ yzPushToChar(_pcid,{from:'him',text:(_acc?'谢谢，':'不用你破费啦')+pickCard(),_t:clockStr()}); }catch(e){}
       }, 3000);
     }, 2000);
   });
@@ -6282,15 +6300,21 @@ function renderHimProfile(){
   if(bg){ if(_hbg){bg.style.backgroundImage='url('+_hbg+')';}else{bg.style.backgroundImage='';} }
   if(av){ if(_hav){av.style.backgroundImage='url('+_hav+')';}else{av.style.backgroundImage='';} }
   const nm=$('#hProfName'); if(nm)nm.textContent=(_ch.nick||D.nick||'他');
-  const id=$('#hProfId'); if(id)id.textContent='@'+(pd.id||'');
+  var _accId=(_ch&&_ch.accId)||(pd.id||'');
+  const id=$('#hProfId'); if(id)id.textContent='@'+_accId;
   renderHimDiary();
 }
 function pickHimBg(){pickTarget='himbg';$('#filePick').removeAttribute('multiple');$('#filePick').click();}
 function pickHimAv(){pickTarget='himav';$('#filePick').removeAttribute('multiple');$('#filePick').click();}
 function editHimId(){
-  D.himProf=D.himProf||{};
+  yzPhInit();
+  var _cid=D.phHimId||((D.charas||[])[0]||{}).id||'';
+  var _ch=(D.charas||[]).find(function(c){return c.id===_cid;});
   askInput('他的账号ID','',function(t){
-    D.himProf.id=String(t||'').trim();save();renderHimProfile();
+    var v=String(t||'').trim();
+    if(_ch){ _ch.accId=v; }
+    D.himProf=D.himProf||{}; D.himProf.id=v;   /* 兼容旧字段 */
+    save();renderHimProfile();
   },'只填内容，@ 系统会加，显示在他主页昵称下面。');
 }
 function renderHimDiary(){
