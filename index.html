@@ -5222,12 +5222,12 @@ function renderShop(){
       '<div class="ginfo"><div class="gname">'+esc(g.name)+'</div>'+
       '<div class="gdesc">'+esc(g.desc||'')+'</div>'+
       '<div class="gprice">¥'+esc(g.price)+'</div></div>'+
-      '<div class="gacts">'+
-        '<div class="gbtn buy" onclick="buyGoods(\''+g.id+'\')">自己买</div>'+
-        '<div class="gbtn give" onclick="giveGoods(\''+g.id+'\')">送给他</div>'+
-        '<div class="gbtn pay" onclick="askHimPay(\''+g.id+'\')">找他代付</div>'+
+      '<div class="gacts" onclick="event.stopPropagation()">'+
+        '<div class="gbtn buy" onclick="event.stopPropagation();buyGoods(\''+g.id+'\')">自己买</div>'+
+        '<div class="gbtn give" onclick="event.stopPropagation();giveGoods(\''+g.id+'\')">送给他</div>'+
+        '<div class="gbtn pay" onclick="event.stopPropagation();askHimPay(\''+g.id+'\')">找他代付</div>'+
       '</div>'+
-      '<div class="gdel"><span class="delbtn" onclick="delGoods(\''+g.id+'\')">✕</span></div>'+
+      '<div class="gdel" onclick="event.stopPropagation()"><span class="delbtn" onclick="event.stopPropagation();delGoods(\''+g.id+'\')">✕</span></div>'+
       '</div>');
   });
   b.insertAdjacentHTML('beforeend','<div class="shopadd" onclick="addGoodsPrompt()">＋ 添加商品</div>');
