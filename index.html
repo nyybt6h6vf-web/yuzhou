@@ -2890,6 +2890,7 @@ function yzPhTick(){
   try{
     yzSetMigrate();
     yzTickAccFix();
+    yzPatRateFix();
     yzPhInit();
     var now=Date.now();
     var realDt=now-D.ph.lastTs;      /* 真实时间差：梦角用它（离线也掉） */
@@ -9190,8 +9191,32 @@ function maybeCall(){
   if($('#call').classList.contains('show')||$('#callbar').classList.contains('show'))return;
   callType='in';showIncoming();
 }
+/* 一次性修正：历史版本存错的拍一拍概率（超出 0~100 或异常偏大）清回 15 */
+function yzPatRateFix(){
+  try{
+    if(window.__yzPatFixed)return;
+    window.__yzPatFixed=true;
+    if(localStorage.getItem('yzPatFix_v1')==='1')return;
+    localStorage.setItem('yzPatFix_v1','1');
+    function _ok(v){ var n=parseFloat(v); return isFinite(n)&&n>=0&&n<=100; }
+    if(!_ok(D.patRate)) D.patRate=15;
+    try{
+      if(D.setPer){
+        Object.keys(D.setPer).forEach(function(cid){
+          var bag=D.setPer[cid];
+          if(bag&&bag.patRate!==undefined&&!_ok(bag.patRate))bag.patRate=15;
+        });
+      }
+    }catch(e){}
+    try{ save(); }catch(e){}
+  }catch(e){}
+}
 function maybePat(){
   if(D.sendHold)return;
+  /* 用当前梦角自己的拍一拍概率 */
+  try{ if(typeof yzCfg==='function'){ var _pr=yzCfg(yzCtxCharId(),'patRate',15); if(_pr!==undefined && _pr!==null && _pr!=='') D.patRate=parseFloat(_pr); } }catch(e){}
+  /* 用当前梦角自己的拍一拍概率 */
+  try{ if(typeof yzCfg==='function'){ var _pr=yzCfg(yzCtxCharId(),'patRate',15); if(_pr!==undefined && _pr!==null && _pr!=='') D.patRate=parseFloat(_pr); } }catch(e){}
   /* 在 respond() 里每轮调用一次：梦角一轮回复只掷一次骰子，与他发几条无关 */
   if(Math.random()*100>=(D.patRate||0))return;
   if(!(D.pats||[]).length)return;
