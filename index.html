@@ -2967,7 +2967,7 @@ function yzPhTick(){
 }
 function yzPhToggleHimAuto(){ D.phAutoHim=!D.phAutoHim; save(); yzPhCondRows(); toast(D.phAutoHim?'已开启梦角小手机自动充电':'已关闭梦角小手机自动充电'); }
 function yzPhToggleMyAuto(){ D.phAutoMy=!D.phAutoMy; save(); yzPhCondRows(); toast(D.phAutoMy?'已开启我的小手机自动充电':'已关闭我的小手机自动充电'); }
-function yzPhCurPager(){ if(!D.phPage)D.phPage=1; return D.phPage; }
+function yzPhCurPager(){ var v=parseInt(D.phPage,10); if(!v||v<1||v>2)v=1; D.phPage=v; return v; }
 /* 选一个梦角的小手机查看 */
 function yzPhPickHim(){
   try{
@@ -3021,6 +3021,18 @@ function yzPhPickHim(){
     document.body.appendChild(el);
   }catch(e){}
 }
+function yzPhViewHim(cid){
+  try{
+    if(!cid)return;
+    D.phHimId=cid;
+    D.phPage=2;
+    try{ window.__yzOffPlayed=false; }catch(e){}
+    try{ save(); }catch(e){}
+    var _old=document.getElementById('yzPhPickSheet');
+    if(_old&&_old.parentNode)_old.parentNode.removeChild(_old);
+    yzPhRender();
+  }catch(e){}
+}
 function yzPhToggle(){ D.phFavOpen=false; D.phPage=1; try{ window.__yzOffPlayed=false; }catch(e){} save(); yzPhRender(); }
 function yzPhPct(v){ return Math.max(0,Math.min(100,Math.round(v))); }
 function yzPhBatteryHtml(pct,charging,big){
@@ -3059,7 +3071,7 @@ function yzPhRender(){
   h+='</div>';
   body.innerHTML=h;
 }
-function yzPhHimName(){ try{ var id=yzCurKaoCharId(); var ch=(D.charas||[]).find(function(c){return c.id===id;}); if(ch&&ch.nick)return ch.nick; }catch(e){} return D.nick||'他'; }
+function yzPhHimName(){ try{ var id=D.phHimId||yzCurKaoCharId(); var ch=(D.charas||[]).find(function(c){return c.id===id;}); if(ch&&ch.nick)return ch.nick; }catch(e){} return D.nick||'他'; }
 function yzPhHimCard(){ try{ var id=yzCurKaoCharId(); if(typeof pickCardFor==='function')return pickCardFor(id); }catch(e){} return ''; }
 function yzPhRenderHim(body){
   var _hst=yzPhHimState(D.phHimId)||{pct:100,charging:false,power:true};
