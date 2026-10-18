@@ -2888,6 +2888,7 @@ function yzPhHimState(cid){
 function yzPhTick(){
   try{
     yzSetMigrate();
+    yzTickAccFix();
     yzPhInit();
     var now=Date.now();
     var realDt=now-D.ph.lastTs;      /* 真实时间差：梦角用它（离线也掉） */
@@ -2947,17 +2948,15 @@ function yzPhTick(){
     });
     /* 兼容：把当前查看梦角的状态同步到旧的 him* 字段 */
     try{ var _cst=yzPhHimState(D.phHimId); if(_cst){ D.ph.him=_cst.pct; D.ph.himCharging=_cst.charging; D.ph.himPower=_cst.power; D.ph.accHim=_cst.acc; D.ph.himChgAcc=_cst.chgAcc; D.ph.himRerolled=_cst.rerolled; } }catch(e){}
-    /* 每个梦角按自己的设置跑各自的循环（互不干扰，同时生效） */
-    yzRunForChars(function(_cid){
-      try{ yzDaifuTick(dt); }catch(e){}   /* 代付累计计时 */
-      try{ yzGiftTick(dt); }catch(e){}    /* 送东西累计计时 */
-      try{ yzLisAskTick(dt); }catch(e){}  /* 一起听邀请累计计时 */
-      try{ yzProactiveTick(dt); }catch(e){} /* 主动发消息累计计时 */
-      try{ yzTranTick(dt); }catch(e){}    /* 主动转账累计计时 */
-      try{ yzDiaryTick(dt); }catch(e){}   /* 日记累计计时 */
-      try{ yzMomTick(dt); }catch(e){}     /* 动态累计计时 */
-      try{ yzLetterTick(dt); }catch(e){}  /* 来信累计计时 */
-    });
+    /* 各项循环全局只跑一次（计数器共用，绝不能按梦角重复累加） */
+    try{ yzDaifuTick(dt); }catch(e){}   /* 代付累计计时 */
+    try{ yzGiftTick(dt); }catch(e){}    /* 送东西累计计时 */
+    try{ yzLisAskTick(dt); }catch(e){}  /* 一起听邀请累计计时 */
+    try{ yzProactiveTick(dt); }catch(e){} /* 主动发消息累计计时 */
+    try{ yzTranTick(dt); }catch(e){}    /* 主动转账累计计时 */
+    try{ yzDiaryTick(dt); }catch(e){}   /* 日记累计计时 */
+    try{ yzMomTick(dt); }catch(e){}     /* 动态累计计时 */
+    try{ yzLetterTick(dt); }catch(e){}  /* 来信累计计时 */
     /* 电量没变就不写库：避免每秒全量序列化 → 越用越卡 */
     var _phSig=D.ph.my+'/'+D.ph.him+'/'+(D.ph.myCharging?1:0)+'/'+(D.ph.himCharging?1:0)+'/'+(D.ph.himPower?1:0);
     if(window.__yzPhSig!==_phSig){ window.__yzPhSig=_phSig; save(); }
@@ -3491,10 +3490,23 @@ function _renderHomeNow(){
   renderNote();
   renderHomeBg2();
   updateHomeAvatar();
+  try{ yzHomePageFix(); }catch(e){}
   homePage(D.homePage||1,true);
 }
+/* 一次性修正：旧版可能把 homePage 残留成 2，导致每次打开都停在第二页 */
+function yzHomePageFix(){
+  try{
+    if(window.__yzHpFixed)return;
+    window.__yzHpFixed=true;
+    if(localStorage.getItem('yzHomePage_v1')==='1')return;
+    localStorage.setItem('yzHomePage_v1','1');
+    D.homePage=1;
+    save();
+  }catch(e){}
+}
 function homePage(n,instant){
-  D.homePage=n;save();
+  /* instant=true 表示「只是按已存的值还原界面」，不要再写库，避免覆盖用户刚滑的页 */
+  if(!instant){ D.homePage=n; save(); }
   const w=$('#hPages');
   if(w){ if(instant){w.style.transition='none';} w.classList.toggle('p2',n===2); if(instant){void w.offsetWidth;w.style.transition='';} }
   const dots=document.querySelectorAll('#homeDots i');
@@ -3586,8 +3598,8 @@ function pickPhotoCard(n){ _photoN=n; pickTarget='photocard'; $('#filePick').rem
     if(!moved||!sx)return;
     const t=(e.changedTouches&&e.changedTouches[0])||{};
     const dx=(t.clientX||sx)-sx;
-    if(dx<-45)homePage(2);
-    else if(dx>45)homePage(1);
+    if(dx<-45){ D.homePage=2; homePage(2); }
+    else if(dx>45){ D.homePage=1; homePage(1); }
     sx=0;moved=false;lock=0;
   },{passive:true});
 })();
@@ -6129,6 +6141,25 @@ function himWriteDiary(){
 function startDiaryLoop(){
   if(diaryTimer)clearInterval(diaryTimer);diaryTimer=null;
   /* 改为累计在线时长：进网站才计，退出暂停，下次续计，累满掷概率 */
+}
+/* 一次性清洗：旧版把累计计时器重复累加导致连发，这里把所有累计值清 0 */
+function yzTickAccFix(){
+  try{
+    if(window.__yzAccFixed)return;
+    window.__yzAccFixed=true;
+    if(localStorage.getItem('yzAccFix_v1')==='1')return;
+    localStorage.setItem('yzAccFix_v1','1');
+    D.diaryAcc=0;
+    D.momAcc=0;
+    D.momIntAcc=0;
+    D.letterAcc=0;
+    D.giftAcc=0;
+    D.daifuAcc=0;
+    D.tranAcc=0;
+    D.feelAcc=0;
+    D.lisAcc=0;
+    save();
+  }catch(e){}
 }
 function yzDiaryTick(dt){
   try{
