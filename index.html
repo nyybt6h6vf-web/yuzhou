@@ -50,7 +50,7 @@
   --accent-soft:#9db2d6;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
-html,body{height:100%;background:var(--page-bg);}
+html,body{overscroll-behavior:none;overscroll-behavior:none;height:100%;background:var(--page-bg);}
 
 body{
   font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
@@ -122,7 +122,7 @@ svg [fill="currentColor"]{stroke:none;}
 .navbar{display:flex;align-items:center;gap:0;}
 
 #chat{background:var(--chat-bg);}
-.chat-body{flex:1;overflow-y:auto;padding:14px 14px 18px;display:flex;flex-direction:column;gap:5px;}
+.chat-body{overscroll-behavior:contain;-webkit-overflow-scrolling:auto;flex:1;overflow-y:auto;padding:14px 14px 18px;display:flex;flex-direction:column;gap:5px;}
 .chat-body::-webkit-scrollbar{width:0;}
 .msg{display:flex;gap:9px;max-width:100%;}
 .msg.me{flex-direction:row-reverse;}
@@ -225,7 +225,7 @@ svg [fill="currentColor"]{stroke:none;}
 /* 聊天列表左滑 */
 .convrow{position:relative;overflow:hidden;border-bottom:1px solid var(--line);}
 .convrow .convitem{border-bottom:none;transition:transform .22s cubic-bezier(.2,.8,.2,1);will-change:transform;position:relative;z-index:2;background:var(--card,#fff);}
-.convrow .convacts{position:absolute;top:0;right:0;height:100%;display:flex;z-index:1;opacity:0;pointer-events:none;transition:opacity .18s;}
+.convrow .convacts{position:absolute;top:0;right:0;height:100%;display:flex;z-index:1;opacity:0;pointer-events:none;transition:opacity .18s;overflow:hidden;}
 .convrow .convacts .cact{height:100%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600;padding:0 22px;}
 .convrow .convacts .cact.pin{background:#859ecb;}
 .convrow .convacts .cact.del{background:#ff3b30;}
@@ -324,7 +324,7 @@ svg [fill="currentColor"]{stroke:none;}
 #recOverlay .sec{margin-top:16px;font-size:34px;font-weight:200;letter-spacing:2px;}
 #recOverlay .tip{margin-top:10px;font-size:13px;opacity:.85;}
 
-.list{flex:1;overflow-y:auto;padding:14px 16px 30px;}
+.list{flex:1;overflow-y:auto;padding:14px 16px 30px;overscroll-behavior:contain;-webkit-overflow-scrolling:auto;}
 .group{margin-bottom:20px;}
 .group h4{font-size:12px;color:var(--sub);margin:0 6px 8px;letter-spacing:1px;font-weight:600;}
 .row{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:16px;padding:14px 16px;margin-bottom:8px;box-shadow:0 3px 12px rgba(120,130,200,.10);}
@@ -895,7 +895,7 @@ svg [fill="currentColor"]{stroke:none;}
 .tbtn{font-size:12px;padding:5px 10px;border-radius:9px;background:var(--card,#f5f5f7);color:var(--sub);cursor:pointer;}
 .tbtn.on{background:var(--accent,#859ecb);color:#fff;}
 /* ===== 日记个人主页 ===== */
-.pfbgwrap{position:relative;margin:0 0 12px;}
+.pfbgwrap{position:relative;margin:0 0 12px;padding-bottom:40px;}
 .pfbg{position:relative;height:150px;background:#e8e8ee;background-size:cover;background-position:center;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .pfbg .pfbgtip{font-size:12px;color:#9aa0ad;pointer-events:none;}
 .pfbg[style*="background-image"] .pfbgtip{display:none;}
@@ -2362,8 +2362,8 @@ function renderChatList(){
     l.insertAdjacentHTML('beforeend',
       '<div class="convrow" data-cid="'+cv.id+'">'+
         '<div class="convacts">'+
-          '<div class="cact pin" onclick="yzConvPin(\''+cv.id+'\',event)">'+pinLabel+'</div>'+
-          '<div class="cact del" onclick="yzConvDel(\''+cv.id+'\',event)">删除</div>'+
+          '<div class="cact pin" ontouchstart="event.stopPropagation()" ontouchend="event.stopPropagation()" onclick="yzConvPin(\''+cv.id+'\',event)">'+pinLabel+'</div>'+
+          '<div class="cact del" ontouchstart="event.stopPropagation()" ontouchend="event.stopPropagation()" onclick="yzConvDel(\''+cv.id+'\',event)">删除</div>'+
         '</div>'+
         '<div class="convitem" onclick="yzOpenConv(\''+cv.id+'\')">'+
           '<div class="cav">'+av+'</div>'+
@@ -2438,6 +2438,8 @@ function yzBindSwipe(){
       item.style.transition='none';item.style.transform='translateX('+nx+'px)';
     },{passive:true});
     item.addEventListener('touchend',function(e){
+      var _tg=e.target;
+      if(_tg&&_tg.closest&&_tg.closest('.cact'))return;
       if(!dragging){
         /* 没拖动：如果该行是打开状态，点一下就关掉（解决“划不回来”） */
         if(row._open){ closeRow(row); if(open===row)open=null; }
@@ -3767,6 +3769,35 @@ function renderPlus(){
 function scrollBottom(){const b=$('#chatBody');b.scrollTop=b.scrollHeight;}
 
 function esc(s){return (s+'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'"'}[c]));}
+/* ===== 统一：按梦角 id 取身份（昵称/头像），杜绝串号 ===== */
+function yzChOf(cid){
+  try{ return (D.charas||[]).find(function(c){return c.id===cid;})||null; }catch(e){ return null; }
+}
+function yzChNick(cid,def){
+  var c=yzChOf(cid);
+  if(c&&c.nick)return c.nick;
+  return def||D.nick||'他';
+}
+function yzChAvatar(cid){
+  var c=yzChOf(cid);
+  if(c&&c.avatar)return c.avatar;
+  return '';
+}
+/* 当前正在“做事”的梦角：优先显式传入，其次该梦角单人会话 */
+function yzCtxCharId(){
+  try{
+    if(window.__yzCtxCid)return window.__yzCtxCid;
+    var cv=yzCurConv();
+    if(cv&&cv.type!=='group'&&cv.charas&&cv.charas[0])return cv.charas[0];
+    var arr=(D.charas||[]);
+    return arr.length?arr[0].id:'';
+  }catch(e){ return ''; }
+}
+function yzWithChar(cid,fn){
+  var old=window.__yzCtxCid;
+  window.__yzCtxCid=cid||'';
+  try{ return fn(); } finally { window.__yzCtxCid=old; }
+}
 var _yzUrlCache={};
 function yzAvUrl(u){
   try{
@@ -4007,8 +4038,22 @@ function sysPrivate(cid,t){
 function yzSingleConvIdOf(cid){
   try{
     var cv=(D.convs||[]).find(function(c){ return c.type!=='group' && (c.charas||[])[0]===cid; });
-    return cv?cv.id:(D.curConv||'');
-  }catch(e){ return D.curConv||''; }
+    return cv?cv.id:'';
+  }catch(e){ return ''; }
+}
+/* 找或新建该梦角的单人会话 */
+function yzEnsureSingleConv(cid){
+  try{
+    if(!cid)return null;
+    var id=yzSingleConvIdOf(cid);
+    if(id){ var c=(D.convs||[]).find(function(x){return x.id===id;}); if(c)return c; }
+    D.convs=D.convs||[];
+    var sid='cv'+Date.now();
+    var nc={id:sid,type:'single',charas:[cid],msgs:[]};
+    D.convs.push(nc);
+    try{ save(); }catch(e){}
+    return nc;
+  }catch(e){ return null; }
 }
 
 function sendText(){
@@ -4167,7 +4212,7 @@ function yzChPick(){
   try{
     var key=arguments.length?String(arguments[0]):'viewCharaId';
     var cur=(D[key]||'');
-    if(key==='viewDiaryId'){ try{ cur=cur||(D.phHimId||''); }catch(e){} }
+    if(key==='viewDiaryId'){ try{ cur=(D.viewDiaryId||D.phHimId||''); }catch(e){} }
     var OLD=document.getElementById('yzChPickSheet');
     if(OLD&&OLD.parentNode)OLD.parentNode.removeChild(OLD);
     var el=document.createElement('div');
@@ -4217,7 +4262,7 @@ function yzChPick(){
   }catch(e){}
 }
 function yzChPickDo(key,cid){
-  try{ key=key||'viewCharaId'; D[key]=cid; D.diaryViewHim=true; save(); }catch(e){}
+  try{ key=key||'viewCharaId'; D[key]=cid; D.diaryViewHim=true; if(key==='viewDiaryId')D.phHimId=cid; save(); }catch(e){}
   try{ closeSheet2('yzChPickSheet'); }catch(e){}
   if(key==='viewDiaryId'){
     try{ openHimProfile(); return; }catch(e){}
@@ -4275,11 +4320,20 @@ function yzChFilter(list,key){
   try{
     var cid=yzChCur(key);
     if(!cid)return (list||[]);
-    var first=((D.charas||[])[0]||{}).id||'';
+    /* 严格：只显示明确属于该梦角的内容；无归属的旧数据不分配给任何梦角 */
+    return (list||[]).filter(function(x){ return x.cid===cid; });
+  }catch(e){ return (list||[]); }
+}
+/* 我自己的日记页：只显示我写的、且未指定梦角或属于当前查看梦角的 */
+function yzMyList(list,key){
+  try{
+    var cid=yzChCur(key);
+    if(!cid)return (list||[]);
+    var many=((D.charas||[]).length>1);
     return (list||[]).filter(function(x){
-      var oc=x.cid;
-      if(!oc){ oc=first; x.cid=first; }
-      return oc===cid;
+      if(!x.cid)return true;   /* 旧的无归属数据仍在我的页面显示 */
+      if(!many)return true;    /* 只有一个梦角时全部显示 */
+      return x.cid===cid;
     });
   }catch(e){ return (list||[]); }
 }
@@ -5288,7 +5342,7 @@ function renderLetters(){
     var _rdText=_rd?'已读':'未读';
     l.insertAdjacentHTML('beforeend',
       `<div class="letter-item" onclick="openLetter('${lt.id}')">
-        <div class="lh">${esc(lt.from==='me'?(D.myNick||'我')+' 写给 '+(D.nick||'他'):(D.nick||'他')+' 写给你')} · ${esc(lt.time||'')} · <span style="color:${_rdColor};font-weight:${_rdWeight}">${_rdText}</span></div>
+        <div class="lh">${esc(lt.from==='me'?(D.myNick||'我')+' 写给 '+yzChNick(lt.cid):yzChNick(lt.cid)+' 写给你')} · ${esc(lt.time||'')} · <span style="color:${_rdColor};font-weight:${_rdWeight}">${_rdText}</span></div>
         <div class="lt">${esc(lt.isReply?(lt.from==='me'?('我回复了'+(D.nick||'他')+'的信'):((D.nick||'他')+'回复了你的信')):(lt.from==='him'?(D.nick||'他')+'给你写了一封信':(lt.preview||'（空信）')))}</div>
         <div><span class="lfav favbtn" data-favbtn="1" data-favtype="letter" data-favid="${lt.id}">☆ 收藏</span></div>
       </div>`);
@@ -5418,7 +5472,7 @@ function openLetter(id){
   try{ var _rb=document.getElementById('letterReplyBox'); var _rt=document.getElementById('lrepText'); var _rto=document.getElementById('lrepTo'); if(_rt)_rt.value=''; if(_rto)_rto.textContent=letterTo(D.nick); if(_rb){ var _canReply=!((lt.from==='me')||lt.repliedByMe||lt.reply&&lt.reply.from==='me'); _rb.style.display=_canReply?'':'none'; _rb.__canReply=_canReply; } }catch(e){}
   if(lt.from==='him'){ lt.read=true; save(); }
   try{ if(document.getElementById('letters')&&document.getElementById('letters').classList.contains('active'))renderLetters(); }catch(e){}
-  const head=lt.from==='him'?((D.nick||'他')+' 写给你的信'):('你写给 '+(D.nick||'他')+' 的信');
+  const head=lt.from==='him'?(yzChNick(lt.cid)+' 写给你的信'):('你写给 '+yzChNick(lt.cid)+' 的信');
   var _mine=(lt.from==='me');
   var _sect1='<div class="lemailsec" style="background-image:'+(( _mine?(D.meLetterBg||''):(D.himLetterBg||''))?('url('+(_mine?(D.meLetterBg||''):(D.himLetterBg||''))+')'):'none')+'"><div style="font-size:12px;color:var(--sub);margin-bottom:14px">'+esc(head)+' · '+esc(lt.time||'')+'</div><div class="lettertxt">'+esc(lt.text).replace(/\n/g,'<br>')+'</div></div>';
   /* 追加的新信：带上原信内容 */
@@ -5491,7 +5545,7 @@ function himReplyLetter(id){
   /* 另外单独发一份出去 */
   D.letters.push({id:_rid,from:'him',cid:(lt&&lt.cid)||yzCurKaoCharId(),text:_body,preview:rb.slice(0,20),time:nowStr(),read:false,replied:false,isReply:true,refId:id,bgWhich:'him'});
   save();
-  try{ var _privId3=yzCurKaoCharId(); sysPrivate(yzSingleConvIdOf(_privId3),(D.nick||'他')+' 回复了你的信'); }catch(e){}
+  try{ var _rlc=(lt&&lt.cid)||yzCtxCharId(); sysPrivate(yzSingleConvIdOf(_rlc),yzChNick(_rlc)+' 回复了你的信'); }catch(e){}
   if($('#letters').classList.contains('active'))renderLetters();
 }
 function letterPrompt(){writeLetter();}
@@ -5664,6 +5718,23 @@ function renderGiftWall(){
 }
 function findGoods(id){return goodsList().find(function(g){return g.id===id;});}
 /* 商城：选择一个梦角（多梦角时弹出，单选则直接返回） */
+/* 往指定梦角的单人会话推送消息；若不在该会话，同时给红点 */
+function yzPushToChar(cid,m){
+  try{
+    var cv=yzEnsureSingleConv(cid);
+    if(!cv)return;
+    var isCur=(D.curConv===cv.id);
+    if(isCur){ try{ push(m); }catch(e){} }
+    else{
+      cv.msgs=cv.msgs||[];
+      try{ m._read=false; }catch(e){}
+      cv.msgs.push(m);
+      try{ saveSoon(); }catch(e){ save(); }
+      try{ renderChatList(); }catch(e){}
+      try{ scheduleHomeBadges(); }catch(e){}
+    }
+  }catch(e){}
+}
 function yzShopPickChar(cb){
   try{
     var list=(D.charas||[]);
@@ -5736,9 +5807,9 @@ function giveGoodsTo(id,_pcid,_pnm){
   var _nm=_pnm||D.nick||'他';
   askConfirm('送给'+_nm+'「'+g.name+'」（¥'+g.price+'）？',function(){
     D.balance=bal-g.price;save();refreshBalUI();
-    try{ pushGiftWall(D.nick||'他',g,'me'); }catch(e){}
-    push({from:'me',type:'goods',text:'送给你「'+g.name+'」',gname:g.name,gprice:g.price,gimg:g.img,_t:clockStr()});
-    renderShop();toast('已经送出去了');
+    try{ pushGiftWall(_nm||D.nick||'他',g,'me'); }catch(e){}
+    yzPushToChar(_pcid,{from:'me',type:'goods',text:'送给你「'+g.name+'」',gname:g.name,gprice:g.price,gimg:g.img,_t:clockStr()});
+    renderShop();toast('已经送给'+_nm+'了');
     /* 梦角掎骰：收礼物概率 vs 拒收礼物概率 */
     var _ar=(D.giftAcceptRate===undefined?70:parseFloat(D.giftAcceptRate))||0;
     var _rr=(D.giftRejectRate===undefined?30:parseFloat(D.giftRejectRate))||0;
@@ -5747,7 +5818,7 @@ function giveGoodsTo(id,_pcid,_pnm){
     setTimeout(function(){
       try{
         if(_acc){
-          push({from:'him',type:'gift',noSt:true,text:'礼物收下啦',gname:g.name,gprice:g.price,gimg:g.img,st:'got',mine:false,_t:clockStr()});
+          yzPushToChar(_pcid,{from:'him',type:'gift',noSt:true,text:'礼物收下啦',gname:g.name,gprice:g.price,gimg:g.img,st:'got',mine:false,_t:clockStr()});
           try{ pushGiftWall(D.myNick||'我',g,'me'); }catch(e){}
         }else{
           push({from:'him',type:'gift',noSt:true,text:'礼物退回给你了',gname:g.name,gprice:g.price,gimg:g.img,st:'no',mine:false,_t:clockStr()});
@@ -6092,8 +6163,8 @@ function askHimPayTo(id,_pcid,_pnm){
   const g=findGoods(id);if(!g)return;
   var _nm=_pnm||D.nick||'他';
   askConfirm('让'+_nm+'帮你代付「'+g.name+'」（¥'+g.price+'）？',function(){
-    push({from:'me',type:'daifu',text:'亲爱的，帮我买这个吧～',gname:g.name,gprice:g.price,gimg:g.img,st:'wait',_t:clockStr()});
-    toast('已经发给他了');
+    yzPushToChar(_pcid,{from:'me',type:'daifu',text:'亲爱的，帮我买这个吧～',gname:g.name,gprice:g.price,gimg:g.img,st:'wait',_t:clockStr()});
+    toast('已经发给'+_nm+'了');
     const ms=Math.max(2000,(parseFloat(D.daifuDelay)||8)*1000);
     setTimeout(function(){
       var m2=null;
@@ -6177,7 +6248,7 @@ function dFull(){
   function p2(x){return (x<10?'0':'')+x;}
   return d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate()+' '+p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds());
 }
-function diaryWho(d){return (d.from==='me')?(D.myNick||'我'):(D.nick||'他');}
+function diaryWho(d){return (d.from==='me')?(D.myNick||'我'):(yzChNick(d&&d.cid));}
 
 /* ===== 我的个人主页 ===== */
 function renderDiaryProfile(){
@@ -6261,7 +6332,7 @@ function renderDiary(){
   renderDiaryProfile();
   const l=$('#diaryList');if(!l)return;l.innerHTML='';
   D.diaries=D.diaries||[];
-  let list=yzChFilter(D.diaries.filter(function(x){return (x.from||'me')==='me';}),'viewDiaryId');
+  let list=yzMyList(D.diaries.filter(function(x){return (x.from||'me')==='me';}),'viewDiaryId');
   list.sort(function(a,b){return (a.time||'')<(b.time||'')?1:-1;});
   if(!list.length){l.innerHTML='<div class="empty">还没有日记。</div>';return;}
   list.forEach(function(d){ l.insertAdjacentHTML('beforeend', diaryItemHTML(d)); });
@@ -6339,7 +6410,7 @@ function diaryCmtSend(){
   var _rr=(D.commentRate===undefined?50:parseFloat(D.commentRate))||0;
   if(Math.random()*100<_rr){
     setTimeout(function(){
-      d.comments.push({who:(D.nick||'他'),text:pickCard(),time:nowStr()});
+      d.comments.push({who:yzChNick(d&&d.cid),text:pickCard(),time:nowStr()});
       save();
       if(document.getElementById('diaryRead')&&document.getElementById('diaryRead').classList.contains('active'))openDiary(id);
       if(document.getElementById('diary')&&document.getElementById('diary').classList.contains('active'))renderDiary();
@@ -6355,7 +6426,7 @@ function addDiaryComment(id){
     save();renderDiary();
     if(Math.random()*100<((D.commentRate===undefined?50:parseFloat(D.commentRate))||0)){
       setTimeout(function(){
-        d.comments.push({who:(D.nick||'他'),text:pickCard(),time:nowStr()});
+        d.comments.push({who:yzChNick(d&&d.cid),text:pickCard(),time:nowStr()});
         save();if($('#diary').classList.contains('active'))renderDiary();
       },Math.max(800,sendGapMs()*2));
     }
@@ -6382,12 +6453,13 @@ function himWriteDiary(){
   const fl=(D.feelings||[]).filter(Boolean);
   const mood=fl.length?fl[Math.floor(Math.random()*fl.length)]:'';
   var _did='dy'+Date.now();
-  D.diaries.push({id:_did,from:'him',cid:yzCurKaoCharId(),title:'',mood:mood,date:dFull(),text:txt,comments:[],read:false,time:new Date().toISOString()});
+  var _ctxc=yzCtxCharId();
+  D.diaries.push({id:_did,from:'him',cid:_ctxc,title:'',mood:mood,date:dFull(),text:txt,comments:[],read:false,time:new Date().toISOString()});
   save();
-  try{ var _privId=yzCurKaoCharId(); sysPrivate(yzSingleConvIdOf(_privId),(D.nick||'他')+' 写了一篇日记'); }catch(e){}
+  try{ sysPrivate(yzSingleConvIdOf(_ctxc),yzChNick(_ctxc)+' 写了一篇日记'); }catch(e){}
   try{renderHome();}catch(e){}
-  try{ var _dyv='';try{var _dyc=(D.charas||[]).find(function(x){return x.id===((yzCurConv()||{}).charas||[])[0];});if(_dyc)_dyv=_dyc.avatar||'';if(!_dyv)_dyv=D.avatarHim||'';}catch(e2){} yzTopNotice((D.nick||'他')+' 写了一篇日记',(txt||'').slice(0,40),function(){ try{ openDiary(_did); }catch(e){} },3000,_dyv); }catch(e){}
-  try{ yzNotify((D.nick||'他')+' 写了一篇日记',(txt||'').slice(0,40),true); }catch(e){}
+  try{ yzTopNotice(yzChNick(_ctxc)+' 写了一篇日记',(txt||'').slice(0,40),function(){ try{ openDiary(_did); }catch(e){} },3000,yzChAvatar(_ctxc)); }catch(e){}
+  try{ yzNotify(yzChNick(_ctxc)+' 写了一篇日记',(txt||'').slice(0,40),true); }catch(e){}
   if($('#diary').classList.contains('active'))renderDiary();
   if($('#himprofile')&&$('#himprofile').classList.contains('active'))renderHimProfile();
 }
@@ -6414,19 +6486,41 @@ function yzTickAccFix(){
     save();
   }catch(e){}
 }
+/* 按梦角依次执行，每个梦角用独立累加器（D.accByCid[cid][key]），互不干扰 */
+function yzPerCharAcc(cid,key,dt){
+  try{
+    if(!D.accByCid)D.accByCid={};
+    if(!D.accByCid[cid])D.accByCid[cid]={};
+    var m=D.accByCid[cid];
+    m[key]=(m[key]||0)+dt;
+    return m;
+  }catch(e){ return {}; }
+}
+function yzEachChar(fn){
+  var list=(D.charas||[]);
+  for(var i=0;i<list.length;i++){
+    var cid=list[i]&&list[i].id;
+    if(!cid)continue;
+    try{ yzWithChar(cid,function(){ fn(cid); }); }catch(e){}
+  }
+}
 function yzDiaryTick(dt){
   try{
     if(!window.__yzUnlocked)return;
     if(document.hidden)return;
-    if(dt<0)dt=0; if(dt>300000)dt=300000;
-    D.diaryAcc=(D.diaryAcc||0)+dt;
-    var gap=Math.max(1,parseFloat(D.diaryGap)||30)*60000;
-    while(D.diaryAcc>=gap){
-      D.diaryAcc-=gap;
-      var r=(D.diaryRate===undefined?100:parseFloat(D.diaryRate));
-      if(isNaN(r))r=100;
-      if(Math.random()*100<r){ try{ himWriteDiary(); }catch(e){} }
-    }
+    if(dt<0)dt=0; if(dt>60000)dt=60000;
+    yzEachChar(function(cid){
+      var m=yzPerCharAcc(cid,'diary',dt);
+      var gap=Math.max(1,parseFloat(D.diaryGap)||30)*60000;
+      var guard=0;
+      while(m.diary>=gap && guard<3){
+        m.diary-=gap; guard++;
+        var r=(D.diaryRate===undefined?100:parseFloat(D.diaryRate));
+        if(isNaN(r))r=100;
+        if(Math.random()*100<r){ try{ himWriteDiary(); }catch(e){} }
+      }
+      if(m.diary>gap*3)m.diary=0;
+    });
   }catch(e){}
 }
 
@@ -6937,18 +7031,18 @@ function renderMoments(){
   if(!list.length){b.innerHTML='<div class="empty">还没有动态，点右上角发一条。</div>';return;}
   list.forEach(m=>{
     const av=m.from==='me'?D.avatarMe:D.avatarHim;
-    const nm=m.from==='me'?(D.myNick||'我'):(D.nick||'他');
+    const nm=m.from==='me'?(D.myNick||'我'):yzChNick(m&&m.cid);
     const avatar=av?`<img src="${av}">`:esc(nm[0]||'');
     let img='';if(m.img)img=`<img src="${esc(m.img)}">`;
     const liked=(m.likedBy||[]).includes('me');
     let likeHtml='';
     if((m.likedBy||[]).length){
-      const names=(m.likedBy||[]).map(w=>w==='me'?(D.myNick||'我'):(D.nick||'他'));
+      const names=(m.likedBy||[]).map(w=>w==='me'?(D.myNick||'我'):yzChNick(m&&m.cid));
       likeHtml=`<div class="molike"><span class="molk-heart">♡</span> <b>${esc(names.join('、'))}</b></div>`;
     }
     let comments='';
     (m.comments||[]).forEach((c,ci)=>{
-      const cn=c.from==='me'?(D.myNick||'我'):(D.nick||'他');
+      const cn=c.from==='me'?(D.myNick||'我'):yzChNick(m&&m.cid);
       var rep=c.replyTo?(esc(cn)+'回复'+esc(c.replyTo)+'：'):(esc(cn)+'：');
       comments+=`<div class="mocm" onclick="commentMoment('${m.id}',${ci})"><b>${rep}</b>${esc(c.text)}</div>`;
     });
@@ -7043,11 +7137,12 @@ function pushMomentByHim(){
   if(pr>0&&(D.packs||[]).length&&Math.random()*100<pr)himImg=D.packs[Math.floor(Math.random()*D.packs.length)];
   var _mid='m'+Date.now();
   var _mtxt=pickByRange(D.momMin,D.momMax);
-  D.moments.push({id:_mid,from:'him',cid:yzCurKaoCharId(),text:_mtxt,img:himImg,time:nowStr(),likedBy:[],comments:[],read:false});
+  var _ctxc2=yzCtxCharId();
+  D.moments.push({id:_mid,from:'him',cid:_ctxc2,text:_mtxt,img:himImg,time:nowStr(),likedBy:[],comments:[],read:false});
   save();if($('#moments').classList.contains('active'))renderMoments();
   try{scheduleHomeBadges();}catch(e){}
-  try{ var _mv='';try{var _mc=(D.charas||[]).find(function(x){return x.id===((yzCurConv()||{}).charas||[])[0];});if(_mc)_mv=_mc.avatar||'';if(!_mv)_mv=D.avatarHim||'';}catch(e2){} yzTopNotice((D.nick||'他')+' 发了一条动态',(_mtxt||'').replace(/\n/g,' '),function(){ try{ openMoment(_mid); }catch(e){} },3000,_mv); }catch(e){}
-  try{ yzNotify((D.nick||'他')+' 发了一条动态',(_mtxt||'').replace(/\n/g,' '),true); }catch(e){}
+  try{ yzTopNotice(yzChNick(_ctxc2)+' 发了一条动态',(_mtxt||'').replace(/\n/g,' '),function(){ try{ openMoment(_mid); }catch(e){} },3000,yzChAvatar(_ctxc2)); }catch(e){}
+  try{ yzNotify(yzChNick(_ctxc2)+' 发了一条动态',(_mtxt||'').replace(/\n/g,' '),true); }catch(e){}
 }
 /* 他回复评论 / 点赞你的动态 */
 function momReply(m,skipRate){
@@ -7112,23 +7207,28 @@ function yzMomTick(dt){
   try{
     if(!window.__yzUnlocked)return;
     if(document.hidden)return;
-    if(dt<0)dt=0; if(dt>300000)dt=300000;
-    var gap=Math.max(1,parseFloat(D.momGap)||1)*60000;
-    /* ① 梦角发动态：独立计时 */
-    D.momAcc=(D.momAcc||0)+dt;
-    while(D.momAcc>=gap){
-      D.momAcc-=gap;
-      var r=(D.momRate===undefined?50:parseFloat(D.momRate));
-      if(isNaN(r))r=50;
-      if(Math.random()*100<r){ try{ pushMomentByHim(); }catch(e){} }
-    }
-    /* ② 梦角点赞/评论我的动态：独立计时，不再和发动态抢同一个周期 */
-    D.momIntAcc=(D.momIntAcc||0)+dt;
-    var igap=Math.max(1,parseFloat(D.momIntGap)||3)*60000;
-    while(D.momIntAcc>=igap){
-      D.momIntAcc-=igap;
-      try{ maybeMomInteract(); }catch(e){}
-    }
+    if(dt<0)dt=0; if(dt>60000)dt=60000;
+    yzEachChar(function(cid){
+      var m=yzPerCharAcc(cid,'mom',dt);
+      var gap=Math.max(1,parseFloat(D.momGap)||1)*60000;
+      var guard=0;
+      while(m.mom>=gap && guard<3){
+        m.mom-=gap; guard++;
+        var r=(D.momRate===undefined?50:parseFloat(D.momRate));
+        if(isNaN(r))r=50;
+        if(Math.random()*100<r){ try{ pushMomentByHim(); }catch(e){} }
+      }
+      if(m.mom>gap*3)m.mom=0;
+      /* 梦角点赞/评论我的动态 */
+      var m2=m.momInt=(m.momInt||0)+dt;
+      var igap=Math.max(1,parseFloat(D.momIntGap)||3)*60000;
+      var g2=0;
+      while(m2>=igap && g2<3){
+        m2-=igap; g2++;
+        try{ maybeMomInteract(); }catch(e){}
+      }
+      if(m2>igap*3)m.momInt=0; else m.momInt=m2;
+    });
   }catch(e){}
 }
 let letterTimer=null;
@@ -7137,12 +7237,13 @@ function pushLetterByHim(){
   var txt=pickByRange(parseInt((D.letterSent||"1-2").split("-")[0])||1,parseInt((D.letterSent||"1-2").split("-")[1])||2);
   if(!txt)return;
   var _lid='lt'+Date.now();
-  D.letters.push({id:_lid,from:'him',cid:yzCurKaoCharId(),text:letterTo(D.myNick||'我')+'\n\n'+txt,preview:txt.slice(0,20),time:nowStr(),read:false,replied:true});
+  var _ctxc3=yzCtxCharId();
+  D.letters.push({id:_lid,from:'him',cid:_ctxc3,text:letterTo(D.myNick||'我')+'\n\n'+txt,preview:txt.slice(0,20),time:nowStr(),read:false,replied:true});
   save();
-  try{ var _privId2=yzCurKaoCharId(); sysPrivate(yzSingleConvIdOf(_privId2),(D.nick||'他')+' 给你寄了一封信'); }catch(e){}
+  try{ sysPrivate(yzSingleConvIdOf(_ctxc3),yzChNick(_ctxc3)+' 给你寄了一封信'); }catch(e){}
   try{renderHome();}catch(e){}
-  try{ var _lv='';try{var _lc=(D.charas||[]).find(function(x){return x.id===((yzCurConv()||{}).charas||[])[0];});if(_lc)_lv=_lc.avatar||'';if(!_lv)_lv=D.avatarHim||'';}catch(e2){} yzTopNotice((D.nick||'他')+' 给你寄了一封信',(txt||'').slice(0,40),function(){ try{ openLetter(_lid); }catch(e){} },3000,_lv); }catch(e){}
-  try{ yzNotify((D.nick||'他')+' 给你寄了一封信',(txt||'').slice(0,40),true); }catch(e){}
+  try{ yzTopNotice(yzChNick(_ctxc3)+' 给你寄了一封信',(txt||'').slice(0,40),function(){ try{ openLetter(_lid); }catch(e){} },3000,yzChAvatar(_ctxc3)); }catch(e){}
+  try{ yzNotify(yzChNick(_ctxc3)+' 给你寄了一封信',(txt||'').slice(0,40),true); }catch(e){}
   if($('#letters').classList.contains('active'))renderLetters();
 }
 function startLetterLoop(){
@@ -7153,14 +7254,18 @@ function yzLetterTick(dt){
   try{
     if(!window.__yzUnlocked)return;
     if(document.hidden)return;
-    if(dt<0)dt=0; if(dt>300000)dt=300000;
-    D.letterAcc=(D.letterAcc||0)+dt;
-    var gap=Math.max(1,parseFloat(D.letterGap)||10)*60000;
-    while(D.letterAcc>=gap){
-      D.letterAcc-=gap;
-      var r=(D.letterRate!==undefined?D.letterRate:100);
-      if(Math.random()*100<r){ try{ pushLetterByHim(); }catch(e){} }
-    }
+    if(dt<0)dt=0; if(dt>60000)dt=60000;
+    yzEachChar(function(cid){
+      var m=yzPerCharAcc(cid,'letter',dt);
+      var gap=Math.max(1,parseFloat(D.letterGap)||10)*60000;
+      var guard=0;
+      while(m.letter>=gap && guard<3){
+        m.letter-=gap; guard++;
+        var r=(D.letterRate!==undefined?D.letterRate:100);
+        if(Math.random()*100<r){ try{ pushLetterByHim(); }catch(e){} }
+      }
+      if(m.letter>gap*3)m.letter=0;
+    });
   }catch(e){}
 }
 
