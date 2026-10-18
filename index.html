@@ -3072,16 +3072,16 @@ function yzPhRender(){
   body.innerHTML=h;
 }
 function yzPhHimName(){ try{ var id=D.phHimId||yzCurKaoCharId(); var ch=(D.charas||[]).find(function(c){return c.id===id;}); if(ch&&ch.nick)return ch.nick; }catch(e){} return D.nick||'他'; }
-function yzPhHimCard(){ try{ var id=yzCurKaoCharId(); if(typeof pickCardFor==='function')return pickCardFor(id); }catch(e){} return ''; }
+function yzPhHimCard(){ try{ var id=D.phHimId||yzCurKaoCharId(); if(typeof pickCardFor==='function')return pickCardFor(id); }catch(e){} return ''; }
 function yzPhRenderHim(body){
   var _hst=yzPhHimState(D.phHimId)||{pct:100,charging:false,power:true};
   var him=yzPhPct(_hst.pct===undefined?100:_hst.pct);
   if(!_hst.power){
     body.innerHTML='<div class="phoff" id="phOff">'
       +'<div class="phofflogo"></div>'
-      +'<div class="phofftxt">'+(D.nick||'他')+'的手机关机了</div>'
+      +'<div class="phofftxt">'+esc(yzPhHimName())+'的手机关机了</div>'
       +'<div class="phoffbtns">'
-      +'<div class="phbtn on" id="phHelpBtn" onclick="yzPhHelpCharge()">帮'+yzPhHimName()+'充电</div>'
+      +(_hst&&_hst.helped?'':'<div class="phbtn on" id="phHelpBtn" onclick="yzPhHelpCharge()">帮'+esc(yzPhHimName())+'充电</div>')
       +'<div class="phbtn" id="phLeaveBtn" onclick="yzPhLeave()">不管他，离开</div>'
       +'</div></div>';
     /* 关机动画：白屏→渐渐变黑屏→显示提示文字→3秒后弹出选项（每次进入只播一次） */
@@ -3121,14 +3121,15 @@ function yzPhHelpCharge(){
     yzPhInit();
     window.__yzOffPlayed=false;
     var _st=yzPhHimState(D.phHimId);
-    if(_st){ _st.power=true; _st.charging=true; _st.chgAcc=0; _st.chgTries=0; if((_st.pct||0)<5)_st.pct=5; }
-    save();
+    if(_st){ _st.power=true; _st.charging=true; _st.chgAcc=0; _st.chgTries=0; _st.helped=true; if((_st.pct||0)<5)_st.pct=5; }
+    try{ saveFlush(); }catch(e){ try{save();}catch(e2){} }
     yzPhRender();
     /* 道谢弹窗 */
     yzPhThanks();
   },2200);
 }
 function yzPhLeave(){
+  try{ var _s=yzPhHimState(D.phHimId); if(_s)_s.helped=false; save(); }catch(e){}
   go('home');
 }
 function yzPhThanks(){
@@ -4398,7 +4399,7 @@ function yzBuildPlan(opt){
   var _fixedN=(opt&&opt.count)?Math.max(1,parseInt(opt.count)||1):0;
   if(_fixedN){ _minN=_fixedN; _maxN=_fixedN; }
   function _roll(pr){ if(!(pr>0))return false; if(pr>=100)return true; return Math.random()*100<pr; }
-  function _mkMain(){ var t=pickMultiCardsFor(_cid); return t?{kind:'main',text:yzMaybeMixEmoji(t,_cid)}:null; }
+  function _mkMain(){ var t=pickMultiCardsFor(_cid); return t?{kind:'main',text:t}:null; }
   function _mkPack(){ return _packs.length?{kind:'img',src:_packs[Math.floor(Math.random()*_packs.length)]}:null; }
   function _mkKao(){ return _kaoPool.length?{kind:'kao',text:_kaoPool[Math.floor(Math.random()*_kaoPool.length)]}:null; }
   function _mkVoice(){ var t=pickMultiCardsFor(_cid); return t?{kind:'voice',text:t,sec:1+Math.floor(Math.random()*10)}:null; }
@@ -4417,6 +4418,23 @@ function yzBuildPlan(opt){
     var k=_minN+Math.floor(Math.random()*(_maxN-_minN+1));
     if(k>n)k=n;
     for(var _i=0;_i<k;_i++){ var mm=_mkMain(); if(mm){ plan.push(mm); used++; } }
+    /* emoji 混入：整轮只掷一次，命中时随机抽其中一条主字卡混入 */
+    try{
+      if(parseInt(D.emojiMix)||0){
+        var _emP=parseFloat(D.emojiMixRate); if(isNaN(_emP))_emP=30;
+        if(_roll(_emP)){
+          var _pool2=[]; for(var _q=0;_q<plan.length;_q++){ if(plan[_q].kind==='main')_pool2.push(_q); }
+          if(_pool2.length){
+            var _pi=_pool2[Math.floor(Math.random()*_pool2.length)];
+            var _ep=yzEmojiPoolFor(_cid);
+            if(_ep&&_ep.length){
+              var _ee2=_ep[Math.floor(Math.random()*_ep.length)];
+              plan[_pi].text=(Math.random()<0.5)?(_ee2+plan[_pi].text):(plan[_pi].text+_ee2);
+            }
+          }
+        }
+      }
+    }catch(e){}
   }
   var _rest=n-used;
   if(_rest>0){
