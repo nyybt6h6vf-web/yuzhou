@@ -2286,6 +2286,7 @@ function yzConvTitle(cv){
   return ch?ch.nick:'他';
 }
 function yzOpenConv(id){
+  try{ window.__yzWinStart=0; window.__yzLastRk=''; }catch(e){}
   D.curConv=id;
   _yzBindMsgs(D);
   var cv=yzCurConv();
@@ -3751,6 +3752,19 @@ function bubbleHTML(m,i){
   return `<div class="bubble">${esc(m.text)}</div>`;
 }
 /* 群聊/连发时多条消息同时到达：合并 40ms 内的重绘，只画一次 */
+/* 加载更早的消息：多渲染 150 条 */
+function yzLoadMoreMsgs(){
+  try{
+    var body=document.getElementById('chatBody');
+    var h=body?body.scrollHeight:0;
+    var top=body?body.scrollTop:0;
+    window.__yzWinStart=(window.__yzWinStart||0)+150;
+    window.__yzLastRk='';
+    renderChat();
+    /* 保持视觉位置，不跳到底 */
+    if(body){ body.scrollTop=body.scrollHeight-h+top; }
+  }catch(e){}
+}
 function yzRenderChatSoon(){
   try{
     if(window.__yzRcT)return;
@@ -3768,7 +3782,17 @@ function renderChat(){
   if(cf){const t=curFeeling();cf.textContent=t||'';cf.style.display=t?'':'none';}
   if(!D.msgs.length){b.innerHTML='';}
   var _yzSessMs=D._yzChatEnterMs||yzNowMs();
-  D.msgs.forEach((m,i)=>{ try{
+  /* 窗口化渲染：只画最近 N 条，避免几千条 DOM 拖死滑动 */
+  var _winN=150;
+  var _winStart=0;
+  try{ _winStart=window.__yzWinStart||0; }catch(e){ _winStart=0; }
+  var _total=(D.msgs||[]).length;
+  var _from=_total-_winN-_winStart;
+  if(_from<0)_from=0;
+  if(_from>0){
+    try{ b.insertAdjacentHTML('beforeend','<div class="yz-loadmore" onclick="yzLoadMoreMsgs()" style="text-align:center;padding:14px 0;font-size:12.5px;color:var(--accent,#859ecb);cursor:pointer">加载更早的消息（还有 '+_from+' 条）</div>'); }catch(e){}
+  }
+  D.msgs.slice(_from).forEach((m,_wi)=>{ var i=_from+_wi; try{
     /* 时间戳：已作为真实消息存在记录里，永久保留 */
     if(m&&m.type==='sept'){ b.insertAdjacentHTML('beforeend',yzStampHtml(yzMsOf(m,_yzSessMs))); return; }
     if(m.type==='sys'){b.insertAdjacentHTML('beforeend',`<div class="sys">${esc(m.text)}</div>`);return;}
@@ -3807,9 +3831,8 @@ function renderChat(){
     }
     b.insertAdjacentHTML('beforeend',`<div class="msg ${me?'me':'him'}${(!me&&m.auto)?' yz-auto':''}" data-mi="${i}">${(!me&&m.auto)?'<span class="auto-dot"></span>':''}${avHTML(me?'me':'him',m.who)}<div class="bubwrap">${nameHtml}${quoteHtml}${bubbleHTML(m,i)}${readHtml}${himStamp}${meStamp}</div></div>`);
   }catch(_e){} });
-  if(D.typingOn&&D._typing&&$('#chat').classList.contains('active')){
-    b.insertAdjacentHTML('beforeend',`<div class="typing-ind"><span>对方正在输入中</span><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div>`);
-  }
+  /* typing 指示器由 setTyping() 单独增删，不在这里重建 */
+  try{ if(D.typingOn!==false && D._typing && $('#chat').classList.contains('active')){ if(!b.querySelector('.typing-ind')){ b.insertAdjacentHTML('beforeend','<div class="typing-ind"><span>对方正在输入中</span><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div>'); } } }catch(e){}
   bindTranTaps();
   window.__applyBubbleInline&&window.__applyBubbleInline();
   try{ var _hb=document.getElementById('holdBtn'); if(_hb)_hb.classList.toggle('on',!!D.sendHold); }catch(e){}
@@ -3834,7 +3857,7 @@ function yzPushInto(arr,m,isCurrent,convId){
     } }catch(e){}
   }catch(e){}
 }
-function push(m){try{if(m&&!m._dms)m._dms=Date.now();}catch(e){}try{if(window.__yzStampArmed&&m&&m.type!=='sept'){D.msgs.push({type:'sept',_dms:Date.now()});window.__yzStampArmed=false;}}catch(e){}try{if(m&&m.from==='him'&&m.type!=='sept'&&(window.__yzActiveMsg||(window.__yzActiveMsgUntil&&Date.now()<window.__yzActiveMsgUntil))){m.auto=true;}}catch(e){}D.msgs.push(m);try{if(m&&(m.from==='me'||m.from==='him')&&!m.auto){D.lastChatTs=Date.now();}}catch(e){}saveSoon();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}var _chAct=$('#chat').classList.contains('active');if(_chAct){yzRenderChatSoon();scrollBottom();}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40),!_chAct);}}catch(e){}try{if(m&&m.from==='him'&&!$('#chat').classList.contains('active')){scheduleHomeBadges();var _tt=(m.type==='img')?'[表情]':(m.type==='voice'?('[语音]'+(m.text||'')):(m.type==='transfer'?('[转账] ¥'+(m.amt||'')):(m.type==='pat'?(m.text||'拍一拍'):(m.text||''))));try{ var _pv='';try{var _pc=(D.charas||[]).find(function(x){return x.id===((yzCurConv()||{}).charas||[])[0];});if(_pc)_pv=_pc.avatar||'';}catch(e2){} if(!_pv)_pv=D.avatarHim||''; yzTopNotice((D.nick||'他'),_tt,function(){ try{ yzOpenConv((yzCurConv()||{}).id); }catch(e){} },3000,_pv); }catch(e){}}}catch(e){}}
+function push(m){try{if(m&&!m._dms)m._dms=Date.now();}catch(e){}try{if(window.__yzStampArmed&&m&&m.type!=='sept'){D.msgs.push({type:'sept',_dms:Date.now()});window.__yzStampArmed=false;}}catch(e){}try{if(m&&m.from==='him'&&m.type!=='sept'&&(window.__yzActiveMsg||(window.__yzActiveMsgUntil&&Date.now()<window.__yzActiveMsgUntil))){m.auto=true;}}catch(e){}D.msgs.push(m);try{if(m&&(m.from==='me'||m.from==='him')&&!m.auto){D.lastChatTs=Date.now();}}catch(e){}saveSoon();try{if(m&&m.from==='me'&&(m.type===undefined||m.type==='text')&&m.text){yzFavTry('msg',m,m._t||'','favMsgRate');}}catch(e){}var _chAct=$('#chat').classList.contains('active');if(_chAct){if(m&&m.from==='me'){renderChat();scrollBottom();}else{yzRenderChatSoon();scrollBottom();}}try{if(m&&m.from==='him'){var _t=(m.type==='img')?'[表情]':(m.text||'');yzNotify((D.nick||'他'),_t.slice(0,40),!_chAct);}}catch(e){}try{if(m&&m.from==='him'&&!$('#chat').classList.contains('active')){scheduleHomeBadges();var _tt=(m.type==='img')?'[表情]':(m.type==='voice'?('[语音]'+(m.text||'')):(m.type==='transfer'?('[转账] ¥'+(m.amt||'')):(m.type==='pat'?(m.text||'拍一拍'):(m.text||''))));try{ var _pv='';try{var _pc=(D.charas||[]).find(function(x){return x.id===((yzCurConv()||{}).charas||[])[0];});if(_pc)_pv=_pc.avatar||'';}catch(e2){} if(!_pv)_pv=D.avatarHim||''; yzTopNotice((D.nick||'他'),_tt,function(){ try{ yzOpenConv((yzCurConv()||{}).id); }catch(e){} },3000,_pv); }catch(e){}}}catch(e){}}
 function jumpMsg(i){
   const list=document.querySelectorAll('#chatBody .msg');
   const el=list[i];if(!el)return;
@@ -3935,7 +3958,20 @@ window.yzNowMs=yzNowMs;window.yzFmtStamp=yzFmtStamp;window.yzMsOf=yzMsOf;window.
 function clockStr(){const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());}
 function setTyping(on){
   D._typing=on;
-  if($('#chat').classList.contains('active')){renderChat();scrollBottom();}
+  try{
+    var ch=$('#chat'); if(!ch||!ch.classList.contains('active'))return;
+    var body=document.getElementById('chatBody'); if(!body)return;
+    if(on){
+      if(D.typingOn===false)return;
+      if(!body.querySelector('.typing-ind')){
+        body.insertAdjacentHTML('beforeend','<div class="typing-ind"><span>对方正在输入中</span><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div>');
+        scrollBottom();
+      }
+    }else{
+      var el=body.querySelector('.typing-ind');
+      if(el)el.remove();
+    }
+  }catch(e){}
 }
 function markRead(){
   D.msgs.forEach(m=>{if(m.from==='me'&&m._t)m._read=true;});
@@ -4235,9 +4271,9 @@ function respondGroup(cv){
   });
   _all.forEach(function(it,idx){
     if(idx===_all.length-1){
-      setTimeout(function(){ setTyping(false); markRead(); himSayFor(it.pid,{count:it.cnt}); },it.t);
+      setTimeout(function(){ setTyping(false); markRead(); himSayFor(it.pid,{count:it.cnt,noDelay:true}); },it.t);
     }else{
-      setTimeout(function(){ himSayFor(it.pid,{count:it.cnt}); },it.t);
+      setTimeout(function(){ himSayFor(it.pid,{count:it.cnt,noDelay:true}); },it.t);
     }
   });
 }
@@ -4326,6 +4362,8 @@ function himSayFor(who,opt){
   var _cid=(opt&&opt.cid)?opt.cid:(who||null);
   var delay=replyDelayMs();
   var gap=sendGapMs();
+  /* 群聊已在外层排好时间（noDelay），内部不再重复等一次 */
+  if(opt&&opt.noDelay){ delay=0; }
   var plan=yzBuildPlan({cid:_cid,count:(opt&&opt.count)?opt.count:0});
   /* 指定条数时，严格截断到该条数，绝不多发 */
   if(opt&&opt.count){ var _lim=Math.max(1,parseInt(opt.count)||1); if(plan.length>_lim)plan=plan.slice(0,_lim); }
@@ -9549,7 +9587,71 @@ function updateHomeAvatar(){
   const cf=$('#chatFeeling');
   if(cf){const t=curFeeling();cf.textContent=t||'';cf.style.display=t?'':'none';}
 }
-function clearChat(){askConfirm('清空聊天记录？',function(){D.msgs=[];save();renderChat();});}
+/* 清空聊天记录：弹出现有会话，多选后删除选中会话的记录 */
+function clearChat(){ openClearChatSheet(); }
+var _yzClearSel={};
+function openClearChatSheet(){
+  try{
+    _yzClearSel={};
+    var el=document.getElementById('yzClearSheet');
+    if(!el){
+      el=document.createElement('div');
+      el.id='yzClearSheet'; el.className='sheet';
+      el.onclick=function(e){ if(e.target===el)closeSheet2('yzClearSheet'); };
+      document.body.appendChild(el);
+    }
+    var h='<div class="cdial" style="max-height:70vh;overflow:auto">'
+      +'<div style="font-size:16px;font-weight:700;text-align:center;margin-bottom:4px">清空聊天记录</div>'
+      +'<div style="font-size:12px;color:var(--sub);text-align:center;margin-bottom:12px">选择要清空的会话（可多选）</div>'
+      +'<div id="yzClearList"></div>'
+      +'<div class="gb" onclick="yzClearChatDo()" style="margin-top:12px">删除所选</div>'
+      +'<div class="gb cancel" onclick="closeSheet2(\'yzClearSheet\')">取消</div>'
+      +'</div>';
+    el.innerHTML=h;
+    var list=(D.convs||[]).slice();
+    var box=document.getElementById('yzClearList');
+    if(!list.length){ box.innerHTML='<div style="text-align:center;color:var(--sub);padding:20px 0">还没有会话</div>'; }
+    else{
+      list.forEach(function(cv){
+        var t=yzConvTitle(cv);
+        var n=(cv.msgs||[]).length;
+        box.insertAdjacentHTML('beforeend',
+          '<label class="gitem" style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)">'+
+          '<input type="checkbox" data-cid="'+cv.id+'" onchange="yzClearToggle(this)" style="width:18px;height:18px">'+
+          '<span style="flex:1;font-size:14px">'+esc(t)+'</span>'+
+          '<span style="font-size:12px;color:var(--sub)">'+n+' 条</span>'+
+          '</label>');
+      });
+    }
+    openSheet2('yzClearSheet');
+  }catch(e){}
+}
+function yzClearToggle(cb){
+  try{
+    var cid=cb.getAttribute('data-cid');
+    if(cb.checked)_yzClearSel[cid]=1; else delete _yzClearSel[cid];
+  }catch(e){}
+}
+function yzClearChatDo(){
+  try{
+    var ids=Object.keys(_yzClearSel||{});
+    if(!ids.length){ toast('先选要清空的会话'); return; }
+    askConfirm('清空选中的 '+ids.length+' 个会话的聊天记录？',function(){
+      try{
+        ids.forEach(function(cid){
+          var cv=(D.convs||[]).find(function(c){return String(c.id)===String(cid);});
+          if(cv){ cv.msgs=[]; }
+          if(String(D.curConv)===String(cid)){ D.msgs=[]; }
+        });
+        save();
+        closeSheet2('yzClearSheet');
+        try{ renderChatList(); }catch(e){}
+        try{ renderChat(); }catch(e){}
+        toast('已清空所选会话');
+      }catch(e){}
+    });
+  }catch(e){}
+}
 var _promptCancelCb=null;
 function askConfirm(msg,cb,onCancel){_promptCb=function(){cb&&cb();};_promptCancelCb=(onCancel&&typeof onCancel==='function')?onCancel:null;$('#promptTitle').textContent=msg;_setPromptDesc('');$('#promptInput').style.display='none';$('#promptInput').classList.remove('multi');openSheet2('promptSheet');}
 function promptCancel(){ var _c=_promptCancelCb; _promptCancelCb=null; closeSheet2('promptSheet'); try{ if(_c)_c(); }catch(e){} }
