@@ -1622,38 +1622,12 @@ svg [fill="currentColor"]{stroke:none;}
     <div class="list">
       <div style="padding:4px 16px 10px" id="yzSetCharaTabs"></div>
       <div class="group">
-        <h4>美化</h4>
-        <div class="row"><div class="lab">网站图标</div><div class="chip" onclick="pickFavicon()">选择图片</div></div>
-        <div class="row"><div class="lab">强调色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setAccentColor" oninput="setAccent(this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setAccent('')">清</div></div></div>
-<div class="row"><div class="lab">头像形状</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" id="avShapeRound" onclick="setAvatarShape('round')">圆角</div><div class="chip" id="avShapeSquare" onclick="setAvatarShape('square')">方形</div></div></div>
-        <div class="row"><div class="lab">主题模式</div>
-          <div class="seg">
-            <div class="chip" id="thLight" onclick="setTheme('light')">浅色</div>
-            <div class="chip" id="thDark" onclick="setTheme('dark')">深色</div>
-          </div>
-        </div>
-        <div class="row"><div class="lab">浅/深色跟随系统</div><div class="chip" id="themeAutoChip" onclick="toggleThemeAuto()">关闭</div></div>
-        <div class="row"><div class="lab">锁屏名称</div><input type="text" id="setLockName" oninput="saveBeauty()" placeholder="留空则不显示"></div>
-<div class="row"><div class="lab">锁屏背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('lockBg')">上传图</div><div class="chip" onclick="setColor('lockBg','')">清</div></div></div>
-<div class="row"><div class="lab">梦角信封背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('himLetterBg')">上传图</div><div class="chip" onclick="setColor('himLetterBg','')">清</div></div></div>
-<div class="row"><div class="lab">我的信封背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('meLetterBg')">上传图</div><div class="chip" onclick="setColor('meLetterBg','')">清</div></div></div>
-<div class="row"><div class="lab">锁屏字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('lockFg','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('lockFg','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setLockFgColor" oninput="setColor('lockFg',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('lockFg','')">清</div></div></div>
-<div class="row"><div class="lab">主页签名</div><input type="text" id="setSlogan" oninput="saveBeauty()" placeholder="头像右侧那行字，留空则不显示"></div>
-<div class="row"><div class="lab">页面背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('pageBg')">上传图</div><div class="chip" onclick="setColor('pageBg','')">清</div></div></div>
-<div class="row"><div class="lab">第二页背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('page2Bg')">上传图</div><div class="chip" onclick="setColor('page2Bg','')">清</div></div></div>
-<div class="row"><div class="lab">聊天背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('chatBg')">上传图</div><div class="chip" onclick="setColor('chatBg','')">清</div></div></div>
-<div class="row"><div class="lab">转账字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('fontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('fontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setFontColorColor" oninput="setColor('fontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fontColor','')">清</div></div></div>
-<div class="row"><div class="lab">梦角气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleHim','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleHim','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleHimColor" oninput="setColor('bubbleHim',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleHim','')">清</div></div></div>
-<div class="row"><div class="lab">我方气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleMe','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleMe','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleMeColor" oninput="setColor('bubbleMe',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleMe','')">清</div></div></div>
-<div class="row"><div class="lab">转账卡片色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setTranColor" oninput="setColor('tranColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('tranColor','')">清</div></div></div>
-<div class="row"><div class="lab">梦角消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('himFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('himFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setHimFontColorColor" oninput="setColor('himFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('himFontColor','')">清</div></div></div>
-<div class="row"><div class="lab">我的消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('meFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('meFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setMeFontColorColor" oninput="setColor('meFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('meFontColor','')">清</div></div></div>
-<div class="row"><div class="lab">气泡大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setBubbleSize" min="80" max="140" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="bubbleSizeVal" style="min-width:38px;text-align:right">100%</span></div></div>
-<div class="row"><div class="lab">聊天字体大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setChatFontSize" min="11" max="22" step="1" value="14" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="chatFontSizeVal" style="min-width:38px;text-align:right">14px</span></div></div>
-<div class="row"><div class="lab">转账卡片大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setTranSize" min="80" max="150" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="tranSizeVal" style="min-width:38px;text-align:right">100%</span></div></div>
-<div class="row"><div class="lab">动态背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('momBg')">上传图</div><div class="chip" onclick="setColor('momBg','')">清</div></div></div>
-<div class="row"><div class="lab">测一测背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('fingerBg')">上传图</div><input type="color" id="setFingerBgColor" oninput="setColor('fingerBg',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fingerBg','')">清</div></div></div>
-        <div class="row" style="flex-direction:column;align-items:stretch">
+        <h4>设置各功能背景</h4>
+<div class="row"><div class="lab">网站图标</div><div class="chip" onclick="pickFavicon()">选择图片</div></div><div class="row"><div class="lab">梦角信封背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('himLetterBg')">上传图</div><div class="chip" onclick="setColor('himLetterBg','')">清</div></div></div><div class="row"><div class="lab">我的信封背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('meLetterBg')">上传图</div><div class="chip" onclick="setColor('meLetterBg','')">清</div></div></div><div class="row"><div class="lab">页面背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('pageBg')">上传图</div><div class="chip" onclick="setColor('pageBg','')">清</div></div></div><div class="row"><div class="lab">第二页背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('page2Bg')">上传图</div><div class="chip" onclick="setColor('page2Bg','')">清</div></div></div><div class="row"><div class="lab">聊天背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('chatBg')">上传图</div><div class="chip" onclick="setColor('chatBg','')">清</div></div></div><div class="row"><div class="lab">动态背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('momBg')">上传图</div><div class="chip" onclick="setColor('momBg','')">清</div></div></div><div class="row"><div class="lab">测一测背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('fingerBg')">上传图</div><input type="color" id="setFingerBgColor" oninput="setColor('fingerBg',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fingerBg','')">清</div></div></div>
+<h4>锁屏</h4>
+<div class="row"><div class="lab">锁屏名称</div><input type="text" id="setLockName" oninput="saveBeauty()" placeholder="留空则不显示"></div><div class="row"><div class="lab">锁屏背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('lockBg')">上传图</div><div class="chip" onclick="setColor('lockBg','')">清</div></div></div><div class="row"><div class="lab">锁屏字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('lockFg','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('lockFg','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setLockFgColor" oninput="setColor('lockFg',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('lockFg','')">清</div></div></div>
+<h4>各美化设置</h4>
+<div class="row"><div class="lab">强调色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setAccentColor" oninput="setAccent(this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setAccent('')">清</div></div></div><div class="row"><div class="lab">转账字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('fontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('fontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setFontColorColor" oninput="setColor('fontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fontColor','')">清</div></div></div><div class="row"><div class="lab">梦角气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleHim','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleHim','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleHimColor" oninput="setColor('bubbleHim',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleHim','')">清</div></div></div><div class="row"><div class="lab">我方气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleMe','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleMe','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleMeColor" oninput="setColor('bubbleMe',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleMe','')">清</div></div></div><div class="row" style="flex-direction:column;align-items:stretch">
           <div class="lab" style="margin-bottom:8px">气泡 CSS（.msg .bubble 通用，写一条两边都生效）</div>
           <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty();yzPreviewBubbleDebounced();"></textarea>
           <div class="lab" style="margin-top:12px;margin-bottom:6px">预览</div>
@@ -1661,10 +1635,14 @@ svg [fill="currentColor"]{stroke:none;}
             <div class="msg him" style="display:flex"><div class="bubble">梦角消息示例</div></div>
             <div class="msg me" style="display:flex"><div class="bubble">我的消息示例</div></div>
           </div>
-        </div>
-        <div class="row"><div class="lab">保存当前美化方案</div><div class="chip" id="beautySaveBtn" onclick="yzBeautySave()">保存</div></div>
-        <div id="beautySlots" style="display:flex;flex-direction:column;gap:8px;margin-top:6px"></div>
-      </div>
+        </div><div class="row"><div class="lab">气泡大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setBubbleSize" min="80" max="140" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="bubbleSizeVal" style="min-width:38px;text-align:right">100%</span></div></div><div class="row"><div class="lab">聊天字体大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setChatFontSize" min="11" max="22" step="1" value="14" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="chatFontSizeVal" style="min-width:38px;text-align:right">14px</span></div></div><div class="row"><div class="lab">转账卡片大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setTranSize" min="80" max="150" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="tranSizeVal" style="min-width:38px;text-align:right">100%</span></div></div><div class="row"><div class="lab">转账卡片色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setTranColor" oninput="setColor('tranColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('tranColor','')">清</div></div></div><div class="row"><div class="lab">梦角消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('himFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('himFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setHimFontColorColor" oninput="setColor('himFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('himFontColor','')">清</div></div></div><div class="row"><div class="lab">我的消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('meFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('meFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setMeFontColorColor" oninput="setColor('meFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('meFontColor','')">清</div></div></div>
+<h4>显示与方案</h4>
+<div class="row"><div class="lab">头像形状</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" id="avShapeRound" onclick="setAvatarShape('round')">圆角</div><div class="chip" id="avShapeSquare" onclick="setAvatarShape('square')">方形</div></div></div><div class="row"><div class="lab">主题模式</div>
+          <div class="seg">
+            <div class="chip" id="thLight" onclick="setTheme('light')">浅色</div>
+            <div class="chip" id="thDark" onclick="setTheme('dark')">深色</div>
+          </div>
+        </div><div class="row"><div class="lab">浅/深色跟随系统</div><div class="chip" id="themeAutoChip" onclick="toggleThemeAuto()">关闭</div></div><div class="row"><div class="lab">主页签名</div><input type="text" id="setSlogan" oninput="saveBeauty()" placeholder="头像右侧那行字，留空则不显示"></div><div class="row"><div class="lab">保存当前美化方案</div><div class="chip" id="beautySaveBtn" onclick="yzBeautySave()">保存</div></div></div>
       <div class="group">
         <h4>身份</h4>
         <div class="row"><div class="lab">主页展示梦角</div><div class="chip" id="homeCharaChip" onclick="yzPickHomeChara()">选择</div></div>
@@ -3856,7 +3834,7 @@ var YZ_SET_ORDER=['回复设置','聊天显示','通话','转账','代付','送�
 /* 两个大入口：大名字 → 里面包含的小组（只是重新归类展示，设置内容一行不动） */
 var YZ_SET_HUBS=[
   {name:'聊天小功能',subs:['聊天显示','通话','转账','代付','送东西']},
-  {name:'互动小功能',subs:['一起听','来信','日记','动态','心情库','拍一拍','小手机与电量','主动消息与通知']}
+  {name:'互动小功能',subs:['一起听','来信','日记','动态','心情库','拍一拍','小手机与电量']}
 ];
 function yzSetHubOf(sub){
   for(var i=0;i<YZ_SET_HUBS.length;i++){ if(YZ_SET_HUBS[i].subs.indexOf(sub)>=0)return YZ_SET_HUBS[i].name; }
@@ -3910,19 +3888,46 @@ function yzBuildSetGroups(){
         var row=document.createElement('div'); row.className='row';
         row.innerHTML='<div class="lab">'+name+'</div><div class="chip">›</div>';
         row.onclick=function(){ yzOpenSetSub(name); };
-        var entry=document.createElement('div'); entry.className='group'; entry.appendChild(row);
+        var entry=document.createElement('div'); entry.className='group'; entry.setAttribute('data-topentry','1'); entry.appendChild(row);
         wrap.appendChild(entry);
       }else if(!hubEntries[hub]){ hubEntries[hub]=1; }
     });
+    /* 独立入口：主动消息与通知（放在存储上方） */
+    try{
+      if(buckets['主动消息与通知']&&buckets['主动消息与通知'].length&&!hubEntries['__proactive']){
+        hubEntries['__proactive']=1;
+        var _prow=document.createElement('div'); _prow.className='row';
+        _prow.innerHTML='<div class="lab">主动消息与通知</div><div class="chip">›</div>';
+        _prow.onclick=function(){ yzOpenSetSub('主动消息与通知'); };
+        var _pentry=document.createElement('div'); _pentry.className='group'; _pentry.id='yzSetProactiveEntry'; _pentry.appendChild(_prow);
+        /* 插到存储组的前面 */
+        var _all=[].slice.call(wrap.querySelectorAll('.group'));
+        var _st=null;
+        _all.forEach(function(gg){ var hh2=gg.querySelector('h4'); if(hh2&&hh2.textContent.trim()==='存储')_st=gg; });
+        if(_st)wrap.insertBefore(_pentry,_st); else wrap.appendChild(_pentry);
+      }
+    }catch(e){}
     /* 两个大入口（带 ›，点进去是分组页面） */
     YZ_SET_HUBS.forEach(function(h){
       if(!hubEntries[h.name])return;
       var row=document.createElement('div'); row.className='row';
       row.innerHTML='<div class="lab">'+h.name+'</div><div class="chip">›</div>';
       row.onclick=function(){ yzOpenSetHub(h.name); };
-      var entry=document.createElement('div'); entry.className='group'; entry.appendChild(row);
+      var entry=document.createElement('div'); entry.className='group'; entry.setAttribute('data-topentry','1'); entry.appendChild(row);
       wrap.appendChild(entry);
     });
+    /* 把“回复设置/聊天小功能/互动小功能”整体移到“进入密码”组后面 */
+    try{
+      var _tops=[].slice.call(wrap.querySelectorAll('.group[data-topentry="1"]'));
+      var _pw=null;
+      [].slice.call(wrap.querySelectorAll('.group')).forEach(function(gg){
+        var hh3=gg.querySelector('h4'); if(hh3&&hh3.textContent.trim()==='进入密码')_pw=gg;
+      });
+      if(_pw&&_tops.length){
+        var _anchor=_pw;
+        _tops.forEach(function(e2){ wrap.insertBefore(e2,_anchor.nextSibling); _anchor=e2; });
+      }
+    }catch(e){}
   }catch(e){}
 }
 function yzPhCondRows(){
