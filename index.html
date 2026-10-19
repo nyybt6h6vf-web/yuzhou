@@ -100,6 +100,10 @@ body.perf-lite .cbtn.yes,body.perf-lite .gmk-startbtn,body.perf-lite .ttt-startb
 svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
 svg [fill="currentColor"]{stroke:none;}
 .app span{font-size:11.5px;color:var(--text);opacity:.82;}
+.app .foldericon{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3px;padding:6px;box-sizing:border-box;}
+.app .foldericon .foldermini{width:100%;height:100%;border-radius:7px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.55);overflow:hidden;}
+[data-theme="dark"] .app .foldericon .foldermini{background:rgba(255,255,255,.10);}
+.app .foldericon .foldermini svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
 .j1{background:var(--icon-bg);color:var(--icon-fg);}
 .j2{background:var(--icon-bg);color:var(--icon-fg);}
 .j3{background:var(--icon-bg);color:var(--icon-fg);}
@@ -2143,18 +2147,20 @@ const ICONS={
 };
 function yzi(name,size){ try{ var sv=ICONS[name]||''; if(!sv)return ''; var at=size?('width="'+size+'" height="'+size+'" '):''; return sv.replace('<svg ', '<svg '+at+'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" '); }catch(e){ return ''; } }
 const HOME_APPS=[
- {act:'chatlist',ic:'chat',name:'聊天'},
- {act:'listen',ic:'listen',name:'一起听'},
+ {act:'chatlist',ic:'chat',name:'简讯'},
+ {act:'listen',ic:'listen',name:'网易云音乐'},
  {act:'moments',ic:'moment',name:'动态'},
  {act:'cards',ic:'cards',name:'字卡库'},
  {act:'letters',ic:'letter',name:'来信'},
- {act:'together',ic:'together',name:'在一起'},
+ {act:'together',ic:'together',name:'倒数日'},
  {act:'packs',ic:'album',name:'表情包'},
  {act:'diary',ic:'diary',name:'日记'},
  {act:'period',ic:'period',name:'经期'},
  {act:'shop',ic:'shop',name:'商城'},
- {act:'gomoku',ic:'gomoku',name:'五子棋'},
- {act:'ttt',ic:'ttt',name:'井字棋'},
+ {act:'folder:games',ic:'folder',name:'小游戏',folder:true,apps:[
+   {act:'gomoku',ic:'gomoku',name:'五子棋'},
+   {act:'ttt',ic:'ttt',name:'井字棋'}
+ ]},
  {act:'phony',ic:'phone',name:'小手机'},
  {act:'settings',ic:'tree',name:'设置'}
 ];
@@ -3629,6 +3635,45 @@ function yzBadgeHtml(n){
   return '<span class="yz-badge">'+(n>99?'99+':n)+'</span>';
 }
 function scheduleHomeBadges(){ try{ if(window.__yzHomeBadgeT)clearTimeout(window.__yzHomeBadgeT); window.__yzHomeBadgeT=setTimeout(function(){ window.__yzHomeBadgeT=null; try{ _renderHomeNow(); }catch(e){} },200); }catch(e){} }
+function yzOpenFolder(act){
+  try{
+    var key=String(act||'').replace('folder:','');
+    var f=(HOME_APPS||[]).filter(function(a){return a&&a.folder&&String(a.act)==='folder:'+key;})[0];
+    if(!f)return;
+    var OLD=document.getElementById('yzFolder');
+    if(OLD&&OLD.parentNode)OLD.parentNode.removeChild(OLD);
+    var el=document.createElement('div');
+    el.id='yzFolder';
+    el.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;z-index:9990;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.34);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);';
+    el.onclick=function(e){ if(e.target===el)yzCloseFolder(); };
+    var box=document.createElement('div');
+    box.style.cssText='width:100%;max-width:330px;background:var(--panel,rgba(255,255,255,.82));border-radius:28px;padding:22px 18px 26px;box-shadow:0 20px 60px rgba(0,0,0,.28);';
+    var tt=document.createElement('div');
+    tt.style.cssText='text-align:center;font-size:15px;font-weight:700;margin-bottom:16px;color:var(--text,#111);';
+    tt.textContent=(f.name||'文件夹');
+    box.appendChild(tt);
+    var grid=document.createElement('div');
+    grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:16px 8px;';
+    (f.apps||[]).forEach(function(a){
+      var cell=document.createElement('div');
+      cell.style.cssText='text-align:center;cursor:pointer;';
+      var ic=document.createElement('div');
+      ic.style.cssText='width:58px;height:58px;margin:0 auto 6px;border-radius:17px;display:flex;align-items:center;justify-content:center;background:var(--icon-bg,rgba(0,0,0,.06));color:var(--text,#111);';
+      ic.innerHTML=(ICONS[a.ic]||'');
+      var nm=document.createElement('div');
+      nm.style.cssText='font-size:11px;color:var(--text,#111);line-height:1.2;';
+      nm.textContent=(a.name||'');
+      cell.appendChild(ic); cell.appendChild(nm);
+      cell.onclick=function(ev){ ev.stopPropagation(); yzCloseFolder(); try{ go(a.act); }catch(e){} };
+      grid.appendChild(cell);
+    });
+    box.appendChild(grid);
+    el.appendChild(box);
+    document.body.appendChild(el);
+    requestAnimationFrame(function(){ el.style.opacity='1'; });
+  }catch(e){}
+}
+function yzCloseFolder(){ try{ var el=document.getElementById('yzFolder'); if(el&&el.parentNode)el.parentNode.removeChild(el); }catch(e){} }
 function renderHome(){ _renderHomeNow(); }
 function _renderHomeNow(){
   const dock=$('#homeDock'),g=$('#homeGrid');
@@ -3639,6 +3684,10 @@ function _renderHomeNow(){
     dock.insertAdjacentHTML('beforeend',`<div class="app" data-act="${a.act}" onclick="go('${a.act}')" ontouchstart="yzAppPress('${a.act}',event)" oncontextmenu="return yzAppLong('${a.act}',event)"><div class="icon">${yzIconHtml(a)}</div><span>${a.name}</span></div>`);
   });}
   if(g){g.innerHTML='';rest.forEach(a=>{
+    if(a.folder){
+      g.insertAdjacentHTML('beforeend',`<div class="app appfolder" data-act="${a.act}" onclick="yzOpenFolder('${a.act}')"><div class="icon foldericon">${(a.apps||[]).slice(0,4).map(x=>'<div class="foldermini">'+(ICONS[x.ic]||'')+'</div>').join('')}</div><span>${a.name}</span></div>`);
+      return;
+    }
     g.insertAdjacentHTML('beforeend',`<div class="app" data-act="${a.act}" onclick="go('${a.act}')" ontouchstart="yzAppPress('${a.act}',event)" oncontextmenu="return yzAppLong('${a.act}',event)"><div class="icon">${yzIconHtml(a)}</div><span>${a.name}</span></div>`);
   });}
   const sl=$('#homeSlogan'),ln=$('#lockName');
@@ -3804,6 +3853,15 @@ var YZ_SET_MAP={
 };
 /* 分类展示顺序 */
 var YZ_SET_ORDER=['回复设置','聊天显示','通话','转账','代付','送东西','一起听','来信','日记','动态','心情库','拍一拍','小手机与电量','主动消息与通知'];
+/* 两个大入口：大名字 → 里面包含的小组（只是重新归类展示，设置内容一行不动） */
+var YZ_SET_HUBS=[
+  {name:'聊天小功能',subs:['聊天显示','通话','转账','代付','送东西']},
+  {name:'互动小功能',subs:['一起听','来信','日记','动态','心情库','拍一拍','小手机与电量','主动消息与通知']}
+];
+function yzSetHubOf(sub){
+  for(var i=0;i<YZ_SET_HUBS.length;i++){ if(YZ_SET_HUBS[i].subs.indexOf(sub)>=0)return YZ_SET_HUBS[i].name; }
+  return '';
+}
 var _yzSetMoved=false;
 function yzRowGroupKey(r){
   try{
@@ -3838,16 +3896,30 @@ function yzBuildSetGroups(){
       /* 该组已无内容行 → 删掉 */
       if(!g.querySelector('.row')) try{ g.parentNode.removeChild(g); }catch(e){}
     });
-    /* 生成子界面组 + 主页入口 */
+    /* 生成子界面组（带归属大入口标记） */
+    var hubEntries={};
     YZ_SET_ORDER.forEach(function(name){
       var rows=buckets[name]; if(!rows||!rows.length)return;
-      var box=document.createElement('div'); box.className='group'; box.setAttribute('data-sub',name);
+      var hub=yzSetHubOf(name);
+      var box=document.createElement('div'); box.className='group'; box.setAttribute('data-sub',name); if(hub)box.setAttribute('data-hub',hub);
       var hh=document.createElement('h4'); hh.textContent=name; box.appendChild(hh);
       rows.forEach(function(r){ box.appendChild(r); });
       subs.appendChild(box);
+      if(!hub){
+        /* 不属于任何大入口的（如回复设置）仍单独一个入口 */
+        var row=document.createElement('div'); row.className='row';
+        row.innerHTML='<div class="lab">'+name+'</div><div class="chip">›</div>';
+        row.onclick=function(){ yzOpenSetSub(name); };
+        var entry=document.createElement('div'); entry.className='group'; entry.appendChild(row);
+        wrap.appendChild(entry);
+      }else if(!hubEntries[hub]){ hubEntries[hub]=1; }
+    });
+    /* 两个大入口（带 ›，点进去是分组页面） */
+    YZ_SET_HUBS.forEach(function(h){
+      if(!hubEntries[h.name])return;
       var row=document.createElement('div'); row.className='row';
-      row.innerHTML='<div class="lab">'+name+'</div><div class="chip">›</div>';
-      row.onclick=function(){ yzOpenSetSub(name); };
+      row.innerHTML='<div class="lab">'+h.name+'</div><div class="chip">›</div>';
+      row.onclick=function(){ yzOpenSetHub(h.name); };
       var entry=document.createElement('div'); entry.className='group'; entry.appendChild(row);
       wrap.appendChild(entry);
     });
@@ -3861,6 +3933,21 @@ function yzPhCondRows(){
     if(rm){ var row2=rm.closest('.row'); if(row2)row2.style.display=ma?'':'none'; }
     var bh=document.getElementById('phHimAutoBtn'); if(bh)bh.textContent=ha?'开启':'关闭';
     var bm=document.getElementById('phMyAutoBtn'); if(bm)bm.textContent=ma?'开启':'关闭';
+  }catch(e){}
+}
+function yzOpenSetHub(hub){
+  try{
+    var subs=document.getElementById('setSubBody'); if(!subs)return;
+    var all=[].slice.call(subs.querySelectorAll('.group'));
+    all.forEach(function(g){ g.style.display='none'; });
+    /* 只显示属于这个入口的小组，每个小组自带标题 */
+    all.forEach(function(g){
+      if(g.getAttribute('data-hub')===hub)g.style.display='';
+    });
+    var t=document.getElementById('setSubTitle');
+    if(t)t.textContent=hub;
+    try{ yzPhCondRows(); }catch(e){}
+    go('setSub');
   }catch(e){}
 }
 function yzOpenSetSub(name){
