@@ -2941,7 +2941,7 @@ function yzPhTick(){
     yzTickAccFix();
     yzPatRateFix();
     /* 一次性清理：历史遗留下来、已被删除但数据还在的梦角 */
-    try{ yzPurgeOrphans(); }catch(e){} try{ yzFavFixCid(); }catch(e){} try{ save(); }catch(e){}
+    try{ yzPurgeOrphans(); }catch(e){} try{ yzFavFixCid(); }catch(e){} try{ yzAskDelayFix(); }catch(e){} try{ save(); }catch(e){}
     yzPhInit();
     var now=Date.now();
     var realDt=now-D.ph.lastTs;      /* 真实时间差：梦角用它（离线也掉） */
@@ -4265,6 +4265,11 @@ function markRead(){
 }
 function yzReadChatSettingsLive(){
   try{
+    /* 只有设置页面确实打开时才读输入框，否则输入框是空的，会把真实设置写成 0 */
+    var _setOpen=false;
+    try{ var _sp=document.getElementById('settings'); _setOpen=!!(_sp&&_sp.classList.contains('active')); }catch(e){}
+    try{ if(!_setOpen){ var _sb=document.getElementById('setSub'); _setOpen=!!(_sb&&_sb.classList.contains('active')); } }catch(e){}
+    if(!_setOpen)return;
     function rd(id,key,min,max){ var el=document.getElementById(id); if(!el)return; var v=String(el.value).trim(); if(v==='')return; var n=parseFloat(v); if(!isFinite(n))return; if(min!=null)n=Math.max(min,n); if(max!=null)n=Math.min(max,n); D[key]=n; }
     rd('setDelay','delay',0);
     rd('setSendGap','sendGap',0);
@@ -7002,27 +7007,28 @@ function sendAsk(){
   if(opts.length<2){toast('至少两个选项');return;}
   closeSheet2('askSheet');
   var _acid=yzCtxCharId();
-  var _amsg={from:'me',type:'ask',text:q,options:opts,_t:clockStr(),cid:_acid};
+  var _aqid='ask'+Date.now()+Math.floor(Math.random()*1000);
+  var _amsg={from:'me',type:'ask',text:q,options:opts,_t:clockStr(),cid:_acid,aqid:_aqid};
   var _acv=yzEnsureSingleConv(_acid);
   var _acvId=(_acv&&_acv.id)||D.curConv;
   if(_acv&&String(_acv.id)===String((yzCurConv()||{}).id)){
     const idx=D.msgs.length;
     push(_amsg);
-    scheduleAskReply(idx,_acvId,_acid);
+    scheduleAskReply(idx,_acvId,_acid,_aqid);
   }else if(_acv){
     _acv.msgs=_acv.msgs||[];
     const idx=_acv.msgs.length;
     _acv.msgs.push(_amsg);
     save();
     try{ renderChatList(); }catch(e){}
-    scheduleAskReply(idx,_acvId,_acid);
+    scheduleAskReply(idx,_acvId,_acid,_aqid);
   }else{
     const idx=D.msgs.length;
     push(_amsg);
-    scheduleAskReply(idx,D.curConv,_acid);
+    scheduleAskReply(idx,D.curConv,_acid,_aqid);
   }
 }
-function scheduleAskReply(idx,convId,charId){
+function scheduleAskReply(idx,convId,charId,aqid){
   var _cid=(charId!==undefined&&charId!==null&&charId!=='')?charId:yzCtxCharId();
   var sec=yzCfg(_cid,'askDelay',15);
   sec=parseFloat(sec); if(isNaN(sec))sec=15;
@@ -7036,7 +7042,11 @@ function scheduleAskReply(idx,convId,charId){
       if(!arr)arr=D.msgs;
     }catch(e){ arr=D.msgs; }
     if(!arr){ return; }
-    const m=arr[idx];
+    /* 优先按问卷唯一id找（最可靠），找不到再用序号 */
+    var m=null;
+    if(aqid){ m=(arr||[]).find(function(x){ return x&&x.type==='ask'&&String(x.aqid)===String(aqid); })||null; }
+    if(!m&&arr&&arr[idx]&&arr[idx].type==='ask')m=arr[idx];
+    if(!m){ m=(arr||[]).filter(function(x){return x&&x.type==='ask'&&!x.answer;}).pop()||null; }
     if(!m||m.type!=='ask'||m.answer)return;
     const opts=m.options||[];if(!opts.length)return;
     const k=Math.floor(Math.random()*opts.length);
@@ -9425,6 +9435,16 @@ function maybeCall(){
   callType='in';showIncoming();
 }
 /* 一次性修正：历史版本存错的拍一拍概率（超出 0~100 或异常偏大）清回 15 */
+function yzAskDelayFix(){
+  /* 问卷时长被写坏（0 / 负数 / 极大值）的，统一拉回 15 秒 */
+  try{
+    if(D.yzAskDelayFix_v1)return; D.yzAskDelayFix_v1=1;
+    function ok(v){ v=parseFloat(v); return !(isNaN(v)||v<1||v>600); }
+    if(D.askDelay!==undefined && !ok(D.askDelay)) D.askDelay=15;
+    if(D.setPer){ Object.keys(D.setPer).forEach(function(cid){ var bag=D.setPer[cid]; if(bag&&bag.askDelay!==undefined&&!ok(bag.askDelay))bag.askDelay=15; }); }
+    try{ save(); }catch(e){}
+  }catch(e){}
+}
 function yzPatRateFix(){
   try{
     if(window.__yzPatFixed)return;
