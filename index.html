@@ -2112,6 +2112,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
+window.__YZ_BUILD="04cb0cbf";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -5250,7 +5251,7 @@ function yzCheckVerManual(){
         window.__yzRemoteVer=v;
         if(r)r.textContent=v;
         if(b)b.textContent='检查';
-        var local=D.appVer||'';
+        var local=window.__YZ_BUILD||'';
         if(v&&local&&v!==local){ D._verPending=v; save(); toast('有新版本，点「更新」即可'); }
         else{ D._verPending=''; save(); toast('已经是最新版了'); }
         try{ yzVerRender(); }catch(e){}
@@ -5260,19 +5261,19 @@ function yzCheckVerManual(){
 function yzVerRender(){
   try{
     var a=document.getElementById('verLocalTxt');
-    if(a)a.textContent=(D.appVer||'未知');
+    if(a)a.textContent=(window.__YZ_BUILD||'未知');
     var c=document.getElementById('verRemoteTxt');
     if(c&&window.__yzRemoteVer)c.textContent=window.__yzRemoteVer;
   }catch(e){}
 }
 function yzForceUpdate(){
-  /* 清缓存 + 清 Service Worker，然后拉最新代码（不会丢聊天记录） */
-  var u=location.href.split('#')[0].split('?')[0];
-  var done=function(){ try{ location.replace(u+'?v='+Date.now()); }catch(e){ location.reload(); } };
+  /* 清缓存 + 注销 SW + 带时间戳重拉最新代码（聊天记录不会丢） */
+  var u=location.href.split("#")[0].split("?")[0];
+  var done=function(){ try{ location.replace(u+"?v="+Date.now()); }catch(e){ location.reload(); } };
   try{
     var jobs=[];
     if(window.caches&&caches.keys){ jobs.push(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); })); }
-    if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){ jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); })); }
+    if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){ jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ try{ return r.unregister(); }catch(e){} })); })); }
     if(jobs.length){ Promise.all(jobs).then(done).catch(done); return; }
   }catch(e){}
   done();
@@ -11189,7 +11190,7 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
 
 
 
-console.log("YZ build 1300-all7-done");
+console.log("YZ build 04cb0cbf");
 init();
 </script>
     <div class="groupsheet" id="homeCharaSheet">
