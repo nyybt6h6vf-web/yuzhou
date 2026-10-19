@@ -1016,7 +1016,8 @@ svg [fill="currentColor"]{stroke:none;}
 }
 .letter-item{border:1px solid rgba(127,127,127,.10);transition:transform .12s;}
 .letter-item:active{transform:scale(.985);}
-.letter-item .lfav{margin-top:8px;font-size:12px;color:var(--accent,#859ecb);}
+.letter-item .lfav{margin-top:8px;font-size:12px;color:var(--accent,#859ecb);display:inline-block;margin-right:16px;padding:2px 0;}
+.letter-item .lfav.ldel{color:#c96a6a;}
 .lemailsec{border-radius:18px;padding:20px 18px;background-size:cover;background-position:center;background-color:var(--panel);}
 
 /* ================= 主页两屏 ================= */
@@ -2387,21 +2388,68 @@ function yzConvDel(cid,ev){
   var removedIds=(cv.type!=='group'&&cv.charas)?cv.charas.slice():[];
   D.convs=(D.convs||[]).filter(function(c){return c.id!==cid;});
   if(D.curConv===cid){D.curConv=(D.convs[0]||{}).id||'';}
-  // 清理孤儿梦角：若这些梦角不再被任何对话引用，则从 charas 里彻底删除
+  // 清理孤儿梦角：若这些梦角不再被任何对话引用，则从 charas 里彻底删除，并清空该梦角名下所有数据
   try{
     removedIds.forEach(function(rid){
       var stillUsed=(D.convs||[]).some(function(c){return (c.charas||[]).indexOf(rid)>=0;});
       if(!stillUsed){
-        D.charas=(D.charas||[]).filter(function(ch){return ch.id!==rid;});
-        if(D.cardLib)delete D.cardLib[rid];
-        if(D.appIcons)delete D.appIcons[rid];
-        if(D.homeCharaId===rid)D.homeCharaId='';
-        if(D.cardLibCurChar===rid)D.cardLibCurChar=(D.charas&&D.charas[0])?D.charas[0].id:'';
+        yzPurgeChar(rid);
       }
     });
   }catch(e){}
   save();renderChatList();
   toast('已删除');
+}
+/* ===== 彻底清除某个梦角的全部痕迹 ===== */
+function yzPurgeChar(rid){
+  if(!rid)return;
+  try{
+    /* 1) 梦角本体 */
+    D.charas=(D.charas||[]).filter(function(ch){return ch.id!==rid;});
+    /* 2) 名下的内容类数据：按 cid 归属删除 */
+    ['diaries','moments','letters','calls','callLogs','giftWall','listenSongs','listenMsgs','periodMsgs','periodAdvs','periodWarm','account','accounts'].forEach(function(k){
+      if(Array.isArray(D[k])) D[k]=(D[k]).filter(function(x){ return !x || String(x.cid)!==String(rid); });
+    });
+    /* 礼物墙也可能是对象结构 */
+    try{ if(D.giftWall&&!Array.isArray(D.giftWall)){ Object.keys(D.giftWall).forEach(function(k){ if(String(k)===String(rid))delete D.giftWall[k]; }); } }catch(e){}
+    /* 3) 收藏（按目标归属删除） */
+    try{ if(D.favs){ Object.keys(D.favs).forEach(function(t){ if(Array.isArray(D.favs[t])) D.favs[t]=D.favs[t].filter(function(x){ return !x || String(x.cid)!==String(rid); }); }); } }catch(e){}
+    try{ if(D.myFavs){ Object.keys(D.myFavs).forEach(function(t){ if(Array.isArray(D.myFavs[t])) D.myFavs[t]=D.myFavs[t].filter(function(x){ return !x || String(x.cid)!==String(rid); }); }); } }catch(e){}
+    /* 4) 字卡库 / 图标 / 设置包 / 手机状态 / 计时器累加器 */
+    if(D.cardLib)delete D.cardLib[rid];
+    if(D.appIcons)delete D.appIcons[rid];
+    if(D.setPer)delete D.setPer[rid];
+    if(D.ph&&D.ph.hims)delete D.ph.hims[rid];
+    if(D.accByCid)delete D.accByCid[rid];
+    /* 5) 该梦角的单人会话（聊天记录）一并删除 */
+    var sid=null;
+    try{ sid=yzSingleConvIdOf(rid); }catch(e){}
+    if(sid){ D.convs=(D.convs||[]).filter(function(c){return String(c.id)!==String(sid);}); }
+    if(D.curConv&&String(D.curConv)===String(sid)){ D.curConv=(D.convs[0]||{}).id||''; }
+    /* 6) 各种指向这个梦角的指针，一律重置 */
+    if(D.homeCharaId===rid)D.homeCharaId='';
+    if(D.cardLibCurChar===rid)D.cardLibCurChar=(D.charas&&D.charas[0])?D.charas[0].id:'';
+    if(D.phHimId===rid)D.phHimId=(D.charas&&D.charas[0])?D.charas[0].id:'';
+    if(D.viewCharaId===rid)D.viewCharaId=(D.charas&&D.charas[0])?D.charas[0].id:'';
+    if(D.viewDiaryId===rid)D.viewDiaryId=(D.charas&&D.charas[0])?D.charas[0].id:'';
+    if(D.viewLetterId===rid)D.viewLetterId=(D.charas&&D.charas[0])?D.charas[0].id:'';
+    if(D.viewMomentId===rid)D.viewMomentId=(D.charas&&D.charas[0])?D.charas[0].id:'';
+    if(D.lisBound===rid){ D.lisBound=''; D.lisStartAt=0; }
+    if(window.__yzCtxCid===rid)window.__yzCtxCid='';
+    /* 7) 群聊成员里也剔除 */
+    (D.convs||[]).forEach(function(c){ if(c&&c.charas){ c.charas=c.charas.filter(function(id){return String(id)!==String(rid);}); } });
+  }catch(e){}
+}
+/* 孤儿梦角自愈：凡是 charas 里没被任何对话引用的，一律彻底清掉（含历史残留） */
+function yzPurgeOrphans(){
+  try{
+    var used={};
+    (D.convs||[]).forEach(function(c){ (c.charas||[]).forEach(function(id){ used[id]=1; }); });
+    var dead=(D.charas||[]).filter(function(ch){ return ch&&ch.id&&!used[ch.id]; }).map(function(ch){return ch.id;});
+    if(!dead.length)return;
+    dead.forEach(function(rid){ yzPurgeChar(rid); });
+    try{ save(); }catch(e){}
+  }catch(e){}
 }
 function yzBindSwipe(){
   var l=document.getElementById('convList');if(!l)return;
@@ -2891,6 +2939,8 @@ function yzPhTick(){
     yzSetMigrate();
     yzTickAccFix();
     yzPatRateFix();
+    /* 一次性清理：历史遗留下来、已被删除但数据还在的梦角 */
+    try{ if(!D.yzOrphanPurged_v1){ D.yzOrphanPurged_v1=1; yzPurgeOrphans(); save(); } }catch(e){}
     yzPhInit();
     var now=Date.now();
     var realDt=now-D.ph.lastTs;      /* 真实时间差：梦角用它（离线也掉） */
@@ -3788,9 +3838,17 @@ function yzChAvatar(cid){
 /* 当前正在“做事”的梦角：优先显式传入，其次该梦角单人会话 */
 function yzCtxCharId(){
   try{
-    if(window.__yzCtxCid)return window.__yzCtxCid;
+    if(window.__yzCtxCid){
+      var _ok=(D.charas||[]).some(function(c){return c&&String(c.id)===String(window.__yzCtxCid);});
+      if(_ok)return window.__yzCtxCid;
+      window.__yzCtxCid='';
+    }
     var cv=yzCurConv();
-    if(cv&&cv.type!=='group'&&cv.charas&&cv.charas[0])return cv.charas[0];
+    if(cv&&cv.type!=='group'&&cv.charas&&cv.charas[0]){
+      var _c1=cv.charas[0];
+      var _ok1=(D.charas||[]).some(function(c){return c&&String(c.id)===String(_c1);});
+      if(_ok1)return _c1;
+    }
     var arr=(D.charas||[]);
     return arr.length?arr[0].id:'';
   }catch(e){ return ''; }
@@ -4293,7 +4351,9 @@ function yzChCur(key){
 }
 function yzChBtnHtml(key){
   try{
-    if(!yzChHasMany())return '';
+    var many=yzChHasMany();
+    var any=((D.charas||[]).length>0);
+    if(!any)return '';
     var isDiary=(key==='viewDiaryId');
     var nm='梦角';
     if(isDiary){
@@ -4306,8 +4366,23 @@ function yzChBtnHtml(key){
       var ch2=(D.charas||[]).find(function(c){return c.id===cid2;});
       nm=ch2?(ch2.nick||'他'):'梦角';
     }
+    if(!many){
+      /* 只有一个梦角：不是“更换”，而是“查看”，点一下直接看他的内容 */
+      var only=(D.charas||[])[0];
+      var label=isDiary?'查看梦角的日记':(only?('查看'+esc(only.nick||'他')):'查看梦角');
+      return '<div class="act" onclick="yzChViewOnly('+String.fromCharCode(39)+(key||'viewCharaId')+String.fromCharCode(39)+')" style="margin-right:12px;font-size:13px">'+label+' ›</div>';
+    }
     return '<div class="act" onclick="yzChPick('+String.fromCharCode(39)+(key||'viewCharaId')+String.fromCharCode(39)+')" style="margin-right:12px;font-size:13px">'+esc(nm)+' ›</div>';
   }catch(e){ return ''; }
+}
+/* 只有一个梦角时：点按钮直接查看，不弹选择框 */
+function yzChViewOnly(key){
+  try{
+    key=key||'viewCharaId';
+    var only=(D.charas||[])[0];
+    if(!only||!only.id){ toast('还没有梦角'); return; }
+    yzChPickDo(key,only.id);
+  }catch(e){}
 }
 function yzChSyncBtns(){
   try{
@@ -5335,6 +5410,39 @@ function markAllLettersRead(){
     toast(n?('已全部标为已读（'+n+' 封）'):'没有未读的信');
   }catch(e){}
 }
+/* ===== 信封删除：只认删除键本体，点空白/点卡片都不算 ===== */
+function yzLetterDel(id,ev){
+  try{
+    if(ev){ ev.stopPropagation(); ev.preventDefault(); }
+    var lt=(D.letters||[]).find(function(x){return String(x.id)===String(id);});
+    if(!lt){ toast('这封信已经不在了'); return; }
+    if(!confirm('确定删除这封信？删掉就找不回来了。'))return;
+    D.letters=(D.letters||[]).filter(function(x){return String(x.id)!==String(id);});
+    /* 顺带清理这封信的收藏痕迹 */
+    try{ if(D.myFavs){ Object.keys(D.myFavs).forEach(function(t){ if(Array.isArray(D.myFavs[t])) D.myFavs[t]=D.myFavs[t].filter(function(x){ return !x || String(x.id)!==String(id); }); }); } }catch(e){}
+    try{ if(D.favs){ Object.keys(D.favs).forEach(function(t){ if(Array.isArray(D.favs[t])) D.favs[t]=D.favs[t].filter(function(x){ return !x || String(x.id)!==String(id); }); }); } }catch(e){}
+    try{ if(D.viewLetterOpen&&String(D.viewLetterOpen)===String(id))D.viewLetterOpen=''; }catch(e){}
+    save();
+    try{ renderLetters(); }catch(e){}
+    toast('已删除这封信');
+  }catch(e){}
+}
+if(!window.__yzLetterDelDeleg){
+  window.__yzLetterDelDeleg=true;
+  document.addEventListener('click',function(e){
+    try{
+      var t=e.target;
+      if(!t||!t.closest)return;
+      var btn=t.closest('[data-ldelbtn]');
+      if(!btn)return;
+      /* 手指必须落在删除键本身或其内部，绝不能让空白处误触 */
+      if(t!==btn && !btn.contains(t))return;
+      e.stopPropagation();
+      e.preventDefault();
+      yzLetterDel(btn.getAttribute('data-ldelid'),e);
+    }catch(_){}
+  },true);
+}
 function renderLetters(){
   const l=$('#letterList');if(!l)return;l.innerHTML='';
   var list=(D.letters||[]).slice().reverse();
@@ -5349,7 +5457,7 @@ function renderLetters(){
       `<div class="letter-item" onclick="openLetter('${lt.id}')">
         <div class="lh">${esc(lt.from==='me'?(D.myNick||'我')+' 写给 '+yzChNick(lt.cid):yzChNick(lt.cid)+' 写给你')} · ${esc(lt.time||'')} · <span style="color:${_rdColor};font-weight:${_rdWeight}">${_rdText}</span></div>
         <div class="lt">${esc(lt.isReply?(lt.from==='me'?('我回复了'+yzChNick(lt.cid)+'的信'):(yzChNick(lt.cid)+'回复了你的信')):(lt.from==='him'?(yzChNick(lt.cid)+'给你写了一封信'):(lt.preview||'（空信）')))}</div>
-        <div><span class="lfav favbtn" data-favbtn="1" data-favtype="letter" data-favid="${lt.id}">☆ 收藏</span></div>
+        <div><span class="lfav favbtn" data-favbtn="1" data-favtype="letter" data-favid="${lt.id}">☆ 收藏</span><span class="lfav ldel" data-ldelbtn="1" data-ldelid="${lt.id}">删除</span></div>
       </div>`);
   });
   try{yzFavBtnSyncAll(l);}catch(e){}
@@ -6538,11 +6646,21 @@ function yzPerCharAcc(cid,key,dt){
     return m;
   }catch(e){ return {}; }
 }
+function yzCharAlive(cid){
+  try{
+    if(!cid)return false;
+    var inList=(D.charas||[]).some(function(c){ return c&&String(c.id)===String(cid); });
+    if(!inList)return false;
+    return (D.convs||[]).some(function(c){ return c&&(c.charas||[]).some(function(id){return String(id)===String(cid);}); });
+  }catch(e){ return false; }
+}
 function yzEachChar(fn){
   var list=(D.charas||[]);
   for(var i=0;i<list.length;i++){
     var cid=list[i]&&list[i].id;
     if(!cid)continue;
+    /* 总闸：梦角必须仍在列表里、且至少被一个对话引用，否则绝不执行任何后台行为 */
+    if(!yzCharAlive(cid))continue;
     try{ yzWithChar(cid,function(){ fn(cid); }); }catch(e){}
   }
 }
