@@ -2388,14 +2388,9 @@ function yzConvDel(cid,ev){
   var removedIds=(cv.type!=='group'&&cv.charas)?cv.charas.slice():[];
   D.convs=(D.convs||[]).filter(function(c){return c.id!==cid;});
   if(D.curConv===cid){D.curConv=(D.convs[0]||{}).id||'';}
-  // 清理孤儿梦角：若这些梦角不再被任何对话引用，则从 charas 里彻底删除，并清空该梦角名下所有数据
+  // 删掉这个对话后，梦角本体及其名下所有数据一律彻底清空（不看群聊里是否还挂着）
   try{
-    removedIds.forEach(function(rid){
-      var stillUsed=(D.convs||[]).some(function(c){return (c.charas||[]).indexOf(rid)>=0;});
-      if(!stillUsed){
-        yzPurgeChar(rid);
-      }
-    });
+    removedIds.forEach(function(rid){ yzPurgeChar(rid); });
   }catch(e){}
   save();renderChatList();
   toast('已删除');
@@ -2442,15 +2437,21 @@ function yzPurgeChar(rid){
 }
 /* 孤儿梦角自愈：凡是 charas 里没被任何对话引用的，一律彻底清掉（含历史残留） */
 function yzPurgeOrphans(){
+  /* 口径：梦角必须拥有一个自己的单人会话才算“还活着”。
+     群聊里的挂名不算；已删掉单人会话的，其余数据一律清空。 */
   try{
-    var used={};
-    (D.convs||[]).forEach(function(c){ (c.charas||[]).forEach(function(id){ used[id]=1; }); });
-    var dead=(D.charas||[]).filter(function(ch){ return ch&&ch.id&&!used[ch.id]; }).map(function(ch){return ch.id;});
+    var single={};
+    (D.convs||[]).forEach(function(c){
+      if(c&&c.type==='single'&&c.charas&&c.charas[0])single[String(c.charas[0])]=1;
+    });
+    var dead=(D.charas||[]).filter(function(ch){ return ch&&ch.id&&!single[String(ch.id)]; }).map(function(ch){return ch.id;});
     if(!dead.length)return;
     dead.forEach(function(rid){ yzPurgeChar(rid); });
+    /* 群聊里已删成员的残留名字也剔除 */
     try{ save(); }catch(e){}
   }catch(e){}
 }
+/* 梦角是否仍然存在（后台一切循环的统一闸门） */
 function yzBindSwipe(){
   var l=document.getElementById('convList');if(!l)return;
   var rows=l.querySelectorAll('.convrow');
@@ -2940,7 +2941,7 @@ function yzPhTick(){
     yzTickAccFix();
     yzPatRateFix();
     /* 一次性清理：历史遗留下来、已被删除但数据还在的梦角 */
-    try{ if(!D.yzOrphanPurged_v1){ D.yzOrphanPurged_v1=1; yzPurgeOrphans(); save(); } }catch(e){}
+    try{ yzPurgeOrphans(); save(); }catch(e){}
     yzPhInit();
     var now=Date.now();
     var realDt=now-D.ph.lastTs;      /* 真实时间差：梦角用它（离线也掉） */
@@ -5427,6 +5428,15 @@ function yzLetterDel(id,ev){
     toast('已删除这封信');
   }catch(e){}
 }
+if(!window.__yzDelMoveGuard){
+  window.__yzDelMoveGuard=true;
+  document.addEventListener('touchstart',function(e){
+    try{ window.__yzDelTouchMoved=false; var t=e.touches&&e.touches[0]; if(t){ window.__yzDelSX=t.clientX; window.__yzDelSY=t.clientY; } }catch(x){}
+  },{passive:true,capture:true});
+  document.addEventListener('touchmove',function(e){
+    try{ var t=e.touches&&e.touches[0]; if(!t)return; if(Math.abs(t.clientX-(window.__yzDelSX||0))>12||Math.abs(t.clientY-(window.__yzDelSY||0))>12)window.__yzDelTouchMoved=true; }catch(x){}
+  },{passive:true,capture:true});
+}
 if(!window.__yzLetterDelDeleg){
   window.__yzLetterDelDeleg=true;
   document.addEventListener('click',function(e){
@@ -5526,6 +5536,26 @@ if(!window.__yzFavDeleg){
       e.stopPropagation();
       e.preventDefault();
       yzFavToggleByBtn(btn);
+    }catch(x){}
+  },true);
+}
+/* 全局委托：只有手指真正落在“删除”键本体上才删；点卡片、点空白、点收藏都不算 */
+if(!window.__yzLetterDelDeleg){
+  window.__yzLetterDelDeleg=true;
+  document.addEventListener('click',function(e){
+    try{
+      var t=e.target;
+      if(!t||!t.closest)return;
+      var btn=t.closest('[data-ldelbtn]');
+      if(!btn)return;
+      /* 必须落在删除键本身上（元素自身或其内部） */
+      if(!(t===btn||btn.contains(t)))return;
+      /* 防误触：这是一次真实点击（非拖拽/滑动）才执行 */
+      if(window.__yzDelTouchMoved)return;
+      e.stopPropagation(); e.preventDefault();
+      var id=btn.getAttribute('data-ldelid');
+      if(!id)return;
+      yzLetterDel(id);
     }catch(x){}
   },true);
 }
@@ -6651,7 +6681,7 @@ function yzCharAlive(cid){
     if(!cid)return false;
     var inList=(D.charas||[]).some(function(c){ return c&&String(c.id)===String(cid); });
     if(!inList)return false;
-    return (D.convs||[]).some(function(c){ return c&&(c.charas||[]).some(function(id){return String(id)===String(cid);}); });
+    return true;
   }catch(e){ return false; }
 }
 function yzEachChar(fn){
