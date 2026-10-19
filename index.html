@@ -3997,7 +3997,7 @@ function yzPushInto(arr,m,isCurrent,convId){
     try{ if(window.__yzStampArmed&&m&&m.type!=='sept'){ arr.push({type:'sept',_dms:Date.now()}); window.__yzStampArmed=false; } }catch(e){}
     arr.push(m);
     save();
-    var _chA2=$('#chat').classList.contains('active');try{ if(m&&m.from==='him'){ var _ic2=($('#call')&&$('#call').classList.contains('show'))||($('#callbar')&&$('#callbar').classList.contains('show')); if(!_ic2){ var _t2=(m.type==='img')?'[表情]':(m.text||''); yzNotify((D.nick||'他'),_t2.slice(0,40),!_chA2); } } }catch(e){}
+    var _chA2=$('#chat').classList.contains('active');try{ if(m&&m.from==='him'){ var _ic2=($('#call')&&$('#call').classList.contains('show'))||($('#callbar')&&$('#callbar').classList.contains('show')); if(!_ic2){ var _t2=(m.type==='img')?'[表情]':(m.text||''); yzNotify(yzChNick(m&&m.cid||_fcv&&_fcv.charas&&_fcv.charas[0]),_t2.slice(0,40),!_chA2,m&&m.cid); } } }catch(e){}
     var _onThis=(String(D.curConv)===String(convId||(yzCurConv()||{}).id));
     if(_onThis){ try{ D.msgs=arr; }catch(e){} }
     var _chatActive=$("#chat").classList.contains("active")&&_onThis;
@@ -4006,7 +4006,7 @@ function yzPushInto(arr,m,isCurrent,convId){
       scheduleHomeBadges();
       var _cid=convId||(yzCurConv()||{}).id;
       var _txt=(m.type==='img')?'[表情]':(m.type==='voice'?('[语音]'+(m.text||'')):(m.type==='transfer'?('[转账] ¥'+(m.amt||'')):(m.type==='pat'?(m.text||'拍一拍'):(m.text||''))));
-      var _fav='';try{ var _fcv=(D.convs||[]).find(function(c){return c.id===_cid;}); if(_fcv&&_fcv.charas&&_fcv.charas[0]){var _fch=(D.charas||[]).find(function(x){return x.id===_fcv.charas[0];}); if(_fch)_fav=_fch.avatar||''; } }catch(e){} if(!_fav)_fav=D.avatarHim||''; yzTopNotice((D.nick||'他'),_txt,function(){ try{ yzOpenConv(_cid); }catch(e){} },3000,_fav);
+      var _fav='';try{ var _fcv=(D.convs||[]).find(function(c){return c.id===_cid;}); if(_fcv&&_fcv.charas&&_fcv.charas[0]){var _fch=(D.charas||[]).find(function(x){return x.id===_fcv.charas[0];}); if(_fch)_fav=_fch.avatar||''; } }catch(e){} if(!_fav)_fav=D.avatarHim||''; var _ncid=(_fcv&&_fcv.charas&&_fcv.charas[0])||yzCtxCharId(); yzTopNotice(yzChNick(_ncid),_txt,function(){ try{ yzOpenConv(_cid); }catch(e){} },3000,_fav);
     } }catch(e){}
   }catch(e){}
 }
@@ -4971,12 +4971,12 @@ function yzAskNotify(){
     Notification.requestPermission().then(function(p){toast(p==='granted'?'通知已开启':'你拒绝了通知');});
   }catch(e){toast('通知不可用');}
 }
-function yzNotify(title,body,force){
+function yzNotify(title,body,force,cid){
   try{
     if(!('Notification' in window))return;
     if(Notification.permission!=='granted')return;
     if(!force&&!document.hidden)return; // 页面在前台不用弹；force 时强制
-    var n=new Notification(title||((D.nick||'他')),{body:body||'给你发消息了',icon:D.avatarHim||undefined,tag:'yz-msg'});
+    var _nc=(cid!==undefined&&cid!==null)?cid:yzCtxCharId(); var n=new Notification(title||yzChNick(_nc),{body:body||'给你发消息了',icon:yzChAvatar(_nc)||undefined,tag:'yz-msg'});
     setTimeout(function(){try{n.close();}catch(e){}},6000);
   }catch(e){}
 }
@@ -5270,10 +5270,12 @@ function tranAct(i){
   const m=D.msgs[i];if(!m||m.type!=='transfer')return;
   if(m.st)return;
   tranIdx=i;
-  const nm=(D.nick||'他');
+  var _tcid=(m&&m.cid)||yzCtxCharId();
+  const nm=yzChNick(_tcid);
   const av=$('#tranAv');
   if(av){
-    if(D.avatarHim){av.innerHTML='<img src="'+D.avatarHim+'">';av.style.background='transparent';}
+    var _tav=yzChAvatar(_tcid)||D.avatarHim;
+    if(_tav){av.innerHTML='<img src="'+_tav+'">';av.style.background='transparent';}
     else{av.textContent=nm[0]||'他';}
   }
   $('#tranNm').textContent=nm;
@@ -6064,9 +6066,14 @@ function himGiftMe(){
   var list=goodsList(); if(!list.length)return;
   var g=list[Math.floor(Math.random()*list.length)];
   if(!g)return;
-  push({from:'him',type:'gift',text:'亲爱的，送你个东西～',gname:g.name,gprice:g.price,gimg:g.img,st:'wait',auto:true,_t:clockStr()});
-  toast('他送你一件东西');
-  try{ var _gv='';try{var _gc=(D.charas||[]).find(function(x){return x.id===((yzCurConv()||{}).charas||[])[0];});if(_gc)_gv=_gc.avatar||'';}catch(e2){} yzTopNotice((D.nick||'他')+' 送你一件东西','「'+g.name+'」¥'+g.price+'，点开收下',function(){ try{ yzOpenConv(D.curConv); }catch(e){} },3000,_gv); }catch(e){}
+  var _gcid=yzCtxCharId();
+  var _gmsg={from:'him',type:'gift',text:'亲爱的，送你个东西～',gname:g.name,gprice:g.price,gimg:g.img,st:'wait',auto:true,_t:clockStr(),cid:_gcid};
+  var _gcv=yzEnsureSingleConv(_gcid);
+  if(_gcv&&String(_gcv.id)===String((yzCurConv()||{}).id)){ push(_gmsg); }
+  else{ try{ _gcv.msgs.push(_gmsg); save(); renderChatList(); scheduleHomeBadges(); }catch(e){ try{ push(_gmsg); }catch(_){} } }
+  toast(yzChNick(_gcid)+'送你一件东西');
+  try{ var _gv=yzChAvatar(_gcid)||''; yzTopNotice(yzChNick(_gcid)+' 送你一件东西','「'+g.name+'」¥'+g.price+'，点开收下',function(){ try{ yzOpenConv(_gcv.id); }catch(e){} },3000,_gv); }catch(e){}
+  try{ yzNotify(yzChNick(_gcid)+' 送你一件东西','「'+g.name+'」¥'+g.price,false,_gcid); }catch(e){}
 }
 function yzGiftTick(dt){
   try{
@@ -6093,11 +6100,15 @@ function yzHimSendListenCard(){
   try{
     var pl=D.listenPlaylist||[];
     if(!pl.length)return false;
-    var ch=yzCurChara();
+    var _scid=yzCtxCharId();
+    var _scv=yzEnsureSingleConv(_scid);
+    var ch=yzChOf(_scid)||yzCurChara();
     var sg=pl[Math.floor(Math.random()*pl.length)];
     if(!sg)return false;
-    push({from:'him',type:'songcard',title:sg.title||'',by:sg.by||'',url:sg.url||'',charaId:(ch?ch.id:''),charNick:(ch?(ch.nick||'梦角'):'梦角'),auto:true,_t:clockStr()});
-    try{ var _sn=(ch?(ch.nick||'梦角'):'梦角'); yzTopNotice(_sn+' 想和你一起听','「'+(sg.title||'')+'」，点开一起听',function(){ try{ openListenCard(D.msgs.length-1); }catch(e){} },3000,(ch&&ch.avatar)||''); }catch(e){}
+    var _smsg={from:'him',type:'songcard',title:sg.title||'',by:sg.by||'',url:sg.url||'',charaId:_scid,charNick:yzChNick(_scid,'梦角'),auto:true,_t:clockStr(),cid:_scid};
+    var _scSame=_scv&&String(_scv.id)===String((yzCurConv()||{}).id);
+    if(_scSame){ push(_smsg); } else { try{ _scv.msgs.push(_smsg); save(); renderChatList(); scheduleHomeBadges(); }catch(e){ try{ push(_smsg); }catch(_){} } }
+    try{ var _sn=yzChNick(_scid,'梦角'); yzTopNotice(_sn+' 想和你一起听','「'+(sg.title||'')+'」，点开一起听',function(){ try{ yzOpenConv(_scv.id); }catch(e){} },3000,yzChAvatar(_scid)||''); }catch(e){}
     return true;
   }catch(e){ return false; }
 }
@@ -6221,9 +6232,14 @@ function himAskMePay(){
   try{ if(D.sendHold) return; }catch(e){}
   const g=goodsList()[Math.floor(Math.random()*goodsList().length)];
   if(!g)return;
-  push({from:'him',type:'daifu',text:'亲爱的，帮我买这个吧～',gname:g.name,gprice:g.price,gimg:g.img,st:'wait',mine:false,auto:true,_t:clockStr()});
-  toast('他在找你代付');
-  try{ var _dv='';try{var _dc=(D.charas||[]).find(function(x){return x.id===((yzCurConv()||{}).charas||[])[0];});if(_dc)_dv=_dc.avatar||'';}catch(e2){} yzTopNotice((D.nick||'他')+' 找你代付','「'+g.name+'」¥'+g.price+'，点开处理',function(){ try{ yzOpenConv(D.curConv); }catch(e){} },3000,_dv); }catch(e){}
+  var _dcid=yzCtxCharId();
+  var _dmsg={from:'him',type:'daifu',text:'亲爱的，帮我买这个吧～',gname:g.name,gprice:g.price,gimg:g.img,st:'wait',mine:false,auto:true,_t:clockStr(),cid:_dcid};
+  var _dcv=yzEnsureSingleConv(_dcid);
+  if(_dcv&&String(_dcv.id)===String((yzCurConv()||{}).id)){ push(_dmsg); }
+  else{ try{ _dcv.msgs.push(_dmsg); save(); renderChatList(); scheduleHomeBadges(); }catch(e){ try{ push(_dmsg); }catch(_){} } }
+  toast(yzChNick(_dcid)+'在找你代付');
+  try{ var _dv=yzChAvatar(_dcid)||''; yzTopNotice(yzChNick(_dcid)+' 找你代付','「'+g.name+'」¥'+g.price+'，点开处理',function(){ try{ yzOpenConv(_dcv.id); }catch(e){} },3000,_dv); }catch(e){}
+  try{ yzNotify(yzChNick(_dcid)+' 找你代付','「'+g.name+'」¥'+g.price,false,_dcid); }catch(e){}
 }
 function startShopLoop(){
   if(shopTimer)clearInterval(shopTimer);
@@ -7149,7 +7165,7 @@ function momentCmtSend(id){
 }
 function commentMoment(id,ci){
   var m=(D.moments||[]).find(function(x){return x.id===id;}); if(!m)return;
-  if(ci!==undefined&&m.comments&&m.comments[ci]){ var c0=m.comments[ci]; window['__moReply_'+id]=(c0.from==='me'?(D.myNick||'我'):(D.nick||'他')); }
+  if(ci!==undefined&&m.comments&&m.comments[ci]){ var c0=m.comments[ci]; var _mcid0=(m&&m.cid)||yzCtxCharId(); window['__moReply_'+id]=(c0.from==='me'?(D.myNick||'我'):yzChNick(_mcid0)); }
   momentCmtToggle(id);
 }
 function delMoment(id){
@@ -7402,8 +7418,9 @@ function renderListen(){
   (D.listenMsgs||[]).forEach(function(m,_li){
     if(m&&m.type==='sept'){ c.insertAdjacentHTML('beforeend',yzStampHtml(yzMsOf(m,_lisEnter))); return; }
     const isMe=m.from==='me';
-    const av=isMe?D.avatarMe:D.avatarHim;
-    const nm=isMe?(D.myNick||'我'):(D.nick||'他');
+    var _lcid=D.lisBound||yzCtxCharId();
+    const av=isMe?D.avatarMe:(yzChAvatar(_lcid)||D.avatarHim);
+    const nm=isMe?(D.myNick||'我'):yzChNick(_lcid);
     const avh=av?`<img src="${av}">`:esc(nm[0]||'');
     const inner=(m.type==='img')?`<div class="lb lbimg"><img src="${esc(m.src||'')}"></div>`:((m.type==='voice')?`<div class="lb voice">${yzi('mic',13)} <span>${esc(m.sec||'')}″</span></div>${m.text?('<div class="vtt">'+esc(m.text)+'</div>'):''}`:`<div class="lb">${esc(m.text)}</div>`);
     c.insertAdjacentHTML('beforeend',`<div class="lm ${isMe?'me':''}"><div class="lav">${avh}</div><div>${inner}<div class="lts ${isMe?'ltsme':''}">${esc(m.time||'')}</div></div></div>`);
