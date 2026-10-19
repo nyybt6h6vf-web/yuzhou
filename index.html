@@ -7033,6 +7033,12 @@ function scheduleAskReply(idx,convId,charId,aqid){
   var sec=yzCfg(_cid,'askDelay',15);
   sec=parseFloat(sec); if(isNaN(sec))sec=15;
   const ms=Math.max(1000,sec*1000);
+  /* 发出问卷后立刻显示“正在回复”，等待时长就是设定的那个时长 */
+  try{
+    var _tOn=true;
+    try{ _tOn=(String(D.curConv)===String(convId||(yzCurConv()||{}).id)); }catch(e){}
+    if(_tOn&&$('#chat').classList.contains('active')){ setTyping(true); if(typeof scrollBottom==='function')scrollBottom(); }
+  }catch(e){}
   setTimeout(function(){
     /* 先取该梦角的会话，从会话里找那条问卷 */
     var arr=null;
@@ -7055,14 +7061,12 @@ function scheduleAskReply(idx,convId,charId,aqid){
     save();
     var _onThis=true;
     try{ _onThis=(String(D.curConv)===String(convId||(yzCurConv()||{}).id)); }catch(e){}
-    if(_onThis&&$('#chat').classList.contains('active'))renderChat();
-    setTyping(true);
-    setTimeout(function(){
-      setTyping(false);
-      var _rmsg={from:'him',text:'我选 '+m.answer+'，'+m.reply,_t:clockStr(),cid:(m.cid||_cid)};
-      if(arr===D.msgs){ push(_rmsg); }
-      else{ arr.push(_rmsg); save(); try{ renderChatList(); }catch(e){} try{ if($('#chat').classList.contains('active')&&_onThis)renderChat(); }catch(e){} }
-    },Math.max(400,sendGapMs()));
+    /* 倒计时到点就直接出答案——“正在回复”只在等待期间显示，不额外叠加 */
+    setTyping(false);
+    var _rmsg={from:'him',text:'我选 '+m.answer+'，'+m.reply,_t:clockStr(),cid:(m.cid||_cid)};
+    if(arr===D.msgs){ push(_rmsg); }
+    else{ arr.push(_rmsg); save(); try{ renderChatList(); }catch(e){} try{ if($('#chat').classList.contains('active')&&_onThis)renderChat(); }catch(e){} }
+    try{ if(_onThis&&$('#chat').classList.contains('active'))renderChat(); }catch(e){}
   },ms);
 }
 function _setPromptDesc(desc){
