@@ -5235,9 +5235,25 @@ function yzCheckVersion(){
         window.__yzRemoteVer=v;
         if(!local){D.appVer=v;save();return;}
         /* 不再自动弹窗：只记下线上版本，由你在设置里手动更新 */
-        if(v!==local){ D._verPending=v; }else{ D._verPending=''; }
+        if(!yzVerSame(v,local)){ D._verPending=v; }else{ D._verPending=''; }
       }).catch(function(){});
   }catch(e){}
+}
+function yzVerKey(x){
+  /* 统一提取版本编号：2026-10-18-build-a54a2c70 → a54a2c70 */
+  try{
+    var t=String(x||'').trim();
+    if(!t)return '';
+    var m=t.match(/([0-9a-fA-F]{6,40})\s*$/);
+    if(m)return m[1].toLowerCase();
+    var p=t.split('-');
+    return (p[p.length-1]||t).toLowerCase();
+  }catch(e){ return String(x||'').trim().toLowerCase(); }
+}
+function yzVerSame(a,b){
+  var ka=yzVerKey(a), kb=yzVerKey(b);
+  if(!ka||!kb)return false;
+  return ka===kb;
 }
 function yzCheckVerManual(){
   var r=document.getElementById('verRemoteTxt');
@@ -5252,7 +5268,7 @@ function yzCheckVerManual(){
         if(r)r.textContent=v;
         if(b)b.textContent='检查';
         var local=window.__YZ_BUILD||'';
-        if(v&&local&&v!==local){ D._verPending=v; save(); toast('有新版本，点「更新」即可'); }
+        if(v&&local&&!yzVerSame(v,local)){ D._verPending=v; save(); toast('有新版本，点「更新」即可'); }
         else{ D._verPending=''; save(); toast('已经是最新版了'); }
         try{ yzVerRender(); }catch(e){}
       }).catch(function(){ if(r)r.textContent='检查失败'; if(b)b.textContent='检查'; });
