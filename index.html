@@ -1609,7 +1609,7 @@ svg [fill="currentColor"]{stroke:none;}
 
   <div class="screen" id="phony">
     <div class="statusbar"><span id="phTimeTop">9:41</span><span class="right">●●● 100%</span></div>
-    <div class="navbar"><div class="back" onclick="go('home')">‹</div><div class="title">小手机</div><div class="act" id="phHimBtn" onclick="yzPhPickHim()" style="margin-right:12px;font-size:13px">梦角的手机</div><div class="act" id="phPager" onclick="yzPhToggle()">我的手机</div></div>
+    <div class="navbar"><div class="back" onclick="go('home')">‹</div><div class="title">小手机</div><div class="act" id="phHimBtn" onclick="yzPhOpenHim()" style="margin-right:12px;font-size:13px">梦角的手机</div><div class="act" id="phPager" onclick="yzPhToggle()">我的手机</div></div>
     <div class="phbody" id="phBody"></div>
   </div>
   <div class="screen" id="settings">
@@ -2304,7 +2304,7 @@ function yzAddChara(){
     nm=(nm||'').trim();if(!nm)return;
     var id='ch'+Date.now();
     D.charas=D.charas||[];
-    D.charas.push({id:id,nick:nm,avatar:'',accId:'',created:Date.now(),firstChat:0,lastChat:0});
+    D.charas.push({id:id,nick:nm,avatar:'',accId:'',diaryBg:'',created:Date.now(),firstChat:0,lastChat:0});
     var cid='c_'+id;
     D.convs=D.convs||[];
     D.convs.push({id:cid,type:'single',charas:[id],msgs:[]});
@@ -2941,7 +2941,7 @@ function yzPhTick(){
     yzTickAccFix();
     yzPatRateFix();
     /* 一次性清理：历史遗留下来、已被删除但数据还在的梦角 */
-    try{ yzPurgeOrphans(); save(); }catch(e){}
+    try{ yzPurgeOrphans(); }catch(e){} try{ yzFavFixCid(); }catch(e){} try{ save(); }catch(e){}
     yzPhInit();
     var now=Date.now();
     var realDt=now-D.ph.lastTs;      /* 真实时间差：梦角用它（离线也掉） */
@@ -3086,6 +3086,15 @@ function yzPhViewHim(cid){
   }catch(e){}
 }
 function yzPhToggle(){ D.phFavOpen=false; D.phPage=1; try{ window.__yzOffPlayed=false; }catch(e){} save(); yzPhRender(); }
+/* 页面里那行“查看梦角的手机 ›”：只有一个梦角时直接进去，多个时弹选择 */
+function yzPhOpenHim(){
+  try{
+    var list=(D.charas||[]);
+    if(!list.length){ toast('还没有梦角'); return; }
+    if(list.length===1){ yzPhViewHim(list[0].id); }
+    else { yzPhPickHim(); }
+  }catch(e){}
+}
 function yzPhPct(v){ return Math.max(0,Math.min(100,Math.round(v))); }
 function yzPhBatteryHtml(pct,charging,big){
   var w=big?150:96, h=big?76:48;
@@ -3105,7 +3114,7 @@ function yzPhRender(){
   var _many=((D.charas||[]).length>1);
   if(pg)pg.textContent=(_isMine?'我的手机':'‹ 回到我的手机');
   if(pg)pg.style.display=((_isMine&&!_many)?'none':'');
-  if(hb){ hb.style.display=((_isMine&&_many)?'':'none'); hb.textContent='梦角的手机'; }
+  if(hb){ hb.style.display=(_isMine?'':'none'); hb.textContent=(_many?'梦角的手机':'查看梦角的手机'); }
   if(yzPhCurPager()===2){ yzPhRenderHim(body); return; }
   var my=yzPhPct(D.ph.my);
   var h='<div class="phcard phmy">';
@@ -3119,7 +3128,7 @@ function yzPhRender(){
   }
   h+='</div>';
   h+='<div class="phbtns"><div class="phbtn on" onclick="yzMyFavHtml()">我的收藏 ›</div></div>';
-  h+='<div class="phmini" onclick="yzPhToggle()">查看梦角的手机 ›</div>';
+  h+='<div class="phmini" onclick="yzPhOpenHim()">查看梦角的手机 ›</div>';
   h+='</div>';
   body.innerHTML=h;
 }
@@ -3251,15 +3260,15 @@ function yzFavReread(){
       if(_fscid){ var _fcv=(D.convs||[]).find(function(c){return c.id===_fscid;}); if(_fcv&&_fcv.msgs)_srcMsgs=_fcv.msgs; }
       else if(D.msgs)_srcMsgs=D.msgs;
     }catch(e){}
-    _srcMsgs.forEach(function(m){ if(m.from==='me'&&m.text)pools.msg.push({type:'msg',item:m,src:m._t||''}); });
+    _srcMsgs.forEach(function(m){ if(m.from==='me'&&m.text)pools.msg.push({type:'msg',item:Object.assign({},m,{cid:_fcid}),src:m._t||''}); });
     pools.music=[];
-    (D.listenSongs||[]).forEach(function(sg){ pools.music.push({type:'music',item:sg,src:sg.time||''}); });
+    (D.listenSongs||[]).forEach(function(sg){ if(!sg)return; if(sg.cid&&String(sg.cid)!==String(_fcid))return; if(!sg.cid&&_fcid)return; pools.music.push({type:'music',item:Object.assign({},sg,{cid:_fcid}),src:sg.time||''}); });
     pools.moment=[];
-    (D.moments||[]).forEach(function(x){ if(x.from==='me'&&x.text&&(!x.cid||x.cid===_fcid))pools.moment.push({type:'moment',item:x,src:x.time||''}); });
+    (D.moments||[]).forEach(function(x){ if(x.from==='me'&&x.text&&String(x.cid)===String(_fcid))pools.moment.push({type:'moment',item:Object.assign({},x,{cid:_fcid}),src:x.time||''}); });
     pools.diary=[];
-    (D.diaries||[]).forEach(function(d){ if((d.from||'me')==='me'&&(!d.cid||d.cid===_fcid))pools.diary.push({type:'diary',item:d,src:d.date||''}); });
+    (D.diaries||[]).forEach(function(d){ if((d.from||'me')==='me'&&String(d.cid)===String(_fcid))pools.diary.push({type:'diary',item:Object.assign({},d,{cid:_fcid}),src:d.date||''}); });
     pools.letter=[];
-    (D.letters||[]).forEach(function(lt){ if(lt&&(!lt.cid||lt.cid===_fcid))poolLetterPush(pools.letter,lt); });
+    (D.letters||[]).forEach(function(lt){ if(lt&&String(lt.cid)===String(_fcid))poolLetterPush(pools.letter,lt,_fcid); });
     Object.keys(pools).forEach(function(t){
       var pool=pools[t];
       if(!pool.length)return;
@@ -3275,8 +3284,8 @@ function yzFavReread(){
     });
   }catch(e){}
 }
-function poolLetterPush(arr,lt){
-  try{ if(!lt)return; if((lt.from||'me')!=='me')return; var full=String(lt.text||'').replace(/^[\s\S]*?To[\uFF1A:][^\n]*\n+/,'').trim(); if(!full)full=String(lt.text||lt.preview||'').trim(); arr.push({type:'letter',item:{text:full,id:lt.id,from:lt.from||'me'},src:lt.time||''}); }catch(e){}
+function poolLetterPush(arr,lt,cid){
+  try{ if(!lt)return; if((lt.from||'me')!=='me')return; var full=String(lt.text||'').replace(/^[\s\S]*?To[\uFF1A:][^\n]*\n+/,'').trim(); if(!full)full=String(lt.text||lt.preview||'').trim(); arr.push({type:'letter',item:{text:full,id:lt.id,from:lt.from||'me',cid:(cid||lt.cid)},src:lt.time||''}); }catch(e){}
 }
 /* ===== 我的收藏（我收藏梦角的东西） ===== */
 function yzMyFavInit(){
@@ -3293,7 +3302,34 @@ function yzMyFavAdd(type,item,srcTime){
     if(D.myFavs.seen[type+':'+key])return;
     D.myFavs.seen[type+':'+key]=1;
     var nowStr=new Date().toLocaleString('zh-CN',{hour12:false}).slice(5,16);
-    D.myFavs[type].push({k:key,favTime:nowStr,srcTime:srcTime||'',text:(typeof item.text==='string'?item.text:(item.text||'')),title:item.title||'',by:item.by||'',url:item.url||'',date:item.date||'',msgType:item.type||'',src:item.src||'',sec:(item.sec||'')});
+    /* 归属：优先用条目自带的 cid，否则用当前上下文的梦角。收藏必须记清楚是谁的 */
+    var _fcid0=(item.cid!==undefined&&item.cid!==null&&item.cid!=='')?item.cid:yzCtxCharId();
+    D.myFavs[type].push({k:key,cid:_fcid0,favTime:nowStr,srcTime:srcTime||'',text:(typeof item.text==='string'?item.text:(item.text||'')),title:item.title||'',by:item.by||'',url:item.url||'',date:item.date||'',msgType:item.type||'',src:item.src||'',sec:(item.sec||'')});
+    save();
+  }catch(e){}
+}
+function yzFavFixCid(){
+  /* 旧收藏没记归属，按内容反查回真实主人；查不到的删掉，避免串到别人名下 */
+  try{
+    if(D.yzFavCidFix_v2)return; D.yzFavCidFix_v2=1;
+    var types=['msg','music','moment','diary','letter'];
+    types.forEach(function(t){
+      var arr=D.myFavs&&D.myFavs[t]; if(!Array.isArray(arr))return;
+      var out=[];
+      arr.forEach(function(f){
+        if(f&&f.cid){ out.push(f); return; }
+        var found='';
+        try{
+          if(t==='letter'){ var lt=(D.letters||[]).find(function(x){return String(x.id)===String(f.k);}); if(lt)found=lt.cid; }
+          if(t==='diary'){ var d=(D.diaries||[]).find(function(x){return String(x.id)===String(f.k);}); if(d)found=d.cid; }
+          if(t==='moment'){ var m=(D.moments||[]).find(function(x){return String(x.id)===String(f.k);}); if(m)found=m.cid; }
+          if(t==='music'){ var sg=(D.listenSongs||[]).find(function(x){return String(x.cid)===String(f.cid)||String(x.title)===String(f.title);}); if(sg)found=sg.cid; }
+        }catch(e){}
+        if(found){ f.cid=found; out.push(f); }
+        /* 查不到归属的旧收藏直接丢弃，不再让它串到别人名下 */
+      });
+      D.myFavs[t]=out;
+    });
     save();
   }catch(e){}
 }
@@ -3306,7 +3342,7 @@ function yzMyFavHtml(){
   h+='<div class="favback" onclick="D.phFavOpen=false;save();yzPhRender()">\u2039 \u8fd4\u56de</div>';
   h+='<div class="favtitle" style="margin:6px 0 12px;">\u6211\u7684\u6536\u85cf</div>';
   cats.forEach(function(c){
-    var t=c[0]; var arr=D.myFavs[t]||[];
+    var t=c[0]; var _vc2=(D.phHimId||yzCtxCharId()||''); var arr=(D.myFavs[t]||[]).filter(function(f){ return !_vc2 || String(f.cid)===String(_vc2); });
     h+='<div class="favmod" onclick="yzMyFavOpenCat(\''+t+'\')">';
     h+='<span class="fmicon">'+c[1]+'</span>';
     h+='<span class="fmname">'+c[2]+'</span>';
@@ -3325,7 +3361,8 @@ function yzMyFavOpenCat(t){
     el.innerHTML='<div class="fshead"><span class="fsback" onclick="yzFavCloseCat()">\u2039 \u8fd4\u56de</span><span class="fstitle" id="favSheetTitle"></span><span class="fsspacer"></span></div><div class="fsbody" id="favSheetBody"></div>';
     document.body.appendChild(el);
   }
-  var arr=D.myFavs[t]||[];
+  var _vcid=(D.phHimId||yzCtxCharId()||'');
+  var arr=(D.myFavs[t]||[]).filter(function(f){ return !_vcid || String(f.cid)===String(_vcid); });
   var label=t==='msg'?'收藏消息':(t==='music'?'收藏音乐':(t==='moment'?'收藏动态':(t==='letter'?'收藏信封':'收藏日记')));
   var tt=document.getElementById('favSheetTitle'); if(tt)tt.textContent=label+' ('+arr.length+')';
   var b=document.getElementById('favSheetBody');
@@ -5561,7 +5598,7 @@ if(!window.__yzLetterDelDeleg){
 }
 function favLetterById(id){
   try{ var lt=(D.letters||[]).find(function(x){return x.id===id;}); if(!lt)return;
-    yzMyFavInit(); yzMyFavAdd('letter',{id:lt.id,text:((String(lt.text||'').replace(/^[\s\S]*?To[\uFF1A:][^\n]*\n+/,'').trim()||String(lt.text||'').trim()||lt.preview||''))},lt.time||'');
+    yzMyFavInit(); yzMyFavAdd('letter',{id:lt.id,cid:lt.cid,text:((String(lt.text||'').replace(/^[\s\S]*?To[\uFF1A:][^\n]*\n+/,'').trim()||String(lt.text||'').trim()||lt.preview||''))},lt.time||'');
     toast('已收藏到我的收藏');
   }catch(e){}
 }
@@ -6084,7 +6121,7 @@ function yzMsgMenuDel(){
 function yzMsgMenuFav(){
   try{
     var i=window.__msgMenuIdx; var m=D.msgs[i];
-    if(m){ yzMyFavInit(); yzMyFavAdd('msg',{id:'manual'+Date.now(),text:(m.text||''),type:(m.type||''),src:(m.src||''),sec:(m.sec||'')},m._t||''); toast('已收藏到我的手机'); }
+    if(m){ yzMyFavInit(); yzMyFavAdd('msg',{id:'manual'+Date.now(),cid:(m.cid||yzCtxCharId()),text:(m.text||''),type:(m.type||''),src:(m.src||''),sec:(m.sec||'')},m._t||''); toast('已收藏到我的手机'); }
   }catch(e){}
   yzMsgMenuHide();
 }
@@ -6456,7 +6493,7 @@ function renderHimProfile(){
   if(bg){ if(_hbg){bg.style.backgroundImage='url('+_hbg+')';}else{bg.style.backgroundImage='';} }
   if(av){ if(_hav){av.style.backgroundImage='url('+_hav+')';}else{av.style.backgroundImage='';} }
   const nm=$('#hProfName'); if(nm)nm.textContent=(_ch.nick||D.nick||'他');
-  var _accId=(_ch&&_ch.accId)||(pd.id||'');
+  var _accId=(_ch&&_ch.accId)||'';
   const id=$('#hProfId'); if(id)id.textContent='@'+_accId;
   renderHimDiary();
 }
@@ -6504,7 +6541,7 @@ function diaryItemHTML(d){
 }
 function favDiaryById(id){
   try{ var d=(D.diaries||[]).find(function(x){return x.id===id;}); if(!d)return;
-    yzMyFavInit(); yzMyFavAdd('diary',{id:d.id,title:d.title||'',text:d.text,date:d.date||''},d.date||'');
+    yzMyFavInit(); yzMyFavAdd('diary',{id:d.id,cid:d.cid,title:d.title||'',text:d.text,date:d.date||''},d.date||'');
     toast('已收藏到我的收藏');
   }catch(e){}
 }
@@ -7266,7 +7303,7 @@ function openMoment(id){
 }
 function favMomentById(id){
   try{ var m=(D.moments||[]).find(function(x){return x.id===id;}); if(!m)return;
-    yzMyFavInit(); yzMyFavAdd('moment',{id:m.id,text:m.text,src:m.img||''},m.time||'');
+    yzMyFavInit(); yzMyFavAdd('moment',{id:m.id,cid:m.cid,text:m.text,src:m.img||''},m.time||'');
     toast('已收藏到我的收藏');
   }catch(e){}
 }
