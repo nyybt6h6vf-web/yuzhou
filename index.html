@@ -7028,45 +7028,64 @@ function sendAsk(){
     scheduleAskReply(idx,D.curConv,_acid,_aqid);
   }
 }
+function yzAskTyping(on){
+  try{
+    D._typing=!!on;
+    if(on){
+      try{ window.__yzRcT=null; }catch(e){}
+      renderChat();
+      var body=document.getElementById('chatBody');
+      if(body&&!body.querySelector('.typing-ind')){
+        body.insertAdjacentHTML('beforeend','<div class="typing-ind"><span>对方正在输入中</span><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div>');
+      }
+      if(typeof scrollBottom==='function')scrollBottom();
+    }else{
+      var b2=document.getElementById('chatBody');
+      if(b2){ var el=b2.querySelector('.typing-ind'); if(el)el.remove(); }
+    }
+  }catch(e){}
+}
 function scheduleAskReply(idx,convId,charId,aqid){
   var _cid=(charId!==undefined&&charId!==null&&charId!=='')?charId:yzCtxCharId();
   var sec=yzCfg(_cid,'askDelay',15);
   sec=parseFloat(sec); if(isNaN(sec))sec=15;
-  const ms=Math.max(1000,sec*1000);
-  /* 发出问卷后立刻显示“正在回复”，等待时长就是设定的那个时长 */
+  if(sec<1)sec=1;
+  var ms=Math.round(sec*1000);
+
+  /* 先拿下这个梦角的会话，后续全程用它，不再依赖当前窗口 */
+  var arr=null;
   try{
-    var _tOn=true;
-    try{ _tOn=(String(D.curConv)===String(convId||(yzCurConv()||{}).id)); }catch(e){}
-    if(_tOn&&$('#chat').classList.contains('active')){ setTyping(true); if(typeof scrollBottom==='function')scrollBottom(); }
-  }catch(e){}
+    if(convId){ var c0=(D.convs||[]).find(function(c){return String(c.id)===String(convId);}); if(c0)arr=c0.msgs; }
+    if(!arr){ var sid=yzSingleConvIdOf(_cid); if(sid){ var c1=(D.convs||[]).find(function(c){return String(c.id)===String(sid);}); if(c1)arr=c1.msgs; } }
+    if(!arr)arr=D.msgs;
+  }catch(e){ arr=D.msgs; }
+
+  /* 立即显示“对方正在输入中”（强制版：不受开关与页面状态影响） */
+  try{ yzAskTyping(true); }catch(e){}
+
+  /* 到点：先撤掉提示，立刻回复 */
   setTimeout(function(){
-    /* 先取该梦角的会话，从会话里找那条问卷 */
-    var arr=null;
+    try{ yzAskTyping(false); }catch(e){}
     try{
-      if(convId){ var c0=(D.convs||[]).find(function(c){return String(c.id)===String(convId);}); if(c0)arr=c0.msgs; }
-      if(!arr){ var sid=yzSingleConvIdOf(_cid); if(sid){ var c1=(D.convs||[]).find(function(c){return String(c.id)===String(sid);}); if(c1)arr=c1.msgs; } }
-      if(!arr)arr=D.msgs;
-    }catch(e){ arr=D.msgs; }
-    if(!arr){ return; }
-    /* 优先按问卷唯一id找（最可靠），找不到再用序号 */
-    var m=null;
-    if(aqid){ m=(arr||[]).find(function(x){ return x&&x.type==='ask'&&String(x.aqid)===String(aqid); })||null; }
-    if(!m&&arr&&arr[idx]&&arr[idx].type==='ask')m=arr[idx];
-    if(!m){ m=(arr||[]).filter(function(x){return x&&x.type==='ask'&&!x.answer;}).pop()||null; }
-    if(!m||m.type!=='ask'||m.answer)return;
-    const opts=m.options||[];if(!opts.length)return;
-    const k=Math.floor(Math.random()*opts.length);
-    m.answer=String.fromCharCode(65+k);
-    m.reply=pickCard(m.cid||_cid);
-    save();
-    var _onThis=true;
-    try{ _onThis=(String(D.curConv)===String(convId||(yzCurConv()||{}).id)); }catch(e){}
-    /* 倒计时到点就直接出答案——“正在回复”只在等待期间显示，不额外叠加 */
-    setTyping(false);
-    var _rmsg={from:'him',text:'我选 '+m.answer+'，'+m.reply,_t:clockStr(),cid:(m.cid||_cid)};
-    if(arr===D.msgs){ push(_rmsg); }
-    else{ arr.push(_rmsg); save(); try{ renderChatList(); }catch(e){} try{ if($('#chat').classList.contains('active')&&_onThis)renderChat(); }catch(e){} }
-    try{ if(_onThis&&$('#chat').classList.contains('active'))renderChat(); }catch(e){}
+      if(!arr)return;
+      var m=null;
+      if(aqid){ m=(arr||[]).find(function(x){ return x&&x.type==='ask'&&String(x.aqid)===String(aqid); })||null; }
+      if(!m&&arr[idx]&&arr[idx].type==='ask')m=arr[idx];
+      if(!m){ m=(arr||[]).filter(function(x){return x&&x.type==='ask'&&!x.answer;}).pop()||null; }
+      if(!m||m.type!=='ask'||m.answer)return;
+      var opts=m.options||[]; if(!opts.length)return;
+      var k=Math.floor(Math.random()*opts.length);
+      m.answer=String.fromCharCode(65+k);
+      m.reply=pickCard(m.cid||_cid);
+      save();
+      var rmsg={from:'him',text:'我选 '+m.answer+'，'+m.reply,_t:clockStr(),cid:(m.cid||_cid)};
+      var onThis=false;
+      try{ onThis=(arr===D.msgs)||(String(D.curConv)===String(convId||'')); }catch(e){}
+      if(arr===D.msgs){ push(rmsg); }
+      else{ arr.push(rmsg); save(); try{ renderChatList(); }catch(e){} }
+      try{ if(onThis&&$('#chat').classList.contains('active'))renderChat(); }catch(e){}
+      try{ if(!onThis) scheduleHomeBadges(); }catch(e){}
+    }catch(e){}
   },ms);
 }
 function _setPromptDesc(desc){
