@@ -1790,6 +1790,13 @@ svg [fill="currentColor"]{stroke:none;}
         <div class="row"><div class="lab">恢复默认字卡</div><div class="chip" onclick="resetCards()">恢复</div></div>
       </div>
       <div class="group">
+        <h4>版本更新</h4>
+        <div class="row"><div class="lab">当前版本</div><div class="val" id="verLocalTxt">--</div></div>
+        <div class="row"><div class="lab">线上最新版本</div><div class="val" id="verRemoteTxt">未检查</div></div>
+        <div class="row"><div class="lab">检查更新</div><div class="chip" id="verCheckBtn" onclick="yzCheckVerManual()">检查</div></div>
+        <div class="row"><div class="lab">清缓存并更新</div><div class="chip" onclick="yzForceUpdate()">更新</div></div>
+      </div>
+      <div class="group">
         <h4>__ph__</h4>
         <div class="row"><div class="lab">梦角掉电量规则（分钟/度）</div><input type="number" id="setPhHimDrop" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">我掉电量规则（分钟/度）</div><input type="number" id="setPhMyDrop" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
@@ -2941,7 +2948,7 @@ function yzPhTick(){
     yzTickAccFix();
     yzPatRateFix();
     /* 一次性清理：历史遗留下来、已被删除但数据还在的梦角 */
-    try{ yzPurgeOrphans(); }catch(e){} try{ yzFavFixCid(); }catch(e){} try{ yzAskDelayFix(); }catch(e){} try{ save(); }catch(e){}
+    try{ yzPurgeOrphans(); }catch(e){} try{ yzLetterFixRead(); }catch(e){} try{ yzFavFixCid(); }catch(e){} try{ yzAskDelayFix(); }catch(e){} try{ save(); }catch(e){}
     yzPhInit();
     var now=Date.now();
     var realDt=now-D.ph.lastTs;      /* 真实时间差：梦角用它（离线也掉） */
@@ -3308,6 +3315,17 @@ function yzMyFavAdd(type,item,srcTime){
     save();
   }catch(e){}
 }
+function yzLetterFixRead(){
+  /* 把 read 归一化成真正的 true/false，避免 'true'、1 之类的值让角标卡住 */
+  try{
+    if(D.yzLetterFix_v1)return; D.yzLetterFix_v1=1;
+    (D.letters||[]).forEach(function(lt){
+      if(!lt)return;
+      lt.read=yzLetterIsRead(lt);
+    });
+    save();
+  }catch(e){}
+}
 function yzFavFixCid(){
   /* 旧收藏没记归属，按内容反查回真实主人；查不到的删掉，避免串到别人名下 */
   try{
@@ -3584,7 +3602,17 @@ function yzHisCount(cv){
   }catch(e){ return 0; }
 }
 function yzChatUnread(){ var t=0; (D.convs||[]).forEach(function(cv){ t+=yzHisCount(cv); }); return t; }
-function yzLetterUnread(){ try{ return (D.letters||[]).filter(function(x){return x.from==='him'&&!x.read;}).length; }catch(e){ return 0; } }
+function yzLetterIsRead(x){
+  try{
+    if(!x)return true;
+    var r=x.read;
+    if(r===true)return true;
+    if(r===1)return true;
+    if(r==='true'||r==='1')return true;
+    return false;
+  }catch(e){ return true; }
+}
+function yzLetterUnread(){ try{ return (D.letters||[]).filter(function(x){ return x&&String(x.from)==='him'&&!yzLetterIsRead(x); }).length; }catch(e){ return 0; } }
 function yzHimDiaryUnread(){ try{ return (D.diaries||[]).filter(function(x){return x.from==='him'&&!x.read;}).length; }catch(e){ return 0; } }
 function yzMomUnread(){ try{ return (D.moments||[]).filter(function(x){return x.from==='him'&&!x.read;}).length; }catch(e){ return 0; } }
 function yzUnreadFor(act){
@@ -3750,7 +3778,7 @@ function curFeeling(){
   return fl[D.feelIdx];
 }
 /* ===== 设置分类（子界面）===== */
-var YZ_SET_KEEP=['美化','身份','进入密码','存储','备份','数据'];
+var YZ_SET_KEEP=['美化','身份','进入密码','存储','备份','数据','版本更新'];
 /* 设置行 id → 功能分类名 */
 var YZ_SET_MAP={
   'setDelay':'回复设置','setSendGap':'回复设置','setMin':'回复设置','setMax':'回复设置',
@@ -5203,38 +5231,53 @@ function yzCheckVersion(){
         var v=(txt||'').trim();
         if(!v)return;
         var local=D.appVer||'';
+        window.__yzRemoteVer=v;
         if(!local){D.appVer=v;save();return;}
-        if(v!==local){
-          D.appVer=v;save();
-          yzShowUpdate();
-        }
+        /* 不再自动弹窗：只记下线上版本，由你在设置里手动更新 */
+        if(v!==local){ D._verPending=v; }else{ D._verPending=''; }
       }).catch(function(){});
   }catch(e){}
 }
-function yzShowUpdate(){
+function yzCheckVerManual(){
+  var r=document.getElementById('verRemoteTxt');
+  var b=document.getElementById('verCheckBtn');
+  if(b)b.textContent='检查中';
   try{
-    var el=document.getElementById('verSheet');
-    if(!el){
-      el=document.createElement('div');
-      el.id='verSheet';
-      el.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:999999;background:var(--panel);color:var(--text);border-radius:20px;padding:24px 22px;box-shadow:0 12px 40px rgba(0,0,0,.35);text-align:center;width:78%;max-width:320px;';
-      el.innerHTML='<div style="font-size:15px;font-weight:600;margin-bottom:6px">检测到新版本</div><div style="font-size:13px;color:var(--sub);margin-bottom:18px">是否更新到最新版？</div><span id="verYes" style="display:inline-block;padding:9px 22px;border-radius:14px;background:#859ecb;color:#fff;margin:0 6px;cursor:pointer">是</span><span id="verNo" style="display:inline-block;padding:9px 22px;border-radius:14px;background:var(--card);color:var(--text);margin:0 6px;cursor:pointer">不是</span>';
-      document.body.appendChild(el);
-      document.getElementById('verYes').onclick=function(){
-        var u=location.href.split('#')[0].split('?')[0];
-        var done=function(){try{location.replace(u+'?v='+Date.now());}catch(e){location.reload();}};
-        try{
-          var jobs=[];
-          if(window.caches&&caches.keys){jobs.push(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k);}));}));}
-          if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));}));}
-          if(jobs.length){Promise.all(jobs).then(done).catch(done);return;}
-        }catch(e){}
-        done();
-      };
-      document.getElementById('verNo').onclick=function(){D._verDismissedThisSession=true;try{el.remove();}catch(e){}};
-    }
+    fetch('https://nyybt6h6vf-web.github.io/yuzhou/version.txt?t='+Date.now(),{cache:'no-store'})
+      .then(function(x){return x.text();})
+      .then(function(t){
+        var v=(t||'').trim()||'读取失败';
+        window.__yzRemoteVer=v;
+        if(r)r.textContent=v;
+        if(b)b.textContent='检查';
+        var local=D.appVer||'';
+        if(v&&local&&v!==local){ D._verPending=v; save(); toast('有新版本，点「更新」即可'); }
+        else{ D._verPending=''; save(); toast('已经是最新版了'); }
+        try{ yzVerRender(); }catch(e){}
+      }).catch(function(){ if(r)r.textContent='检查失败'; if(b)b.textContent='检查'; });
+  }catch(e){ if(b)b.textContent='检查'; }
+}
+function yzVerRender(){
+  try{
+    var a=document.getElementById('verLocalTxt');
+    if(a)a.textContent=(D.appVer||'未知');
+    var c=document.getElementById('verRemoteTxt');
+    if(c&&window.__yzRemoteVer)c.textContent=window.__yzRemoteVer;
   }catch(e){}
 }
+function yzForceUpdate(){
+  /* 清缓存 + 清 Service Worker，然后拉最新代码（不会丢聊天记录） */
+  var u=location.href.split('#')[0].split('?')[0];
+  var done=function(){ try{ location.replace(u+'?v='+Date.now()); }catch(e){ location.reload(); } };
+  try{
+    var jobs=[];
+    if(window.caches&&caches.keys){ jobs.push(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); })); }
+    if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){ jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); })); }
+    if(jobs.length){ Promise.all(jobs).then(done).catch(done); return; }
+  }catch(e){}
+  done();
+}
+function yzShowUpdate(){ /* 已改为设置页手动更新，此函数保留为空避免报错 */ }
 
 function togglePlus(){const s=$('#plusSheet'),m=$('#mask');const on=s.classList.toggle('show');m.classList.toggle('show',on);}
 function closeSheet(){$('#plusSheet').classList.remove('show');$('#mask').classList.remove('show');}
@@ -5445,8 +5488,8 @@ function markAllLettersRead(){
     var n=0;
     (D.letters||[]).forEach(function(lt){
       if(!lt)return;
-      if((lt.from||'me')==='me')return;   /* 我写/我回的 → 跳过 */
-      if(!lt.read){ lt.read=true; n++; }
+      if(String(lt.from)!=='him')return;   /* 只处理梦角写来的信 */
+      if(!yzLetterIsRead(lt)){ lt.read=true; n++; }
     });
     save();
     try{ renderLetters(); }catch(e){}
@@ -5655,7 +5698,7 @@ function openLetter(id){
   const lt=(D.letters||[]).find(x=>x.id===id);if(!lt)return;
   window.__curLetterId=id;
   try{ var _rb=document.getElementById('letterReplyBox'); var _rt=document.getElementById('lrepText'); var _rto=document.getElementById('lrepTo'); if(_rt)_rt.value=''; if(_rto)_rto.textContent=letterTo(yzChNick(lt.cid)); if(_rb){ var _canReply=!((lt.from==='me')||lt.repliedByMe||lt.reply&&lt.reply.from==='me'); _rb.style.display=_canReply?'':'none'; _rb.__canReply=_canReply; } }catch(e){}
-  if(lt.from==='him'){ lt.read=true; save(); }
+  if(String(lt.from)==='him'&&!yzLetterIsRead(lt)){ lt.read=true; save(); try{ scheduleHomeBadges(); }catch(e){} }
   try{ if(document.getElementById('letters')&&document.getElementById('letters').classList.contains('active'))renderLetters(); }catch(e){}
   const head=lt.from==='him'?(yzChNick(lt.cid)+' 写给你的信'):('你写给 '+yzChNick(lt.cid)+' 的信');
   var _mine=(lt.from==='me');
@@ -10192,6 +10235,8 @@ function fillSettings(){
   if($('#setComboRate'))$('#setComboRate').value=D.comboRate||20;
   if($('#setQuoteRate'))$('#setQuoteRate').value=(D.quoteRate===undefined?30:D.quoteRate);
   if($('#setAskDelay'))$('#setAskDelay').value=(D.askDelay===undefined?15:D.askDelay);
+  try{ yzVerRender(); }catch(e){}
+  try{ yzVerRender(); }catch(e){}
   if($('#setDiaryGap'))$('#setDiaryGap').value=(D.diaryGap===undefined?30:D.diaryGap);
   if($('#setDiaryMin'))$('#setDiaryMin').value=(D.diaryMin===undefined?2:D.diaryMin);
   if($('#setDiaryMax'))$('#setDiaryMax').value=(D.diaryMax===undefined?4:D.diaryMax);
