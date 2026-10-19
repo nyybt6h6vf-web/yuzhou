@@ -7001,26 +7001,57 @@ function sendAsk(){
   if(!q){toast('先写个问题');return;}
   if(opts.length<2){toast('至少两个选项');return;}
   closeSheet2('askSheet');
-  const idx=D.msgs.length;
-  push({from:'me',type:'ask',text:q,options:opts,_t:clockStr()});
-  scheduleAskReply(idx);
+  var _acid=yzCtxCharId();
+  var _amsg={from:'me',type:'ask',text:q,options:opts,_t:clockStr(),cid:_acid};
+  var _acv=yzEnsureSingleConv(_acid);
+  var _acvId=(_acv&&_acv.id)||D.curConv;
+  if(_acv&&String(_acv.id)===String((yzCurConv()||{}).id)){
+    const idx=D.msgs.length;
+    push(_amsg);
+    scheduleAskReply(idx,_acvId,_acid);
+  }else if(_acv){
+    _acv.msgs=_acv.msgs||[];
+    const idx=_acv.msgs.length;
+    _acv.msgs.push(_amsg);
+    save();
+    try{ renderChatList(); }catch(e){}
+    scheduleAskReply(idx,_acvId,_acid);
+  }else{
+    const idx=D.msgs.length;
+    push(_amsg);
+    scheduleAskReply(idx,D.curConv,_acid);
+  }
 }
-function scheduleAskReply(idx){
-  const sec=(D.askDelay!==undefined&&D.askDelay!==null&&D.askDelay!=='')?parseFloat(D.askDelay):15;
-  const ms=Math.max(1000,(isNaN(sec)?15:sec)*1000);
+function scheduleAskReply(idx,convId,charId){
+  var _cid=(charId!==undefined&&charId!==null&&charId!=='')?charId:yzCtxCharId();
+  var sec=yzCfg(_cid,'askDelay',15);
+  sec=parseFloat(sec); if(isNaN(sec))sec=15;
+  const ms=Math.max(1000,sec*1000);
   setTimeout(function(){
-    const m=D.msgs[idx];
+    /* 先取该梦角的会话，从会话里找那条问卷 */
+    var arr=null;
+    try{
+      if(convId){ var c0=(D.convs||[]).find(function(c){return String(c.id)===String(convId);}); if(c0)arr=c0.msgs; }
+      if(!arr){ var sid=yzSingleConvIdOf(_cid); if(sid){ var c1=(D.convs||[]).find(function(c){return String(c.id)===String(sid);}); if(c1)arr=c1.msgs; } }
+      if(!arr)arr=D.msgs;
+    }catch(e){ arr=D.msgs; }
+    if(!arr){ return; }
+    const m=arr[idx];
     if(!m||m.type!=='ask'||m.answer)return;
     const opts=m.options||[];if(!opts.length)return;
     const k=Math.floor(Math.random()*opts.length);
     m.answer=String.fromCharCode(65+k);
-    m.reply=pickCard(m&&m.cid);
+    m.reply=pickCard(m.cid||_cid);
     save();
-    if($('#chat').classList.contains('active'))renderChat();
+    var _onThis=true;
+    try{ _onThis=(String(D.curConv)===String(convId||(yzCurConv()||{}).id)); }catch(e){}
+    if(_onThis&&$('#chat').classList.contains('active'))renderChat();
     setTyping(true);
     setTimeout(function(){
       setTyping(false);
-      push({from:'him',text:'我选 '+m.answer+'，'+m.reply,_t:clockStr()});
+      var _rmsg={from:'him',text:'我选 '+m.answer+'，'+m.reply,_t:clockStr(),cid:(m.cid||_cid)};
+      if(arr===D.msgs){ push(_rmsg); }
+      else{ arr.push(_rmsg); save(); try{ renderChatList(); }catch(e){} try{ if($('#chat').classList.contains('active')&&_onThis)renderChat(); }catch(e){} }
     },Math.max(400,sendGapMs()));
   },ms);
 }
