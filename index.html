@@ -2082,7 +2082,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-20-v9diag";
+window.__YZ_BUILD="2026-10-20-v10diag";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3948,19 +3948,25 @@ function yzBeautySubOf(name){
 function yzOpenBeautySub(name){
   try{
     var src=yzBeautySubOf(name);
-    if(!src){ alert('A1:找不到内容'); return; }
-    /* 诊断：详细报告各项情况 */
+    if(!src){ alert('B1'); return; }
     var sub=document.getElementById('setSub');
     var body=document.getElementById('setSubBody');
-    var host=document.querySelector('#setSub .list');
-    var msg='name='+name
-      +'\nsetSub='+(sub?'有':'无')
-      +'\nsetSubBody='+(body?'有':'无')
-      +'\n.list='+(host?'有':'无')
-      +'\nhtml长度='+src.html.length;
-    alert(msg);
-    return;
-  }catch(e){ alert('A0 ERR: '+e.message); }
+    /* 先切页 */
+    var all=document.querySelectorAll('.screen');
+    for(var k=0;k<all.length;k++)all[k].classList.remove('active');
+    if(sub)sub.classList.add('active');
+    /* 写入 */
+    if(body)body.innerHTML='<div class="group"><h4>'+name+'</h4>'+src.html+'</div>';
+    var t=document.getElementById('setSubTitle'); if(t)t.textContent=name;
+    try{ fillSettings(); }catch(e){}
+    /* 写入后立刻检查 */
+    var info='active='+(sub&&sub.classList.contains('active'))
+      +'\nbodyLen='+(body?body.innerHTML.length:-1)
+      +'\ndisplay='+(sub?getComputedStyle(sub).display:'?')
+      +'\nrectH='+(sub?sub.getBoundingClientRect().height:'?')
+      +'\nchildCount='+(body?body.children.length:-1);
+    alert(info);
+  }catch(e){ alert('B0 ERR:'+e.message); }
 }
 function yzPhCondRows(){
   try{
