@@ -2082,7 +2082,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-20-v4";
+window.__YZ_BUILD="2026-10-20-v5";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3949,23 +3949,17 @@ function yzOpenBeautySub(name){
   try{
     var subs=document.getElementById('setSubBody'); if(!subs)return;
     var src=yzBeautySubOf(name); if(!src)return;
-    /* 先切页面，避免 go() 内的重建覆盖我们的显隐 */
-    var t=document.getElementById('setSubTitle'); if(t)t.textContent=name;
+    /* 1. 切到子页（go 内部会跑 yzBuildSetGroups，早退，不会动我们的内容） */
     go('setSub');
-    /* 重建子页：只放这一块 */
-    subs.innerHTML='';
-    var box=document.createElement('div');
-    box.className='group';
-    box.setAttribute('data-beautysub',name);
-    var hh=document.createElement('h4'); hh.textContent=name; box.appendChild(hh);
-    var w2=document.createElement('div'); w2.innerHTML=src.html;
-    while(w2.firstChild)box.appendChild(w2.firstChild);
-    subs.appendChild(box);
+    /* 2. 清空并整块写入，不搬节点 */
+    subs.innerHTML='<div class="group" data-beautysub="'+String(name).replace(/</g,'&lt;')+'"><h4>'+String(name).replace(/</g,'&lt;')+'</h4>'+src.html+'</div>';
+    var t=document.getElementById('setSubTitle'); if(t)t.textContent=name;
+    /* 3. 回填数值 */
     try{ fillSettings(); }catch(e){}
     try{ yzBeautyRender(); }catch(e){}
+    try{ yzPhCondRows(); }catch(e){}
   }catch(e){}
 }
-
 function yzPhCondRows(){
   try{
     var ha=!!(D.phAutoHim), ma=!!(D.phAutoMy);
@@ -10315,105 +10309,118 @@ function yzSetDoUniversal(){
     toast('已把当前设置同步给全部梦角');
   }catch(e){}
 }
+
+var _yzDummy={};
+Object.defineProperty(_yzDummy,'value',{set:function(){},get:function(){return '';}});
+Object.defineProperty(_yzDummy,'textContent',{set:function(){},get:function(){return '';}});
+Object.defineProperty(_yzDummy,'innerHTML',{set:function(){},get:function(){return '';}});
+Object.defineProperty(_yzDummy,'checked',{set:function(){},get:function(){return false;}});
+function yzSafeEl(id){
+  try{
+    var e=document.getElementById(id);
+    if(e)return e;
+  }catch(err){}
+  return _yzDummy;
+}
 function fillSettings(){
   try{renderMemInfo();}catch(e){}
-  try{if($('#setProactiveGap'))$('#setProactiveGap').value=(D.proactiveGap===undefined?10:D.proactiveGap);var _pb=document.getElementById('proactiveBtn');if(_pb)_pb.textContent=D.proactive?'开启':'关闭';}catch(e){}
+  try{if(yzSafeEl('setProactiveGap'))yzSafeEl('setProactiveGap').value=(D.proactiveGap===undefined?10:D.proactiveGap);var _pb=document.getElementById('proactiveBtn');if(_pb)_pb.textContent=D.proactive?'开启':'关闭';}catch(e){}
   try{var _hc=document.getElementById('homeCharaChip');if(_hc){var _hcc=(D.charas||[]).find(function(x){return x.id===D.homeCharaId;});_hc.textContent=_hcc?((_hcc.nick)||'选择'):'选择';}}catch(e){}
-  if($('#setNick'))$('#setNick').value=D.nick||'';if($('#setMyNick'))$('#setMyNick').value=D.myNick||'';
-  $('#setLockName').value=D.lockName||'';
-  if($('#setSlogan'))$('#setSlogan').value=D.slogan||'';
-  if($('#setPageBg'))$('#setPageBg').value=D.pageBg||'';if($('#setPage2Bg'))$('#setPage2Bg').value=D.page2Bg||'';if($('#setChatBg'))$('#setChatBg').value=D.chatBg||'';
-  if($('#setMomBg'))$('#setMomBg').value=D.momBg||'';
-  try{ if($('#setAccentColor')){ var _acv=(D.accentColor||'').trim(); if(/^#[0-9a-fA-F]{6}$/.test(_acv))$('#setAccentColor').value=_acv; } }catch(e){}
+  if(yzSafeEl('setNick'))yzSafeEl('setNick').value=D.nick||'';if(yzSafeEl('setMyNick'))yzSafeEl('setMyNick').value=D.myNick||'';
+  yzSafeEl('setLockName').value=D.lockName||'';
+  if(yzSafeEl('setSlogan'))yzSafeEl('setSlogan').value=D.slogan||'';
+  if(yzSafeEl('setPageBg'))yzSafeEl('setPageBg').value=D.pageBg||'';if(yzSafeEl('setPage2Bg'))yzSafeEl('setPage2Bg').value=D.page2Bg||'';if(yzSafeEl('setChatBg'))yzSafeEl('setChatBg').value=D.chatBg||'';
+  if(yzSafeEl('setMomBg'))yzSafeEl('setMomBg').value=D.momBg||'';
+  try{ if(yzSafeEl('setAccentColor')){ var _acv=(D.accentColor||'').trim(); if(/^#[0-9a-fA-F]{6}$/.test(_acv))yzSafeEl('setAccentColor').value=_acv; } }catch(e){}
   ['lockFg','fontColor','himFontColor','meFontColor','bubbleHim','bubbleMe','tranColor'].forEach(function(k){
     var c=$('#set'+k.charAt(0).toUpperCase()+k.slice(1)+'Color');
     var v=(D[k]||'').trim();
     if(c&&/^#[0-9a-fA-F]{6}$/.test(v))c.value=v;
   });
-  $('#setBubble').value=D.bubble||'';
-  try{if($('#setBubbleSize'))$('#setBubbleSize').value=(D.bubbleSize!==undefined?D.bubbleSize:100);if($('#bubbleSizeVal'))$('#bubbleSizeVal').textContent=(D.bubbleSize!==undefined?D.bubbleSize:100)+'%';}catch(e){}
-  try{if($('#setChatFontSize'))$('#setChatFontSize').value=(D.chatFontSize!==undefined?D.chatFontSize:14);if($('#chatFontSizeVal'))$('#chatFontSizeVal').textContent=(D.chatFontSize!==undefined?D.chatFontSize:14)+'px';}catch(e){}
-  try{if($('#setTranSize'))$('#setTranSize').value=(D.tranSize!==undefined?D.tranSize:100);if($('#tranSizeVal'))$('#tranSizeVal').textContent=(D.tranSize!==undefined?D.tranSize:100)+'%';}catch(e){}
-  if($('#setPhHimDrop'))$('#setPhHimDrop').value=(D.phHimDrop===undefined?2:D.phHimDrop);
-  if($('#setPhMyDrop'))$('#setPhMyDrop').value=(D.phMyDrop===undefined?5:D.phMyDrop);
-  if($('#setPhHimChgRate'))$('#setPhHimChgRate').value=(D.phHimChgRate===undefined?25:D.phHimChgRate);
-  if($('#setPhHimAutoAt'))$('#setPhHimAutoAt').value=(D.phHimAutoAt===undefined?20:D.phHimAutoAt);
-  if($('#setPhMyAutoAt'))$('#setPhMyAutoAt').value=(D.phMyAutoAt===undefined?20:D.phMyAutoAt);
-  if($('#setPhHimChgSpeed'))$('#setPhHimChgSpeed').value=(D.phHimChgSpeed===undefined?1:D.phHimChgSpeed);
-  if($('#setPhMyChgSpeed'))$('#setPhMyChgSpeed').value=(D.phMyChgSpeed===undefined?1:D.phMyChgSpeed);
-  if($('#setFingerBgColor'))$('#setFingerBgColor').value=((D.fingerBg&&D.fingerBg.startsWith('#'))?D.fingerBg:'#9db2d6');
+  yzSafeEl('setBubble').value=D.bubble||'';
+  try{if(yzSafeEl('setBubbleSize'))yzSafeEl('setBubbleSize').value=(D.bubbleSize!==undefined?D.bubbleSize:100);if(yzSafeEl('bubbleSizeVal'))yzSafeEl('bubbleSizeVal').textContent=(D.bubbleSize!==undefined?D.bubbleSize:100)+'%';}catch(e){}
+  try{if(yzSafeEl('setChatFontSize'))yzSafeEl('setChatFontSize').value=(D.chatFontSize!==undefined?D.chatFontSize:14);if(yzSafeEl('chatFontSizeVal'))yzSafeEl('chatFontSizeVal').textContent=(D.chatFontSize!==undefined?D.chatFontSize:14)+'px';}catch(e){}
+  try{if(yzSafeEl('setTranSize'))yzSafeEl('setTranSize').value=(D.tranSize!==undefined?D.tranSize:100);if(yzSafeEl('tranSizeVal'))yzSafeEl('tranSizeVal').textContent=(D.tranSize!==undefined?D.tranSize:100)+'%';}catch(e){}
+  if(yzSafeEl('setPhHimDrop'))yzSafeEl('setPhHimDrop').value=(D.phHimDrop===undefined?2:D.phHimDrop);
+  if(yzSafeEl('setPhMyDrop'))yzSafeEl('setPhMyDrop').value=(D.phMyDrop===undefined?5:D.phMyDrop);
+  if(yzSafeEl('setPhHimChgRate'))yzSafeEl('setPhHimChgRate').value=(D.phHimChgRate===undefined?25:D.phHimChgRate);
+  if(yzSafeEl('setPhHimAutoAt'))yzSafeEl('setPhHimAutoAt').value=(D.phHimAutoAt===undefined?20:D.phHimAutoAt);
+  if(yzSafeEl('setPhMyAutoAt'))yzSafeEl('setPhMyAutoAt').value=(D.phMyAutoAt===undefined?20:D.phMyAutoAt);
+  if(yzSafeEl('setPhHimChgSpeed'))yzSafeEl('setPhHimChgSpeed').value=(D.phHimChgSpeed===undefined?1:D.phHimChgSpeed);
+  if(yzSafeEl('setPhMyChgSpeed'))yzSafeEl('setPhMyChgSpeed').value=(D.phMyChgSpeed===undefined?1:D.phMyChgSpeed);
+  if(yzSafeEl('setFingerBgColor'))yzSafeEl('setFingerBgColor').value=((D.fingerBg&&D.fingerBg.startsWith('#'))?D.fingerBg:'#9db2d6');
 
-  try{if($('#phHimAutoBtn'))$('#phHimAutoBtn').textContent=D.phAutoHim?'开启':'关闭';}catch(e){}
-  try{if($('#phMyAutoBtn'))$('#phMyAutoBtn').textContent=D.phAutoMy?'开启':'关闭';}catch(e){}
+  try{if(yzSafeEl('phHimAutoBtn'))yzSafeEl('phHimAutoBtn').textContent=D.phAutoHim?'开启':'关闭';}catch(e){}
+  try{if(yzSafeEl('phMyAutoBtn'))yzSafeEl('phMyAutoBtn').textContent=D.phAutoMy?'开启':'关闭';}catch(e){}
   try{yzPhCondRows();}catch(e){}
   try{yzPreviewBubble();}catch(e){}
   try{yzBeautyRender();}catch(e){}
-  try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}
-  if($('#setDelay'))$('#setDelay').value=D.delay;
-  if($('#setSendGap'))$('#setSendGap').value=(D.sendGap!==undefined?D.sendGap:D.delay);
-  $('#setTran').value=D.tran;$('#setCall').value=D.callRate;try{if($('#setPatRate'))$('#setPatRate').value=(D.patRate!==undefined?D.patRate:15);}catch(e){}try{if($('#setVoiceRate'))$('#setVoiceRate').value=(D.voiceRate!==undefined?D.voiceRate:0);}catch(e){}
-  if($('#setTranTo'))$('#setTranTo').value=D.tranTo;
-  if($('#setTranGap'))$('#setTranGap').value=(D.tranGap===undefined?30:D.tranGap);
-  if($('#setPackRate'))$('#setPackRate').value=(D.packRate===undefined?25:D.packRate);
-  if($('#setMomLikeRate'))$('#setMomLikeRate').value=(D.momLikeRate===undefined?50:D.momLikeRate);
-  if($('#setFavLetter'))$('#setFavLetter').value=(D.favLetterRate===undefined?30:D.favLetterRate);
-  if($('#setCommentRate'))$('#setCommentRate').value=(D.commentRate===undefined?50:D.commentRate);
-  if($('#setMomCmtMax'))$('#setMomCmtMax').value=(D.momCmtMax===undefined?3:D.momCmtMax);
-  if($('#setMomCmtMax'))$('#setMomCmtMax').value=(D.momCmtMax===undefined?3:D.momCmtMax);
-  if($('#setMainRate'))$('#setMainRate').value=(D.mainRate===undefined?100:D.mainRate);
-  if($('#setEmojiMix'))$('#setEmojiMix').value=String(parseInt(D.emojiMix)||0);
-  if($('#setEmojiMixRate'))$('#setEmojiMixRate').value=(D.emojiMixRate===undefined?30:D.emojiMixRate);
-  if($('#setEmojiAlone'))$('#setEmojiAlone').value=String(parseInt(D.emojiAlone)||0);
-  if($('#setEmojiAloneRate'))$('#setEmojiAloneRate').value=(D.emojiAloneRate===undefined?15:D.emojiAloneRate);
-  if($('#setFavMsg'))$('#setFavMsg').value=(D.favMsgRate===undefined?30:D.favMsgRate);
-  if($('#setFavMusic'))$('#setFavMusic').value=(D.favMusicRate===undefined?30:D.favMusicRate);
-  if($('#setFavMoment'))$('#setFavMoment').value=(D.favMomentRate===undefined?30:D.favMomentRate);
-  if($('#setFavDiary'))$('#setFavDiary').value=(D.favDiaryRate===undefined?30:D.favDiaryRate);
-  if($('#setDiaryRate'))$('#setDiaryRate').value=(D.diaryRate===undefined?100:D.diaryRate);
-  if($('#setMomRate'))$('#setMomRate').value=(D.momRate===undefined?50:D.momRate);
+  try{if(yzSafeEl('themeAutoChip'))yzSafeEl('themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}
+  if(yzSafeEl('setDelay'))yzSafeEl('setDelay').value=D.delay;
+  if(yzSafeEl('setSendGap'))yzSafeEl('setSendGap').value=(D.sendGap!==undefined?D.sendGap:D.delay);
+  yzSafeEl('setTran').value=D.tran;yzSafeEl('setCall').value=D.callRate;try{if(yzSafeEl('setPatRate'))yzSafeEl('setPatRate').value=(D.patRate!==undefined?D.patRate:15);}catch(e){}try{if(yzSafeEl('setVoiceRate'))yzSafeEl('setVoiceRate').value=(D.voiceRate!==undefined?D.voiceRate:0);}catch(e){}
+  if(yzSafeEl('setTranTo'))yzSafeEl('setTranTo').value=D.tranTo;
+  if(yzSafeEl('setTranGap'))yzSafeEl('setTranGap').value=(D.tranGap===undefined?30:D.tranGap);
+  if(yzSafeEl('setPackRate'))yzSafeEl('setPackRate').value=(D.packRate===undefined?25:D.packRate);
+  if(yzSafeEl('setMomLikeRate'))yzSafeEl('setMomLikeRate').value=(D.momLikeRate===undefined?50:D.momLikeRate);
+  if(yzSafeEl('setFavLetter'))yzSafeEl('setFavLetter').value=(D.favLetterRate===undefined?30:D.favLetterRate);
+  if(yzSafeEl('setCommentRate'))yzSafeEl('setCommentRate').value=(D.commentRate===undefined?50:D.commentRate);
+  if(yzSafeEl('setMomCmtMax'))yzSafeEl('setMomCmtMax').value=(D.momCmtMax===undefined?3:D.momCmtMax);
+  if(yzSafeEl('setMomCmtMax'))yzSafeEl('setMomCmtMax').value=(D.momCmtMax===undefined?3:D.momCmtMax);
+  if(yzSafeEl('setMainRate'))yzSafeEl('setMainRate').value=(D.mainRate===undefined?100:D.mainRate);
+  if(yzSafeEl('setEmojiMix'))yzSafeEl('setEmojiMix').value=String(parseInt(D.emojiMix)||0);
+  if(yzSafeEl('setEmojiMixRate'))yzSafeEl('setEmojiMixRate').value=(D.emojiMixRate===undefined?30:D.emojiMixRate);
+  if(yzSafeEl('setEmojiAlone'))yzSafeEl('setEmojiAlone').value=String(parseInt(D.emojiAlone)||0);
+  if(yzSafeEl('setEmojiAloneRate'))yzSafeEl('setEmojiAloneRate').value=(D.emojiAloneRate===undefined?15:D.emojiAloneRate);
+  if(yzSafeEl('setFavMsg'))yzSafeEl('setFavMsg').value=(D.favMsgRate===undefined?30:D.favMsgRate);
+  if(yzSafeEl('setFavMusic'))yzSafeEl('setFavMusic').value=(D.favMusicRate===undefined?30:D.favMusicRate);
+  if(yzSafeEl('setFavMoment'))yzSafeEl('setFavMoment').value=(D.favMomentRate===undefined?30:D.favMomentRate);
+  if(yzSafeEl('setFavDiary'))yzSafeEl('setFavDiary').value=(D.favDiaryRate===undefined?30:D.favDiaryRate);
+  if(yzSafeEl('setDiaryRate'))yzSafeEl('setDiaryRate').value=(D.diaryRate===undefined?100:D.diaryRate);
+  if(yzSafeEl('setMomRate'))yzSafeEl('setMomRate').value=(D.momRate===undefined?50:D.momRate);
   ['Msg','Music','Moment','Diary','Letter'].forEach(function(k){
     var a=$('#setReread'+k), b=$('#setReread'+k+'Fav');
     if(a)a.value=(D['reread'+k+'Rate']===undefined?20:D['reread'+k+'Rate']);
     if(b)b.value=(D['reread'+k+'FavRate']===undefined?20:D['reread'+k+'FavRate']);
   });
-  if($('#setPass'))$('#setPass').value=D.pass||'';
-  if($('#setMin'))$('#setMin').value=D.sendMin||1;
-  if($('#setMax'))$('#setMax').value=D.sendMax||1;
-  if($('#setComboRate'))$('#setComboRate').value=D.comboRate||20;
-  if($('#setQuoteRate'))$('#setQuoteRate').value=(D.quoteRate===undefined?30:D.quoteRate);
-  if($('#setAskDelay'))$('#setAskDelay').value=(D.askDelay===undefined?15:D.askDelay);
+  if(yzSafeEl('setPass'))yzSafeEl('setPass').value=D.pass||'';
+  if(yzSafeEl('setMin'))yzSafeEl('setMin').value=D.sendMin||1;
+  if(yzSafeEl('setMax'))yzSafeEl('setMax').value=D.sendMax||1;
+  if(yzSafeEl('setComboRate'))yzSafeEl('setComboRate').value=D.comboRate||20;
+  if(yzSafeEl('setQuoteRate'))yzSafeEl('setQuoteRate').value=(D.quoteRate===undefined?30:D.quoteRate);
+  if(yzSafeEl('setAskDelay'))yzSafeEl('setAskDelay').value=(D.askDelay===undefined?15:D.askDelay);
   try{ yzVerRender(); }catch(e){}
   try{ yzVerRender(); }catch(e){}
-  if($('#setDiaryGap'))$('#setDiaryGap').value=(D.diaryGap===undefined?30:D.diaryGap);
-  if($('#setDiaryMin'))$('#setDiaryMin').value=(D.diaryMin===undefined?2:D.diaryMin);
-  if($('#setDiaryMax'))$('#setDiaryMax').value=(D.diaryMax===undefined?4:D.diaryMax);
-  if($('#setDaifuRate'))$('#setDaifuRate').value=(D.daifuRate===undefined?20:D.daifuRate);
-  if($('#setDaifuGap'))$('#setDaifuGap').value=(D.daifuGap===undefined?20:D.daifuGap);
-  if($('#setDaifuDelay'))$('#setDaifuDelay').value=(D.daifuDelay===undefined?8:D.daifuDelay);
-  if($('#setGiftRate'))$('#setGiftRate').value=(D.giftRate===undefined?20:D.giftRate);
-  if($('#setGiftAcceptRate'))$('#setGiftAcceptRate').value=(D.giftAcceptRate===undefined?70:D.giftAcceptRate);
-  if($('#setGiftRejectRate'))$('#setGiftRejectRate').value=(D.giftRejectRate===undefined?30:D.giftRejectRate);
-  if($('#setGiftGap'))$('#setGiftGap').value=(D.giftGap===undefined?20:D.giftGap);
-  if($('#setGiftDelay'))$('#setGiftDelay').value=(D.giftDelay===undefined?8:D.giftDelay);
-  if($('#setLisAskRate'))$('#setLisAskRate').value=(D.lisAskRate===undefined?20:D.lisAskRate);
-  if($('#setLisAskGap'))$('#setLisAskGap').value=(D.lisAskGap===undefined?20:D.lisAskGap);
-  if($('#setComboMin'))$('#setComboMin').value=D.comboMin||2;
-  if($('#setComboMax'))$('#setComboMax').value=D.comboMax||3;
-  if($('#setMomMin'))$('#setMomMin').value=D.momMin||1;
-  if($('#setMomMax'))$('#setMomMax').value=D.momMax||2;
-  if($('#setLetterSent'))$('#setLetterSent').value=D.letterSent||((D.letterMin||1)+'-'+(D.letterMax||2));
-  try{var _ls=String(D.letterSent||'1-2').match(/\d+/g)||[];if($('#setLetterMin'))$('#setLetterMin').value=_ls[0]||1;if($('#setLetterMax'))$('#setLetterMax').value=_ls[1]||_ls[0]||2;}catch(e){}
-  if($('#setMomGap'))$('#setMomGap').value=D.momGap||1;
-  if($('#setFeelGap'))$('#setFeelGap').value=D.feelGap||30;
-  if($('#setFeelList'))$('#setFeelList').value=(D.feelings||[]).join('\n');
-  if($('#setPats'))$('#setPats').value=(D.pats||[]).join('\n');
-  if($('#setTranAmts'))$('#setTranAmts').value=(D.tranAmts||[]).join('\n');
-  if($('#setTranNotes'))$('#setTranNotes').value=(D.tranNotes||[]).join('\n');
-  if($('#setReplyGap'))$('#setReplyGap').value=D.replyGap!==undefined?D.replyGap:5;
-  try{ if($('#setLisDistance'))$('#setLisDistance').value=D.lisDistance||''; }catch(e){}
-  if($('#setLetterGap'))$('#setLetterGap').value=D.letterGap!==undefined?D.letterGap:10;
-  if($('#setReplyRate'))$('#setReplyRate').value=D.replyRate!==undefined?D.replyRate:100;
-  if($('#setLetterRate'))$('#setLetterRate').value=D.letterRate!==undefined?D.letterRate:100;
+  if(yzSafeEl('setDiaryGap'))yzSafeEl('setDiaryGap').value=(D.diaryGap===undefined?30:D.diaryGap);
+  if(yzSafeEl('setDiaryMin'))yzSafeEl('setDiaryMin').value=(D.diaryMin===undefined?2:D.diaryMin);
+  if(yzSafeEl('setDiaryMax'))yzSafeEl('setDiaryMax').value=(D.diaryMax===undefined?4:D.diaryMax);
+  if(yzSafeEl('setDaifuRate'))yzSafeEl('setDaifuRate').value=(D.daifuRate===undefined?20:D.daifuRate);
+  if(yzSafeEl('setDaifuGap'))yzSafeEl('setDaifuGap').value=(D.daifuGap===undefined?20:D.daifuGap);
+  if(yzSafeEl('setDaifuDelay'))yzSafeEl('setDaifuDelay').value=(D.daifuDelay===undefined?8:D.daifuDelay);
+  if(yzSafeEl('setGiftRate'))yzSafeEl('setGiftRate').value=(D.giftRate===undefined?20:D.giftRate);
+  if(yzSafeEl('setGiftAcceptRate'))yzSafeEl('setGiftAcceptRate').value=(D.giftAcceptRate===undefined?70:D.giftAcceptRate);
+  if(yzSafeEl('setGiftRejectRate'))yzSafeEl('setGiftRejectRate').value=(D.giftRejectRate===undefined?30:D.giftRejectRate);
+  if(yzSafeEl('setGiftGap'))yzSafeEl('setGiftGap').value=(D.giftGap===undefined?20:D.giftGap);
+  if(yzSafeEl('setGiftDelay'))yzSafeEl('setGiftDelay').value=(D.giftDelay===undefined?8:D.giftDelay);
+  if(yzSafeEl('setLisAskRate'))yzSafeEl('setLisAskRate').value=(D.lisAskRate===undefined?20:D.lisAskRate);
+  if(yzSafeEl('setLisAskGap'))yzSafeEl('setLisAskGap').value=(D.lisAskGap===undefined?20:D.lisAskGap);
+  if(yzSafeEl('setComboMin'))yzSafeEl('setComboMin').value=D.comboMin||2;
+  if(yzSafeEl('setComboMax'))yzSafeEl('setComboMax').value=D.comboMax||3;
+  if(yzSafeEl('setMomMin'))yzSafeEl('setMomMin').value=D.momMin||1;
+  if(yzSafeEl('setMomMax'))yzSafeEl('setMomMax').value=D.momMax||2;
+  if(yzSafeEl('setLetterSent'))yzSafeEl('setLetterSent').value=D.letterSent||((D.letterMin||1)+'-'+(D.letterMax||2));
+  try{var _ls=String(D.letterSent||'1-2').match(/\d+/g)||[];if(yzSafeEl('setLetterMin'))yzSafeEl('setLetterMin').value=_ls[0]||1;if(yzSafeEl('setLetterMax'))yzSafeEl('setLetterMax').value=_ls[1]||_ls[0]||2;}catch(e){}
+  if(yzSafeEl('setMomGap'))yzSafeEl('setMomGap').value=D.momGap||1;
+  if(yzSafeEl('setFeelGap'))yzSafeEl('setFeelGap').value=D.feelGap||30;
+  if(yzSafeEl('setFeelList'))yzSafeEl('setFeelList').value=(D.feelings||[]).join('\n');
+  if(yzSafeEl('setPats'))yzSafeEl('setPats').value=(D.pats||[]).join('\n');
+  if(yzSafeEl('setTranAmts'))yzSafeEl('setTranAmts').value=(D.tranAmts||[]).join('\n');
+  if(yzSafeEl('setTranNotes'))yzSafeEl('setTranNotes').value=(D.tranNotes||[]).join('\n');
+  if(yzSafeEl('setReplyGap'))yzSafeEl('setReplyGap').value=D.replyGap!==undefined?D.replyGap:5;
+  try{ if(yzSafeEl('setLisDistance'))yzSafeEl('setLisDistance').value=D.lisDistance||''; }catch(e){}
+  if(yzSafeEl('setLetterGap'))yzSafeEl('setLetterGap').value=D.letterGap!==undefined?D.letterGap:10;
+  if(yzSafeEl('setReplyRate'))yzSafeEl('setReplyRate').value=D.replyRate!==undefined?D.replyRate:100;
+  if(yzSafeEl('setLetterRate'))yzSafeEl('setLetterRate').value=D.letterRate!==undefined?D.letterRate:100;
   // 通用兜底：扫描页面上所有 id 以 set 开头的输入框，逐个从 D 回填
   document.querySelectorAll('input[id^="set"],textarea[id^="set"],select[id^="set"]').forEach(function(el){
     const id=el.id;
@@ -10424,13 +10431,13 @@ function fillSettings(){
     if(el.type==='checkbox'){el.checked=!!D[k];}
     else if(D[k]!==undefined){el.value=D[k];}
   });
-  if($('#feelToggle'))$('#feelToggle').textContent=D.feelOn===false?'关闭':'开启';
+  if(yzSafeEl('feelToggle'))yzSafeEl('feelToggle').textContent=D.feelOn===false?'关闭':'开启';
   try{var _ka=document.getElementById('keepAliveBtn');if(_ka)_ka.textContent=D.keepAlive?'开启':'关闭';}catch(e){}
   try{ if(D.keepAlive){ yzKeepAlive(); } }catch(e){}
-  if($('#readToggle'))$('#readToggle').textContent=D.readOn?'开启':'关闭';
-  if($('#typingToggle'))$('#typingToggle').textContent=D.typingOn?'开启':'关闭';
-  $('#thLight').classList.toggle('on',D.theme!=='dark');
-  $('#thDark').classList.toggle('on',D.theme==='dark');
+  if(yzSafeEl('readToggle'))yzSafeEl('readToggle').textContent=D.readOn?'开启':'关闭';
+  if(yzSafeEl('typingToggle'))yzSafeEl('typingToggle').textContent=D.typingOn?'开启':'关闭';
+  yzSafeEl('thLight').classList.toggle('on',D.theme!=='dark');
+  yzSafeEl('thDark').classList.toggle('on',D.theme==='dark');
 }
 function yzMarkSetStatus(){
   try{
