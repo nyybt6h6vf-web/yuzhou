@@ -2083,7 +2083,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-20-v13";
+window.__YZ_BUILD="2026-10-20-v14";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3883,6 +3883,8 @@ function yzBuildSetGroups(){
       rows.forEach(function(r){ box.appendChild(r); });
       subs.appendChild(box);
       if(!hub){
+        /* 主动消息与通知统一由下面的独立入口生成，这里跳过，避免重复 */
+        if(name==='主动消息与通知'){ return; }
         /* 不属于任何大入口的（如回复设置）仍单独一个入口 */
         var row=document.createElement('div'); row.className='row';
         row.innerHTML='<div class="lab">'+name+'</div><div class="chip">›</div>';
@@ -5262,8 +5264,8 @@ function yzNotify(title,body,force,cid){
     if(!('Notification' in window))return;
     if(Notification.permission!=='granted')return;
     if(!force&&!document.hidden)return; // 页面在前台不用弹；force 时强制
-    var _nc=(cid!==undefined&&cid!==null)?cid:yzCtxCharId(); var n=new Notification(title||yzChNick(_nc),{body:body||'给你发消息了',icon:yzChAvatar(_nc)||undefined,tag:'yz-msg'});
-    setTimeout(function(){try{n.close();}catch(e){}},6000);
+    var _nc=(cid!==undefined&&cid!==null)?cid:yzCtxCharId(); var n=new Notification(title||yzChNick(_nc),{body:body||'给你发消息了',icon:yzChAvatar(_nc)||undefined,tag:'yz-msg',requireInteraction:true,silent:false});
+    /* 不自动关闭：通知留在通知栏，等你自己删 */
   }catch(e){}
 }
 function yzTestNotify(){
