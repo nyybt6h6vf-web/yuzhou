@@ -1631,6 +1631,7 @@ svg [fill="currentColor"]{stroke:none;}
           </div>
         </div><div class="row"><div class="lab">浅/深色跟随系统</div><div class="chip" id="themeAutoChip" onclick="toggleThemeAuto()">关闭</div></div><div class="row"><div class="lab">主页签名</div><input type="text" id="setSlogan" oninput="saveBeauty()" placeholder="头像右侧那行字，留空则不显示"></div><div class="row"><div class="lab">保存当前美化方案</div><div class="chip" id="beautySaveBtn" onclick="yzBeautySave()">保存</div></div>
         <div id="beautySlots" style="display:flex;flex-direction:column;gap:8px;margin-top:6px"></div>
+      </div>
       <div class="group">
         <h4>身份</h4>
         <div class="row"><div class="lab">主页展示梦角</div><div class="chip" id="homeCharaChip" onclick="yzPickHomeChara()">选择</div></div>
@@ -2082,7 +2083,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-20-v11diag";
+window.__YZ_BUILD="2026-10-20-v12";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3950,27 +3951,19 @@ function yzOpenBeautySub(name){
     var src=yzBeautySubOf(name); if(!src)return;
     var sub=document.getElementById('setSub');
     var body=document.getElementById('setSubBody');
+    if(!sub||!body)return;
+    /* 切页 */
     var all=document.querySelectorAll('.screen');
     for(var k=0;k<all.length;k++)all[k].classList.remove('active');
-    if(sub)sub.classList.add('active');
-    if(body)body.innerHTML='<div class="group"><h4>'+name+'</h4>'+src.html+'</div>';
+    sub.classList.add('active');
+    /* 写入内容 */
+    body.innerHTML='<div class="group"><h4>'+name+'</h4>'+src.html+'</div>';
     var t=document.getElementById('setSubTitle'); if(t)t.textContent=name;
+    /* 回填数值 */
     try{ fillSettings(); }catch(e){}
-    var info='';
-    try{
-      var r=sub.getBoundingClientRect();
-      var ph=document.getElementById('phone');
-      var pr=ph?ph.getBoundingClientRect():{width:'?',height:'?'};
-      info='sub w='+Math.round(r.width)+' h='+Math.round(r.height)
-        +'\nsub position='+getComputedStyle(sub).position
-        +'\nsub inset='+getComputedStyle(sub).top+'/'+getComputedStyle(sub).bottom
-        +'\nparent='+(sub.parentNode?sub.parentNode.id||sub.parentNode.className:'none')
-        +'\nphone w='+Math.round(pr.width)+' h='+Math.round(pr.height)
-        +'\nbody display='+(body?getComputedStyle(body).display:'?')
-        +'\nbody h='+(body?Math.round(body.getBoundingClientRect().height):'?');
-    }catch(e){ info='measure err:'+e.message; }
-    alert(info);
-  }catch(e){ alert('C0 ERR:'+e.message); }
+    try{ yzBeautyRender(); }catch(e){}
+    try{ yzPhCondRows(); }catch(e){}
+  }catch(e){}
 }
 function yzPhCondRows(){
   try{
