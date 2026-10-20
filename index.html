@@ -1630,6 +1630,7 @@ svg [fill="currentColor"]{stroke:none;}
             <div class="chip" id="thDark" onclick="setTheme('dark')">深色</div>
           </div>
         </div><div class="row"><div class="lab">浅/深色跟随系统</div><div class="chip" id="themeAutoChip" onclick="toggleThemeAuto()">关闭</div></div><div class="row"><div class="lab">主页签名</div><input type="text" id="setSlogan" oninput="saveBeauty()" placeholder="头像右侧那行字，留空则不显示"></div><div class="row"><div class="lab">保存当前美化方案</div><div class="chip" id="beautySaveBtn" onclick="yzBeautySave()">保存</div></div>
+        <div id="beautySlots" style="display:flex;flex-direction:column;gap:8px;margin-top:6px"></div>
       <div class="group">
         <h4>身份</h4>
         <div class="row"><div class="lab">主页展示梦角</div><div class="chip" id="homeCharaChip" onclick="yzPickHomeChara()">选择</div></div>
@@ -1760,9 +1761,6 @@ svg [fill="currentColor"]{stroke:none;}
       </div>
       <div class="group">
         <h4>版本更新</h4>
-        <div class="row"><div class="lab">当前版本</div><div class="val" id="verLocalTxt">--</div></div>
-        <div class="row"><div class="lab">线上最新版本</div><div class="val" id="verRemoteTxt">未检查</div></div>
-        <div class="row"><div class="lab">检查更新</div><div class="chip" id="verCheckBtn" onclick="yzCheckVerManual()">检查</div></div>
         <div class="row"><div class="lab">清缓存并更新</div><div class="chip" onclick="yzForceUpdate()">更新</div></div>
       </div>
       <div class="group">
@@ -2081,7 +2079,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-20-v2";
+window.__YZ_BUILD="2026-10-20-v3";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3947,26 +3945,21 @@ function yzBeautySubOf(name){
 function yzOpenBeautySub(name){
   try{
     var subs=document.getElementById('setSubBody'); if(!subs)return;
-    /* 若尚未注入，先注入 */
-    if(!subs.querySelector('.group[data-beautysub]')){
-      YZ_BEAUTY_SUBS.forEach(function(g){
-        var box=document.createElement('div');
-        box.className='group'; box.setAttribute('data-beautysub',g.name);
-        var hh=document.createElement('h4'); hh.textContent=g.name; box.appendChild(hh);
-        var wrap2=document.createElement('div'); wrap2.innerHTML=g.html;
-        while(wrap2.firstChild)box.appendChild(wrap2.firstChild);
-        subs.appendChild(box);
-      });
-    }
-    [].slice.call(subs.querySelectorAll('.group')).forEach(function(g){ g.style.display='none'; });
-    var hit=null;
-    [].slice.call(subs.querySelectorAll('.group')).forEach(function(g){
-      if(g.getAttribute('data-beautysub')===name)hit=g;
-    });
-    if(hit)hit.style.display='';
+    var src=yzBeautySubOf(name); if(!src)return;
+    /* 先切页面，避免 go() 内的重建覆盖我们的显隐 */
     var t=document.getElementById('setSubTitle'); if(t)t.textContent=name;
-    try{ fillSettings(); }catch(e){}
     go('setSub');
+    /* 重建子页：只放这一块 */
+    subs.innerHTML='';
+    var box=document.createElement('div');
+    box.className='group';
+    box.setAttribute('data-beautysub',name);
+    var hh=document.createElement('h4'); hh.textContent=name; box.appendChild(hh);
+    var w2=document.createElement('div'); w2.innerHTML=src.html;
+    while(w2.firstChild)box.appendChild(w2.firstChild);
+    subs.appendChild(box);
+    try{ fillSettings(); }catch(e){}
+    try{ yzBeautyRender(); }catch(e){}
   }catch(e){}
 }
 
