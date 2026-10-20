@@ -2082,7 +2082,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-20-v5";
+window.__YZ_BUILD="2026-10-20-v6dbg";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3947,18 +3947,18 @@ function yzBeautySubOf(name){
 }
 function yzOpenBeautySub(name){
   try{
-    var subs=document.getElementById('setSubBody'); if(!subs)return;
-    var src=yzBeautySubOf(name); if(!src)return;
-    /* 1. 切到子页（go 内部会跑 yzBuildSetGroups，早退，不会动我们的内容） */
+    var subs=document.getElementById('setSubBody');
+    if(!subs){ alert('DEBUG: setSubBody 不存在'); return; }
+    var src=yzBeautySubOf(name);
+    if(!src){ alert('DEBUG: 找不到 '+name); return; }
     go('setSub');
-    /* 2. 清空并整块写入，不搬节点 */
-    subs.innerHTML='<div class="group" data-beautysub="'+String(name).replace(/</g,'&lt;')+'"><h4>'+String(name).replace(/</g,'&lt;')+'</h4>'+src.html+'</div>';
+    subs.innerHTML='<div class="group" data-beautysub="'+name+'"><h4>'+name+'</h4>'+src.html+'</div>';
     var t=document.getElementById('setSubTitle'); if(t)t.textContent=name;
-    /* 3. 回填数值 */
-    try{ fillSettings(); }catch(e){}
+    try{ fillSettings(); }catch(e){ alert('DEBUG fillSettings: '+e.message); }
     try{ yzBeautyRender(); }catch(e){}
     try{ yzPhCondRows(); }catch(e){}
-  }catch(e){}
+    alert('DEBUG: 写入长度='+subs.innerHTML.length);
+  }catch(e){ alert('DEBUG ERR: '+e.message); }
 }
 function yzPhCondRows(){
   try{
