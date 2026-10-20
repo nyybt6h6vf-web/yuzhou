@@ -52,13 +52,17 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
 html,body{overscroll-behavior:none!important;-webkit-overflow-scrolling:auto!important;overscroll-behavior:none;height:100%;background:var(--page-bg);}
 
+html{background:var(--page-bg);height:100%;}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
   background:var(--page-bg);color:var(--text);
   display:flex;align-items:center;justify-content:center;overflow:hidden;
   width:100%;height:100%;
+  padding-top:env(safe-area-inset-top, 0px);
+  padding-bottom:env(safe-area-inset-bottom, 0px);
+  box-sizing:border-box;
 }
-#phone{position:relative;width:100%;height:100%;max-width:430px;overflow:hidden;overscroll-behavior:none;background:var(--page-bg);padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);box-sizing:content-box;}
+#phone{position:relative;width:100%;height:100%;max-width:430px;overflow:hidden;overscroll-behavior:none;background:var(--page-bg);box-sizing:border-box;}
 @media(min-width:520px){
   #phone{height:900px;max-height:96vh;border-radius:46px;box-shadow:0 30px 80px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.08);}
 }
@@ -859,7 +863,8 @@ svg [fill="currentColor"]{stroke:none;}
 .shopadd{text-align:center;font-size:13px;color:var(--accent,#859ecb);padding:14px 0;cursor:pointer;}
 .shopbal .gwb{cursor:pointer;font-size:14px;color:var(--fg);font-weight:600;}
 .gwgrid{padding:14px 14px 40px;overflow:auto;height:calc(100% - 96px);box-sizing:border-box;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:start;}
-.gwitem{background:var(--panel);border-radius:16px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.06);display:flex;flex-direction:column;}
+.gwitem{position:relative;background:var(--panel);border-radius:16px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.06);display:flex;flex-direction:column;}
+.gwdel{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:15px;line-height:24px;text-align:center;z-index:3;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;}
 .gwitem .gwi{width:100%;height:96px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--sub);}
 .gwitem .gwi img{width:100%;height:100%;object-fit:cover;}
 .gwitem .gwn{padding:8px 10px 2px;font-size:13px;font-weight:600;}
@@ -2083,7 +2088,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-20-v14";
+window.__YZ_BUILD="2026-10-20-v15";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -6101,8 +6106,19 @@ function renderGiftWall(){
   if(!list.length){ box.innerHTML='<div class="gwempty">'+( _gwTab==='him'?'梦角还没送过你东西':'你还没送过梦角东西')+'</div>'; return; }
   list.slice().reverse().forEach(function(x){
     var im=x.img?('<img src="'+x.img+'">'):'礼';
-    box.insertAdjacentHTML('beforeend','<div class="gwitem"><div class="gwi">'+im+'</div><div class="gwn">'+esc(x.name||'')+'</div><div class="gwp">¥'+esc(x.price)+'</div></div>');
+    var _real=(D.giftWall||[]).indexOf(x);
+    box.insertAdjacentHTML('beforeend','<div class="gwitem"><div class="gwdel" onclick="event.stopPropagation();event.preventDefault();yzGiftWallDel('+_real+')">×</div><div class="gwi">'+im+'</div><div class="gwn">'+esc(x.name||'')+'</div><div class="gwp">¥'+esc(x.price)+'</div></div>');
   });
+}
+function yzGiftWallDel(idx){
+  try{
+    if(!D.giftWall||!D.giftWall.length)return;
+    idx=parseInt(idx,10);
+    if(isNaN(idx)||idx<0||idx>=D.giftWall.length)return;
+    D.giftWall.splice(idx,1);
+    try{ saveFlush(); }catch(e){ try{ save(); }catch(e2){} }
+    renderGiftWall();
+  }catch(e){}
 }
 function findGoods(id){return goodsList().find(function(g){return g.id===id;});}
 /* 商城：选择一个梦角（多梦角时弹出，单选则直接返回） */
