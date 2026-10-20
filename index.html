@@ -2082,7 +2082,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-20-v7";
+window.__YZ_BUILD="2026-10-20-v8";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3948,15 +3948,22 @@ function yzBeautySubOf(name){
 function yzOpenBeautySub(name){
   try{
     var src=yzBeautySubOf(name); if(!src)return;
-    /* 直接切屏幕，不调 go，避开任何潜在干扰 */
+    var old=document.getElementById('yzBeautyInline');
+    if(old&&old.parentNode)old.parentNode.removeChild(old);
+    var host=document.getElementById('setSubBody');
+    if(!host)host=document.querySelector('#setSub .list');
+    if(!host)return;
+    var panel=document.createElement('div');
+    panel.id='yzBeautyInline';
+    panel.className='group';
+    panel.innerHTML='<h4>'+name+'</h4>'+src.html;
+    host.appendChild(panel);
     try{
+      var cur=document.getElementById('setSub');
       var all=document.querySelectorAll('.screen');
-      for(var i=0;i<all.length;i++)all[i].classList.remove('active');
-      var sub=document.getElementById('setSub');
-      if(sub)sub.classList.add('active');
+      for(var k=0;k<all.length;k++)all[k].classList.remove('active');
+      if(cur)cur.classList.add('active');
     }catch(e){}
-    var subs=document.getElementById('setSubBody');
-    if(subs)subs.innerHTML='<div class="group" data-beautysub="'+name+'"><h4>'+name+'</h4>'+src.html+'</div>';
     var t=document.getElementById('setSubTitle'); if(t)t.textContent=name;
     try{ fillSettings(); }catch(e){}
     try{ yzBeautyRender(); }catch(e){}
