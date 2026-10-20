@@ -2081,7 +2081,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="6eab52a7";
+window.__YZ_BUILD="2026-10-20-v1";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -5372,12 +5372,14 @@ function yzCheckVersion(){
   }catch(e){}
 }
 function yzVerKey(x){
-  /* 统一提取版本编号：2026-10-18-build-a54a2c70 → a54a2c70 */
+  /* 手动版本号，如 2026-10-20-v12 → v12；兼容旧格式 */
   try{
     var t=String(x||'').trim();
     if(!t)return '';
-    var m=t.match(/([0-9a-fA-F]{6,40})\s*$/);
-    if(m)return m[1].toLowerCase();
+    var m=t.match(/(v\d+)\s*$/i);
+    if(m)return m[1].toLowerCase().replace(/^v/,'');
+    var m2=t.match(/([0-9a-fA-F]{6,40})\s*$/);
+    if(m2)return m2[1].toLowerCase();
     var p=t.split('-');
     return (p[p.length-1]||t).toLowerCase();
   }catch(e){ return String(x||'').trim().toLowerCase(); }
