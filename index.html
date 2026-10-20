@@ -2083,7 +2083,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-20-v12";
+window.__YZ_BUILD="2026-10-20-v13";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3847,7 +3847,10 @@ function yzRowGroupKey(r){
 }
 function yzBuildSetGroups(){
   try{
-    if(_yzSetMoved)return; _yzSetMoved=true;
+    var _chk=document.getElementById('setSubBody');
+    var _has=_chk&&_chk.querySelectorAll('.group').length>0;
+    if(_yzSetMoved&&_has)return;
+    _yzSetMoved=true;
     var wrap=document.querySelector('#settings .list'); if(!wrap)return;
     var subs=document.getElementById('setSubBody'); if(!subs)return;
     var all=[].slice.call(wrap.querySelectorAll('.group'));
@@ -3992,14 +3995,23 @@ function yzOpenSetHub(hub){
 }
 function yzOpenSetSub(name){
   try{
+    /* 先把分组建出来：新组只有建过之后才存在，否则下面什么都找不到 */
+    try{ yzBuildSetGroups(); }catch(e){}
     var subs=document.getElementById('setSubBody'); if(!subs)return;
-    [].slice.call(subs.querySelectorAll('.group')).forEach(function(g){ g.style.display='none'; });
     var all=[].slice.call(subs.querySelectorAll('.group'));
+    if(!all.length){ try{ yzBuildSetGroups(); }catch(e){} all=[].slice.call(subs.querySelectorAll('.group')); }
+    /* 先隐藏全部，再只显示命中的那一组 */
+    all.forEach(function(g){ g.style.display='none'; });
     var hit=all.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;})[0];
     if(hit)hit.style.display='';
     var t=document.getElementById('setSubTitle'); if(t)t.textContent=name;
     try{ yzPhCondRows(); }catch(e){}
     go('setSub');
+    /* go() 之后可能重建过，再兜一次，确保只有命中那组显示 */
+    var all2=[].slice.call(subs.querySelectorAll('.group'));
+    all2.forEach(function(g){ g.style.display='none'; });
+    var hit2=all2.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;})[0];
+    if(hit2)hit2.style.display='';
   }catch(e){}
 }
 function renderPlus(){
