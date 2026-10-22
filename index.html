@@ -2088,7 +2088,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-20-v15";
+window.__YZ_BUILD="2026-10-22-v16";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -9627,6 +9627,16 @@ function saveFeel(){
 function savePats(){
   try{ var _el=$('#setPats'); if(_el){ D.pats=String(_el.value||'').split('\n').map(function(s){return s.trim();}).filter(Boolean); } }catch(e){}
   try{ var _pr=$('#setPatRate'); if(_pr && String(_pr.value).trim()!==''){ D.patRate=Math.max(0,Math.min(100,parseFloat(_pr.value)||0)); } }catch(e){}
+  /* 同时写进当前梦角自己的配置，否则 yzCfg 会读到旧值把这里覆盖掉 */
+  try{
+    var _cid=(typeof yzSetCurChar==='function')?yzSetCurChar():'';
+    if(_cid){
+      if(!D.setPer)D.setPer={};
+      if(!D.setPer[_cid])D.setPer[_cid]={};
+      if(typeof D.patRate==='number')D.setPer[_cid].patRate=D.patRate;
+      if(D.pats)D.setPer[_cid].pats=D.pats;
+    }
+  }catch(e){}
   save();
 }
 function saveTrans(){
@@ -9708,13 +9718,26 @@ function yzPatRateFix(){
 }
 function maybePat(){
   if(D.sendHold)return;
-  /* 用当前梦角自己的拍一拍概率 */
-  try{ if(typeof yzCfg==='function'){ var _pr=yzCfg(yzCtxCharId(),'patRate',15); if(_pr!==undefined && _pr!==null && _pr!=='') D.patRate=parseFloat(_pr); } }catch(e){}
-  /* 用当前梦角自己的拍一拍概率 */
-  try{ if(typeof yzCfg==='function'){ var _pr=yzCfg(yzCtxCharId(),'patRate',15); if(_pr!==undefined && _pr!==null && _pr!=='') D.patRate=parseFloat(_pr); } }catch(e){}
+  /* 取当前梦角自己的拍一拍概率；只在本轮使用，不回写全局，避免污染别的梦角 */
+  var _patRate=D.patRate;
+  try{
+    if(typeof yzCfg==='function'){
+      var _pr=yzCfg(yzCtxCharId(),'patRate',undefined);
+      if(_pr!==undefined && _pr!==null && _pr!=='') _patRate=parseFloat(_pr);
+    }
+  }catch(e){}
+  _patRate=Math.max(0,Math.min(100,parseFloat(_patRate)||0));
+  /* 拍一拍内容也用当前梦角自己的 */
+  var _pats=D.pats;
+  try{
+    if(typeof yzCfg==='function'){
+      var _ps=yzCfg(yzCtxCharId(),'pats',undefined);
+      if(_ps && _ps.length) _pats=_ps;
+    }
+  }catch(e){}
   /* 在 respond() 里每轮调用一次：梦角一轮回复只掷一次骰子，与他发几条无关 */
-  if(Math.random()*100>=(D.patRate||0))return;
-  if(!(D.pats||[]).length)return;
+  if(Math.random()*100>=_patRate)return;
+  if(!(_pats||[]).length)return;
   setTimeout(function(){ try{ if(!D.sendHold) himPat(); }catch(e){} }, Math.max(200,(typeof sendGapMs==='function'?sendGapMs():1200)));
 }
 function showIncoming(){
@@ -10393,7 +10416,7 @@ function fillSettings(){
   try{if(yzSafeEl('themeAutoChip'))yzSafeEl('themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}
   if(yzSafeEl('setDelay'))yzSafeEl('setDelay').value=D.delay;
   if(yzSafeEl('setSendGap'))yzSafeEl('setSendGap').value=(D.sendGap!==undefined?D.sendGap:D.delay);
-  yzSafeEl('setTran').value=D.tran;yzSafeEl('setCall').value=D.callRate;try{if(yzSafeEl('setPatRate'))yzSafeEl('setPatRate').value=(D.patRate!==undefined?D.patRate:15);}catch(e){}try{if(yzSafeEl('setVoiceRate'))yzSafeEl('setVoiceRate').value=(D.voiceRate!==undefined?D.voiceRate:0);}catch(e){}
+  yzSafeEl('setTran').value=D.tran;yzSafeEl('setCall').value=D.callRate;try{if(yzSafeEl('setPatRate')){var _prv=D.patRate;try{if(typeof yzCfg==='function'){var _x=yzCfg(yzCtxCharId(),'patRate',undefined);if(_x!==undefined&&_x!==null&&_x!=='')_prv=parseFloat(_x);}}catch(e2){}yzSafeEl('setPatRate').value=(_prv!==undefined?_prv:15);}}catch(e){}try{if(yzSafeEl('setVoiceRate'))yzSafeEl('setVoiceRate').value=(D.voiceRate!==undefined?D.voiceRate:0);}catch(e){}
   if(yzSafeEl('setTranTo'))yzSafeEl('setTranTo').value=D.tranTo;
   if(yzSafeEl('setTranGap'))yzSafeEl('setTranGap').value=(D.tranGap===undefined?30:D.tranGap);
   if(yzSafeEl('setPackRate'))yzSafeEl('setPackRate').value=(D.packRate===undefined?25:D.packRate);
