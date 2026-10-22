@@ -753,10 +753,12 @@ svg [fill="currentColor"]{stroke:none;}
 [data-theme="light"] .yz-badge{color:#859ecb;}
 .convitem{position:relative;}
 .yz-badge.conv-badge{top:50%;right:12px;transform:translateY(-50%);}
-#yzToast{position:fixed;left:50%;bottom:12%;transform:translate(-50%,10px);background:rgba(0,0,0,.82);color:#fff;font-size:13px;padding:9px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:.22s;z-index:99999;max-width:76%;text-align:center;}
-#yzToast.show{opacity:1;transform:translate(-50%,0);}
-#yzTopNotice{position:fixed;left:50%;top:8px;transform:translate(-50%,-140%);width:92%;max-width:420px;background:var(--panel,#fff);color:var(--text,#1c1c1e);border:1px solid var(--line,rgba(0,0,0,.08));border-radius:16px;padding:12px 14px 13px;box-shadow:0 10px 30px rgba(0,0,0,.3);z-index:100000;transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .3s;opacity:0;cursor:pointer;touch-action:pan-y;}
-#yzTopNotice.show{transform:translate(-50%,0);opacity:1;}
+#yzToast{position:fixed;left:50%;bottom:12%;transform:translate(-50%,14px) scale(.94);background:rgba(28,30,36,.72);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);color:#fff;font-size:13.5px;line-height:1.45;padding:11px 18px;border-radius:16px;border:.5px solid rgba(255,255,255,.16);box-shadow:0 10px 34px rgba(0,0,0,.34),0 2px 8px rgba(0,0,0,.16),inset 0 .5px 0 rgba(255,255,255,.18);opacity:0;pointer-events:none;transition:opacity .42s cubic-bezier(.22,1,.36,1),transform .52s cubic-bezier(.22,1,.36,1);z-index:99999;max-width:76%;text-align:center;letter-spacing:.2px;will-change:transform,opacity;}
+#yzToast.show{opacity:1;transform:translate(-50%,0) scale(1);}
+#yzToast.dragging{transition:none;}
+#yzTopNotice{position:fixed;left:50%;top:8px;transform:translate(-50%,-140%) scale(.96);width:92%;max-width:420px;background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);color:var(--text,#1c1c1e);border:.5px solid rgba(255,255,255,.5);border-radius:18px;padding:12px 14px 13px;box-shadow:0 16px 44px rgba(0,0,0,.18),0 3px 10px rgba(0,0,0,.08),inset 0 .5px 0 rgba(255,255,255,.7);z-index:100000;transition:transform .58s cubic-bezier(.22,1,.36,1),opacity .5s cubic-bezier(.22,1,.36,1);opacity:0;cursor:pointer;will-change:transform,opacity;}
+#yzTopNotice.show{transform:translate(-50%,0) scale(1);opacity:1;}
+#yzTopNotice.dragging{transition:none!important;}
 #yzTopNotice .ytn-row{display:flex;align-items:center;gap:10px;}
 #yzTopNotice .ytn-av{width:34px;height:34px;border-radius:10px;overflow:hidden;flex:0 0 34px;background:var(--card,#eee);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--sub);}
 #yzTopNotice .ytn-av img{width:100%;height:100%;object-fit:cover;}
@@ -2088,7 +2090,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-22-v16";
+window.__YZ_BUILD="2026-10-22-v17";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -9953,11 +9955,51 @@ function yzTopNotice(title,content,onClick,ms,avatar){
     if(el._rm)clearTimeout(el._rm);
     var _av=avatar?('<div class="ytn-av">'+(String(avatar).indexOf('data:')===0?('<img src="'+yzAvUrl(avatar)+'">'):(String(avatar).indexOf('blob:')===0||String(avatar).indexOf('http')===0?('<img src="'+avatar+'">'):esc(String(avatar).slice(0,1))))+'</div>'):'';
     el.innerHTML='<div class="ytn-row">'+_av+'<div class="ytn-tx"><div class="ytn-t">'+esc(title||'')+'</div><div class="ytn-c">'+esc(content||'')+'</div></div></div><div class="ytn-x">×</div>';
+    el.classList.remove('dragging');
+    el.style.transform='';
+    el.style.opacity='';
     el.onclick=function(){ try{ if(onClick)onClick(); }catch(e){} yzTopNoticeHide(); };
-    /* 上滑消失 */
-    var sy=0;
-    el.ontouchstart=function(e){ try{ sy=e.touches[0].clientY; }catch(_){} };
-    el.ontouchmove=function(e){ try{ var dy=e.touches[0].clientY-sy; if(dy<-12){ yzTopNoticeHide(); } }catch(_){} };
+    /* 拖拽：按住往上拖，松手才决定去留 */
+    var sy=0,dy=0,down=false,moved=false;
+    function _down(e){
+      if(!el.classList.contains('show'))return;
+      down=true; moved=false; dy=0;
+      sy=(e.touches?e.touches[0].clientY:e.clientY);
+      if(el._to){clearTimeout(el._to);el._to=null;}
+      el.classList.add('dragging');
+    }
+    function _move(e){
+      if(!down)return;
+      var y=(e.touches?e.touches[0].clientY:e.clientY);
+      var d=sy-y;                    /* 向上为正 */
+      if(Math.abs(d)>4)moved=true;
+      if(d<0)d=0;
+      dy=d;
+      el.style.transform='translate(-50%,'+(-d)+'px) scale('+(1-Math.min(d,200)/2600)+')';
+      el.style.opacity=String(Math.max(0,1-d/140));
+      try{ if(e.cancelable)e.preventDefault(); }catch(_){}
+    }
+    function _up(){
+      if(!down)return;
+      down=false;
+      el.classList.remove('dragging');
+      if(dy>64){
+        /* 拖出去了又松手 → 消失 */
+        el.style.transform='';
+        el.style.opacity='';
+        yzTopNoticeHide();
+      }else{
+        /* 没到位置 → 弹回原位，恢复默认计时 */
+        el.style.transform='';
+        el.style.opacity='';
+        el._to=setTimeout(function(){ yzTopNoticeHide(); }, (typeof ms==='number'?ms:3000));
+      }
+      dy=0;
+    }
+    el.ontouchstart=_down;
+    el.ontouchmove=_move;
+    el.ontouchend=_up;
+    el.ontouchcancel=_up;
     requestAnimationFrame(function(){ el.classList.add('show'); });
     el._to=setTimeout(function(){ yzTopNoticeHide(); }, (typeof ms==='number'?ms:3000));
   }catch(e){}
@@ -9970,12 +10012,74 @@ function yzTopNoticeHide(){
     el._rm=setTimeout(function(){ try{ el.innerHTML=''; el.onclick=null; }catch(e){} },320);
   }catch(e){}
 }
-function toast(t){
-  let el=$('#yzToast');
-  if(!el){el=document.createElement('div');el.id='yzToast';document.body.appendChild(el);}
-  el.textContent=t;el.classList.add('show');
+var _yzToastY=0,_yzToastDragging=false,_yzToastStartY=0,_yzToastMoved=false;
+function _yzToastHide(){
+  var el=document.getElementById('yzToast'); if(!el)return;
+  el.classList.remove('show');
+  el.style.transform='';
+  _yzToastY=0;
+}
+function _yzToastShow(t){
+  var el=document.getElementById('yzToast');
+  if(!el){el=document.createElement('div');el.id='yzToast';document.body.appendChild(el);_yzToastBind(el);}
+  el.textContent=t;
+  el.style.pointerEvents='auto';
+  el.style.transform='';
+  _yzToastY=0;
+  void el.offsetWidth;
+  el.classList.add('show');
   clearTimeout(window.__toastT);
-  window.__toastT=setTimeout(function(){el.classList.remove('show');},1600);
+  window.__toastT=setTimeout(function(){ if(!_yzToastDragging)_yzToastHide(); },2600);
+}
+function _yzToastBind(el){
+  function down(e){
+    if(!el.classList.contains('show'))return;
+    _yzToastDragging=true; _yzToastMoved=false;
+    _yzToastStartY=(e.touches?e.touches[0].clientY:e.clientY);
+    clearTimeout(window.__toastT);
+    el.classList.add('dragging');
+  }
+  function move(e){
+    if(!_yzToastDragging)return;
+    var y=(e.touches?e.touches[0].clientY:e.clientY);
+    var d=_yzToastStartY-y;  /* 向上拖为正 */
+    if(Math.abs(d)>3)_yzToastMoved=true;
+    if(d<0)d=0;
+    _yzToastY=d;
+    var op=Math.max(0,1-d/120);
+    el.style.transform='translate(-50%,'+(-d)+'px) scale('+(1-d/1600)+')';
+    el.style.opacity=op;
+    try{e.preventDefault();}catch(err){}
+  }
+  function up(e){
+    if(!_yzToastDragging)return;
+    _yzToastDragging=false;
+    el.classList.remove('dragging');
+    if(_yzToastY>72){
+      /* 拖走了并松手 → 消失 */
+      el.classList.remove('show');
+      el.style.transform='';
+      el.style.opacity='';
+      _yzToastY=0;
+    }else{
+      /* 没到位 → 弹回原位，按默认时间自己消失 */
+      el.style.transform='';
+      el.style.opacity='';
+      _yzToastY=0;
+      clearTimeout(window.__toastT);
+      window.__toastT=setTimeout(function(){ if(!_yzToastDragging)_yzToastHide(); },2600);
+    }
+  }
+  el.addEventListener('touchstart',down,{passive:true});
+  el.addEventListener('touchmove',move,{passive:false});
+  el.addEventListener('touchend',up);
+  el.addEventListener('touchcancel',up);
+  el.addEventListener('mousedown',down);
+  window.addEventListener('mousemove',move);
+  window.addEventListener('mouseup',up);
+}
+function toast(t){
+  _yzToastShow(t);
 }
 function addCardPrompt(){
   askMulti('添加字卡','',function(t){
