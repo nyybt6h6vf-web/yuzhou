@@ -1779,7 +1779,6 @@ svg [fill="currentColor"]{stroke:none;}
       </div>
       <div class="group">
         <h4>__ph__</h4>
-        <div class="row" id="yzPhDiagRow"><div class="lab" id="yzPhDiag" style="font-size:11px;color:#e0637a;line-height:1.5;white-space:normal">诊断加载中</div></div>
         <div class="row"><div class="lab">梦角掉电量规则（分钟/度）</div><input type="number" id="setPhHimDrop" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">我掉电量规则（分钟/度）</div><input type="number" id="setPhMyDrop" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角主动充电概率（%）</div><input type="number" id="setPhHimChgRate" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
@@ -2094,10 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-23-v27diag";
-const DKEY='yuzhou_data_v4';
-const ICONS={
- phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
+window.__YZ_BUILD="2026-10-23-v28diag",
  chat:'<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
  cards:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18"/></svg>',
  together:'<svg viewBox="0 0 24 24"><path d="M12 21s-7-4.5-9.3-8.5A5 5 0 0 1 12 6a5 5 0 0 1 9.3 6.5C19 16.5 12 21 12 21z"/></svg>',
@@ -4043,6 +4039,7 @@ function yzOpenSetSub(name){
     all.forEach(function(g){ g.style.display='none'; });
     var hit=all.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;})[0];
     if(hit)hit.style.display='';
+    try{ if(name==='小手机与电量'&&hit&&!hit.querySelector('#yzPhDiag')){ var _dr=document.createElement('div'); _dr.className='row'; _dr.innerHTML='<div class="lab" id="yzPhDiag" style="font-size:11px;color:#e0637a;line-height:1.6;white-space:normal">诊断加载中</div>'; var _hd=hit.querySelector('h4'); if(_hd&&_hd.nextSibling)hit.insertBefore(_dr,_hd.nextSibling); else hit.appendChild(_dr); } }catch(e){}
     var t=document.getElementById('setSubTitle'); if(t)t.textContent=name;
     try{ yzPhCondRows(); }catch(e){}
     go('setSub');
