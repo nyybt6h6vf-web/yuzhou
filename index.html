@@ -2093,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-23-v28diag";
+window.__YZ_BUILD="2026-10-23-v29diag";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4042,10 +4042,10 @@ function yzOpenSetSub(name){
     all.forEach(function(g){ g.style.display='none'; });
     var hit=all.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;})[0];
     if(hit)hit.style.display='';
-    try{ if(name==='小手机与电量'&&hit&&!hit.querySelector('#yzPhDiag')){ var _dr=document.createElement('div'); _dr.className='row'; _dr.innerHTML='<div class="lab" id="yzPhDiag" style="font-size:11px;color:#e0637a;line-height:1.6;white-space:normal">诊断加载中</div>'; var _hd=hit.querySelector('h4'); if(_hd&&_hd.nextSibling)hit.insertBefore(_dr,_hd.nextSibling); else hit.appendChild(_dr); } }catch(e){}
     var t=document.getElementById('setSubTitle'); if(t)t.textContent=name;
     try{ yzPhCondRows(); }catch(e){}
     go('setSub');
+    try{ var _dg=document.querySelectorAll('#setSubBody .group'); for(var _i=0;_i<_dg.length;_i++){ var _g=_dg[_i]; if(_g.style.display==='none')continue; if(!_g.querySelector('#setPhHimChgSpeed'))continue; if(_g.querySelector('#yzPhDiag'))continue; var _dr=document.createElement('div'); _dr.className='row'; _dr.innerHTML='<div class="lab" id="yzPhDiag" style="font-size:11px;color:#e0637a;line-height:1.6;white-space:normal">诊断加载中</div>'; _g.insertBefore(_dr,_g.firstChild.nextSibling); break; } }catch(e){}
     /* go() 之后可能重建过，再兜一次，确保只有命中那组显示 */
     var all2=[].slice.call(subs.querySelectorAll('.group'));
     all2.forEach(function(g){ g.style.display='none'; });
