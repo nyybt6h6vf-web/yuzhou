@@ -2090,7 +2090,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-22-v17";
+window.__YZ_BUILD="2026-10-23-v18";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -2833,7 +2833,7 @@ function tick(){
   const ds=(d.getMonth()+1)+'月'+d.getDate()+'日 '+days[d.getDay()];
   if(window.__yzLastClock!==t){
     window.__yzLastClock=t;
-    ['lockTimeTop','homeTimeTop','chatTimeTop','cardTimeTop','togTimeTop','setTimeTop','moTimeTop','lisTimeTop','letTimeTop','lrTimeTop','pkTimeTop'].forEach(id=>{const el=$('#'+id);if(el)el.textContent=t;});
+    document.querySelectorAll('[id$="TimeTop"]').forEach(function(el){el.textContent=t;});
     $('#lockH').textContent=t;$('#lockD').textContent=ds;
   }
   try{yzPhTick();}catch(e){}
