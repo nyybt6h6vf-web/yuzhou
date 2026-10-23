@@ -1779,6 +1779,7 @@ svg [fill="currentColor"]{stroke:none;}
       </div>
       <div class="group">
         <h4>__ph__</h4>
+        <div class="row" id="yzPhDiagRow"><div class="lab" id="yzPhDiag" style="font-size:11px;color:#e0637a;line-height:1.5;white-space:normal">诊断加载中</div></div>
         <div class="row"><div class="lab">梦角掉电量规则（分钟/度）</div><input type="number" id="setPhHimDrop" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">我掉电量规则（分钟/度）</div><input type="number" id="setPhMyDrop" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角主动充电概率（%）</div><input type="number" id="setPhHimChgRate" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
@@ -2093,7 +2094,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-23-v26";
+window.__YZ_BUILD="2026-10-23-v27diag";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -10518,6 +10519,18 @@ function yzSafeEl(id){
   }catch(err){}
   return _yzDummy;
 }
+function yzDiagPhSpeed(){
+  try{
+    var el=document.getElementById('yzPhDiag');
+    if(!el)return;
+    var mem=D.phHimChgSpeed;
+    var cur=yzSetCurChar();
+    var per=(D.setPer&&D.setPer[cur]&&D.setPer[cur].phHimChgSpeed!==undefined)?D.setPer[cur].phHimChgSpeed:'无';
+    var ls='读不到';
+    try{ var raw=localStorage.getItem(DKEY); if(raw){ var o=JSON.parse(raw); ls=(o.phHimChgSpeed!==undefined?o.phHimChgSpeed:'无'); } }catch(e){ ls='错误'; }
+    el.textContent='诊断｜内存='+mem+' ／ 梦角包='+per+' ／ 存储='+ls;
+  }catch(e){}
+}
 function fillSettings(){
   try{renderMemInfo();}catch(e){}
   try{if(yzSafeEl('setProactiveGap'))yzSafeEl('setProactiveGap').value=(D.proactiveGap===undefined?10:D.proactiveGap);var _pb=document.getElementById('proactiveBtn');if(_pb)_pb.textContent=D.proactive?'开启':'关闭';}catch(e){}
@@ -10637,6 +10650,7 @@ function fillSettings(){
     else if(D[k]!==undefined){el.value=D[k];}
   });
   if(yzSafeEl('feelToggle'))yzSafeEl('feelToggle').textContent=D.feelOn===false?'关闭':'开启';
+  try{yzDiagPhSpeed();}catch(e){}
   try{var _ka=document.getElementById('keepAliveBtn');if(_ka)_ka.textContent=D.keepAlive?'开启':'关闭';}catch(e){}
   try{ if(D.keepAlive){ yzKeepAlive(); } }catch(e){}
   if(yzSafeEl('readToggle'))yzSafeEl('readToggle').textContent=D.readOn?'开启':'关闭';
@@ -10980,10 +10994,13 @@ function saveProfile(){
   if($('#setPhMyAutoAt'))D.phMyAutoAt=Math.max(0,Math.min(100,parseFloat($('#setPhMyAutoAt').value)||0));
   if($('#setPhHimChgSpeed'))D.phHimChgSpeed=Math.max(1,parseFloat($('#setPhHimChgSpeed').value)||1);
   if($('#setPhMyChgSpeed'))D.phMyChgSpeed=Math.max(1,parseFloat($('#setPhMyChgSpeed').value)||1);
+  /* 小手机与电量：立即同步进当前梦角包，避免被其他保存路径覆盖 */
+  try{ var _pk=['phMyDrop','phHimDrop','phHimChgRate','phHimAutoAt','phMyAutoAt','phHimChgSpeed','phMyChgSpeed','phAutoHim','phAutoMy']; var _pc=yzSetCurChar(); if(_pc){ if(!D.setPer)D.setPer={}; if(!D.setPer[_pc])D.setPer[_pc]={}; for(var _pi=0;_pi<_pk.length;_pi++){ var _kk=_pk[_pi]; if(D[_kk]!==undefined) D.setPer[_pc][_kk]=D[_kk]; } } }catch(e){}
   /* 把本轮改动提交到当前选中梦角的设置包 */
   try{ yzSetCommit(yzSetCurChar()); }catch(e){}
   // 兜底已移除：它会把其它屏幕里未初始化的空输入框写进 D，导致昵称等被覆盖
   save();updateHomeAvatar();$('#chatTitle').textContent=D.nick||'他';
+  try{yzDiagPhSpeed();}catch(e){}
   startMomLoop();startFeelLoop();startLetterLoop();
 }
 function setAccent(c){
