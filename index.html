@@ -2094,7 +2094,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-23-v31diag";
+window.__YZ_BUILD="2026-10-23-v32diag";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -10525,14 +10525,16 @@ function yzDiagPhSpeed(){
     var el=document.getElementById('yzPhDiag');
     if(!el)return;
     window.__yzDiagN=(window.__yzDiagN||0)+1;
+    var all=document.querySelectorAll('#setPhHimChgSpeed');
     var inp=document.getElementById('setPhHimChgSpeed');
-    var iv=inp?('['+inp.value+']'):'找不到框';
+    var iv=inp?('['+inp.value+']'):'找不到';
+    var cnt=all.length;
     var mem=D.phHimChgSpeed;
     var cur=yzSetCurChar();
     var per=(D.setPer&&D.setPer[cur]&&D.setPer[cur].phHimChgSpeed!==undefined)?D.setPer[cur].phHimChgSpeed:'无';
-    var ls='无法读取';
-    try{ var raw=localStorage.getItem(DKEY); if(raw){ var o=JSON.parse(raw); ls=(o.phHimChgSpeed!==undefined?o.phHimChgSpeed:'无'); } }catch(e){ ls='错误'; }
-    el.textContent='诊断｜输入框='+iv+' 内存='+mem+' 包='+per+' 存储='+ls+' 刷新'+window.__yzDiagN+'次';
+    var ls='无法读';
+    try{ var raw=localStorage.getItem(DKEY); if(raw){ var o=JSON.parse(raw); ls=(o.phHimChgSpeed!==undefined?o.phHimChgSpeed:'无'); } }catch(e){ ls='错'; }
+    el.textContent='诊断｜框数='+cnt+' 值='+iv+' 内存='+mem+' 包='+per+' 存储='+ls+' 刷'+window.__yzDiagN;
   }catch(e){}
 }
 function fillSettings(){
