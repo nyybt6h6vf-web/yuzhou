@@ -2090,7 +2090,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-23-v18";
+window.__YZ_BUILD="2026-10-23-v20";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4793,7 +4793,7 @@ function yzBuildPlan(opt){
     /* emoji 混入：整轮只掷一次，命中时随机抽其中一条主字卡混入 */
     try{
       if(parseInt(D.emojiMix)||0){
-        var _emP=parseFloat(D.emojiMixRate); if(isNaN(_emP))_emP=30;
+        var _emP=parseFloat(D.emojiMixRate); if(!isFinite(_emP)||_emP<0)_emP=30; if(_emP>100)_emP=100;
         if(_roll(_emP)){
           var _pool2=[]; for(var _q=0;_q<plan.length;_q++){ if(plan[_q].kind==='main')_pool2.push(_q); }
           if(_pool2.length){
@@ -4816,7 +4816,7 @@ function yzBuildPlan(opt){
     if(_roll(_vP)){ var vc=_mkVoice(); if(vc)hits.push(vc); }
     /* emoji 单独成一条（与混入完全独立，各掷各的） */
     if(parseInt(D.emojiAlone)||0){
-      var _eaP=parseFloat(D.emojiAloneRate); if(isNaN(_eaP))_eaP=15;
+      var _eaP=parseFloat(D.emojiAloneRate); if(!isFinite(_eaP)||_eaP<0)_eaP=15; if(_eaP>100)_eaP=100;
       if(_roll(_eaP)){ var ee=_mkEmoji(); if(ee)hits.push(ee); }
     }
     hits.sort(function(){return Math.random()-0.5;});
@@ -9684,8 +9684,11 @@ function startOutgoing(){
 }
 function maybeCall(){
   try{ var _cc=yzCurConv(); if(_cc&&_cc.type==='group')return; }catch(e){}
+  /* 冷却：距上次触发不足 5 分钟不再掷骰，避免一轮回复里反复触发 */
+  try{ var _ln=window.__yzLastCallAt||0; if(Date.now()-_ln < 5*60*1000)return; }catch(e){}
   if(Math.random()*100>=(D.callRate||12))return;
   if($('#call').classList.contains('show')||$('#callbar').classList.contains('show'))return;
+  try{ window.__yzLastCallAt=Date.now(); }catch(e){}
   callType='in';showIncoming();
 }
 /* 一次性修正：历史版本存错的拍一拍概率（超出 0~100 或异常偏大）清回 15 */
@@ -10860,7 +10863,8 @@ function saveProfile(){
   if($('#setNick'))D.nick=$('#setNick').value;if($('#setMyNick'))D.myNick=$('#setMyNick').value;
   D.delay=parseFloat($('#setDelay').value)||1.2;
   if($('#setSendGap'))D.sendGap=parseFloat($('#setSendGap').value)||1.2;
-  D.tran=parseFloat($('#setTran').value)||0;D.callRate=parseFloat($('#setCall').value)||0;
+  try{ if($('#setTran')){var _tv=parseFloat($('#setTran').value); if(!isNaN(_tv))D.tran=Math.max(0,Math.min(100,_tv));} }catch(e){}
+  try{ if($('#setCall')){var _cv=parseFloat($('#setCall').value); if(!isNaN(_cv))D.callRate=Math.max(0,Math.min(100,_cv));} }catch(e){}
   if($('#setVoiceRate')&&String($('#setVoiceRate').value).trim()!=='')D.voiceRate=Math.max(0,Math.min(100,parseFloat($('#setVoiceRate').value)||0));
   if($('#setTranTo'))D.tranTo=parseFloat($('#setTranTo').value)||0;
   if($('#setTranGap'))D.tranGap=Math.max(1,parseFloat($('#setTranGap').value)||30);
@@ -10872,8 +10876,8 @@ function saveProfile(){
   if($('#setMomCmtMax'))D.momCmtMax=Math.max(1,parseInt($('#setMomCmtMax').value)||3);
   if($('#setMomCmtMax'))D.momCmtMax=Math.max(1,parseInt($('#setMomCmtMax').value)||3);
   /* 主字卡回复概率：只由 yzSaveMainRate()（输入框 change/失焦）写入，saveProfile 不再读它 */
-  if($('#setEmojiMix'))D.emojiMix=parseInt($('#setEmojiMix').value)||0;
-  if($('#setEmojiMixRate'))D.emojiMixRate=Math.max(0,Math.min(100,parseFloat($('#setEmojiMixRate').value)||0));
+  try{ if($('#setEmojiMix')){var _em1=parseInt($('#setEmojiMix').value); if(!isNaN(_em1))D.emojiMix=_em1?1:0;} }catch(e){}
+  try{ if($('#setEmojiMixRate')){var _em2=parseFloat($('#setEmojiMixRate').value); if(!isNaN(_em2))D.emojiMixRate=Math.max(0,Math.min(100,_em2));} }catch(e){}
   if($('#setEmojiAlone'))D.emojiAlone=parseInt($('#setEmojiAlone').value)||0;
   if($('#setEmojiAloneRate'))D.emojiAloneRate=Math.max(0,Math.min(100,parseFloat($('#setEmojiAloneRate').value)||0));
   if($('#setFavMsg'))D.favMsgRate=parseFloat($('#setFavMsg').value)||0;
