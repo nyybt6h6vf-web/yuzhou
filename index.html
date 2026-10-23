@@ -2093,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-23-v21";
+window.__YZ_BUILD="2026-10-23-v22";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -2922,7 +2922,7 @@ function yzPhHimState(cid){
       acc:D.ph.accHim||0,
       chgAcc:D.ph.himChgAcc||0,
       rerolled:!!D.ph.himRerolled,
-      helped:!!D.ph.himHelped
+      helped:false
     };
   }
   var _st=D.ph.hims[cid]; if(_st&&_st.helped===undefined)_st.helped=false;
@@ -3071,7 +3071,7 @@ function yzPhViewHim(cid){
     if(!cid)return;
     D.phHimId=cid;
     D.phPage=2;
-    try{ window.__yzOffPlayed=false; }catch(e){}
+    try{ window.__yzOffPlayed=false; window.__yzPhHelpedOnce=false; }catch(e){}
     try{ save(); }catch(e){}
     var _old=document.getElementById('yzPhPickSheet');
     if(_old&&_old.parentNode)_old.parentNode.removeChild(_old);
@@ -3135,7 +3135,7 @@ function yzPhRenderHim(body){
       +'<div class="phofflogo"></div>'
       +'<div class="phofftxt">'+esc(yzPhHimName())+'的手机关机了</div>'
       +'<div class="phoffbtns">'
-      +((_hst.helped)?'':'<div class="phbtn on" id="phHelpBtn" onclick="yzPhHelpCharge()">帮'+esc(yzPhHimName())+'充电</div>')
+      +((window.__yzPhHelpedOnce)?'':'<div class="phbtn on" id="phHelpBtn" onclick="yzPhHelpCharge()">帮'+esc(yzPhHimName())+'充电</div>')
       +'<div class="phbtn" id="phLeaveBtn" onclick="yzPhLeave()">不管他，离开</div>'
       +'</div></div>';
     /* 关机动画：白屏→渐渐变黑屏→显示提示文字→3秒后弹出选项（每次进入只播一次） */
@@ -3167,17 +3167,23 @@ function yzPhHelpCharge(){
   var body=$('#phBody'); if(!body)return;
   /* 立即锁住：按钮马上消失，重复点击直接忽略 */
   if(window.__yzPhHelping)return;
-  window.__yzPhHelping=true;
+  window.__yzPhHelping=true; window.__yzPhHelpedOnce=true;
   var _s0=yzPhHimState(D.phHimId);
   if(!_s0){ try{ yzPhInit(); _s0=yzPhHimState(D.phHimId); }catch(e){} }
   if(_s0){ if(_s0.helped){ window.__yzPhHelping=false; return; } _s0.helped=true; _s0.power=true; _s0.charging=true; _s0.chgAcc=0; _s0.chgTries=0; if((_s0.pct||0)<5)_s0.pct=5; }
-  try{ if(D.ph&&D.ph.himHelped!==undefined)D.ph.himHelped=true; }catch(e){}
   try{ saveFlush(); }catch(e){ try{save();}catch(e2){} }
   var _hb=document.getElementById('phHelpBtn'); if(_hb&&_hb.parentNode)_hb.parentNode.removeChild(_hb);
-  /* 开机动画：黑屏 -> 白苹果标志淡入 -> 转白屏亮起 */
-  body.innerHTML='<div class="phboot"><div class="phbootlogo">'+YZ_PH_APPLE+'</div></div>';
-  var lg=body.querySelector('.phbootlogo');
-  var bt=body.querySelector('.phboot');
+  /* 开机动画：用独立覆盖层播放，避免被 tick 重渲染冲掉 */
+  try{ var _oldB=document.getElementById('yzPhBootLayer'); if(_oldB&&_oldB.parentNode)_oldB.parentNode.removeChild(_oldB); }catch(e){}
+  var _host=document.getElementById('phone')||document.body;
+  var _layer=document.createElement('div');
+  _layer.id='yzPhBootLayer';
+  _layer.style.cssText='position:absolute;left:0;top:0;right:0;bottom:0;z-index:9999;';
+  _layer.innerHTML='<div class="phboot"><div class="phbootlogo">'+YZ_PH_APPLE+'</div></div>';
+  _host.appendChild(_layer);
+  body.innerHTML='';
+  var lg=_layer.querySelector('.phbootlogo');
+  var bt=_layer.querySelector('.phboot');
   setTimeout(function(){ if(lg)lg.classList.add('show'); },200);
   setTimeout(function(){ if(bt)bt.classList.add('phboot-light'); },2600);
   setTimeout(function(){
@@ -3186,6 +3192,7 @@ function yzPhHelpCharge(){
     var _st=yzPhHimState(D.phHimId);
     if(_st){ _st.power=true; _st.charging=true; _st.chgAcc=0; _st.chgTries=0; _st.helped=true; if((_st.pct||0)<5)_st.pct=5; }
     try{ saveFlush(); }catch(e){ try{save();}catch(e2){} }
+    try{ var _l2=document.getElementById('yzPhBootLayer'); if(_l2&&_l2.parentNode)_l2.parentNode.removeChild(_l2); }catch(e){}
     window.__yzPhHelping=false;
     yzPhRender();
     /* 道谢弹窗 */
