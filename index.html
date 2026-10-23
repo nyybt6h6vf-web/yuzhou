@@ -2093,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-23-v23";
+window.__YZ_BUILD="2026-10-23-v25";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -2786,16 +2786,18 @@ var YZ_BIGKEYS=['packs','heroImg','avatarMe','avatarHim','himBg','himAv','diaryB
 function yzSlender(){try{var o={};for(var k in D){if(YZ_BIGKEYS.indexOf(k)>=0)continue;if(k==='charas'||k==='convs'){continue;}o[k]=D[k];}if(D.charas)o.charas=(D.charas||[]).map(function(c){var x={};for(var k in c){if(k==='avatar')continue;x[k]=c[k];}return x;});if(D.convs)o.convs=(D.convs||[]).map(function(cv){var x={};for(var k in cv){if(k==='msgs')continue;x[k]=cv[k];}x.msgs=(cv.msgs||[]).map(function(m){var y={};for(var k in m){if(k==='src')continue;y[k]=m[k];}if(m.type==='img')y.src='';return y;});return x;});return JSON.stringify(o);}catch(e){return '';}}
 var _yzSavePending=false, _yzSaveTimer2=null;
 function save(){
-  /* 防抖合并：120ms 内的多次 save 只真正写一次，避免高频全量序列化卡顿 */
-  if(_yzSavePending){ return; }
+  /* 防抖合并：120ms 内的多次 save 合并成一次；每次都重置计时，避免被丢弃 */
   _yzSavePending=true;
   if(_yzSaveTimer2)clearTimeout(_yzSaveTimer2);
-  _yzSaveTimer2=setTimeout(function(){ _yzSaveTimer2=null; _yzSavePending=false; try{saveNow();}catch(e){} },120);
+  _yzSaveTimer2=setTimeout(function(){
+    _yzSaveTimer2=null; _yzSavePending=false;
+    try{ saveNow(); }catch(e){}
+  },120);
 }
 /* 立即落盘（关键操作如退出/切页时用） */
 function saveFlush(){ try{ if(_yzSaveTimer2){clearTimeout(_yzSaveTimer2);_yzSaveTimer2=null;} _yzSavePending=false; saveNow(); }catch(e){} }
 var _yzBigT=null,_yzBigSig='';function yzSaveBigs(){try{var o={},sig='';for(var i=0;i<YZ_BIGKEYS.length;i++){var k=YZ_BIGKEYS[i];if(D[k]){o[k]=D[k];sig+=k+':'+String(D[k]).length+';';}}if(sig===_yzBigSig)return; /* 没变不写 */ _yzBigSig=sig;if(_yzBigT)clearTimeout(_yzBigT);_yzBigT=setTimeout(function(){_yzBigT=null;try{localStorage.setItem(DKEY+'_big',JSON.stringify(o));}catch(e){}},2000);}catch(e){}}
-function saveNow(){var __j='';try{var _top=[];__j=JSON.stringify(D,function(k,v){ if(k&&YZ_BIGKEYS.indexOf(k)>=0&&_top.indexOf(k)<0&&this===D)return undefined; return v;});}catch(e){return;}try{yzSaveBigs();}catch(e){}try{YZDB.set(DKEY,__j);}catch(e){}if(YZDB&&YZDB.ready){window.__yzSaveErr=false;/* localStorage 黎身版改为防抖写，避免每次写大字符串卡顿 */try{if(window.__yzSlenderT)clearTimeout(window.__yzSlenderT);window.__yzSlenderT=setTimeout(function(){window.__yzSlenderT=null;try{var sl=yzSlender();if(sl)localStorage.setItem(DKEY,sl);}catch(e){}},2500);}catch(e){}}else{try{localStorage.setItem(DKEY,__j);window.__yzSaveErr=false;}catch(e){window.__yzSaveErr=true;}}}
+function saveNow(){var __j='';try{var _top=[];__j=JSON.stringify(D,function(k,v){ if(k&&YZ_BIGKEYS.indexOf(k)>=0&&_top.indexOf(k)<0&&this===D)return undefined; return v;});}catch(e){return;}try{yzSaveBigs();}catch(e){}try{YZDB.set(DKEY,__j);}catch(e){}if(YZDB&&YZDB.ready){window.__yzSaveErr=false;/* localStorage 黎身版改为防抖写，避免每次写大字符串卡顿 */try{if(window.__yzSlenderT)clearTimeout(window.__yzSlenderT);window.__yzSlenderT=setTimeout(function(){window.__yzSlenderT=null;try{var sl=yzSlender();if(sl)localStorage.setItem(DKEY,sl);}catch(e){}},300);}catch(e){}}else{try{localStorage.setItem(DKEY,__j);window.__yzSaveErr=false;}catch(e){window.__yzSaveErr=true;}}}
 function $(s){return document.querySelector(s);}
 function pad(n){return n<10?'0'+n:''+n;}
 
@@ -5352,6 +5354,8 @@ function yzToggleKeepAlive(){
   else{try{if(_yzWakeLock)_yzWakeLock.release();}catch(e){}yzKeepAliveStopSilent();toast('已关闭后台保活（音频）');}
 }
 document.addEventListener('visibilitychange',function(){ try{ if(document.hidden){ saveFlush(); } }catch(e){} if(!document.hidden&&D.keepAlive){yzKeepAlive();}});
+try{ document.addEventListener('pagehide',function(){ try{ if(window.__yzSlenderT){clearTimeout(window.__yzSlenderT);window.__yzSlenderT=null;} saveFlush(); try{var sl=yzSlender();if(sl)localStorage.setItem(DKEY,sl);}catch(e){} }catch(e){} }); }catch(e){}
+try{ window.addEventListener('beforeunload',function(){ try{ saveFlush(); try{var sl=yzSlender();if(sl)localStorage.setItem(DKEY,sl);}catch(e){} }catch(e){} }); }catch(e){}
 
 
 /* ============ 19. 主动发消息 ============ */
