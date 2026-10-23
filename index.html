@@ -2093,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-23-v23";
+window.__YZ_BUILD="2026-10-23-v24";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -10392,6 +10392,20 @@ function yzSetIsGlobalKey(k){
           k==='diaryBg'||k==='diaryAv'||k==='himBg'||k==='himAv'||k==='pass'||k==='homeCharaId'||k==='appIcons'||
           k==='packs'||k==='tiles'||k==='myFavs'||k==='favs');
 }
+/* 关键设置全局快照：这些项一旦设过就不能被别的梦角旧配置覆盖 */
+var YZ_GLOBAL_SNAP=['phHimDrop','phMyDrop','phHimChgRate','phHimAutoAt','phMyAutoAt','phHimChgSpeed','phMyChgSpeed','phAutoHim','phAutoMy','patRate','patRate','callRate','emojiMix','emojiMixRate','emojiAlone','emojiAloneRate','packRate','voiceRate','mainRate','sendMin','sendMax','delay','sendGap','comboRate','comboMin','comboMax','quoteRate','askDelay','tran','tranTo','tranGap','daifuRate','daifuGap','daifuDelay','giftRate','giftAcceptRate','giftRejectRate','giftGap','giftDelay','lisAskRate','lisAskGap','feelGap','replyGap','letterGap','momGap','momMin','momMax','momLikeRate','commentRate','momCmtMax','proactiveGap','rereadMsgRate','rereadMsgFavRate','rereadMusicRate','rereadMusicFavRate','rereadMomentRate','rereadMomentFavRate','rereadDiaryRate','rereadDiaryFavRate','rereadLetterRate','rereadLetterFavRate'];
+function yzSetGlobalSnapshot(){
+  try{
+    if(!D.yzGlobalSnap)D.yzGlobalSnap={};
+    YZ_GLOBAL_SNAP.forEach(function(k){ if(D[k]!==undefined&&D[k]!==null&&D[k]!=='') D.yzGlobalSnap[k]=D[k]; });
+  }catch(e){}
+}
+function yzSetGlobalRestore(){
+  try{
+    if(!D.yzGlobalSnap)return;
+    YZ_GLOBAL_SNAP.forEach(function(k){ if(D.yzGlobalSnap[k]!==undefined) D[k]=D.yzGlobalSnap[k]; });
+  }catch(e){}
+}
 /* 把某个梦角的设置合并进 D（只影响“按梦角”的字段） */
 function yzSetApply(cid){
   try{
@@ -10405,6 +10419,8 @@ function yzSetApply(cid){
       if(yzSetIsGlobalKey(k))continue;
       D[k]=bag[k];
     }
+    /* 用全局快照覆盖回来，保证用户设过的值不被旧配置顶掉 */
+    yzSetGlobalRestore();
   }catch(e){}
 }
 /* 把 D 里“按梦角”的字段存回该梦角的包 */
@@ -10515,6 +10531,8 @@ function yzSafeEl(id){
   return _yzDummy;
 }
 function fillSettings(){
+  /* 首次进入：如果还没有全局快照，就先用当前 D 建一份，保证之后不被覆盖 */
+  try{ if(!D.yzGlobalSnap){ yzSetGlobalSnapshot(); } }catch(e){}
   try{renderMemInfo();}catch(e){}
   try{if(yzSafeEl('setProactiveGap'))yzSafeEl('setProactiveGap').value=(D.proactiveGap===undefined?10:D.proactiveGap);var _pb=document.getElementById('proactiveBtn');if(_pb)_pb.textContent=D.proactive?'开启':'关闭';}catch(e){}
   try{var _hc=document.getElementById('homeCharaChip');if(_hc){var _hcc=(D.charas||[]).find(function(x){return x.id===D.homeCharaId;});_hc.textContent=_hcc?((_hcc.nick)||'选择'):'选择';}}catch(e){}
@@ -10970,6 +10988,8 @@ function saveProfile(){
   if($('#setLetterGap')&&String($('#setLetterGap').value).trim()!=='')D.letterGap=parseFloat($('#setLetterGap').value)||10;
   /* 把本轮改动提交到当前选中梦角的设置包 */
   try{ yzSetCommit(yzSetCurChar()); }catch(e){}
+  /* 全局兜底：这些设置另存一份，避免被别的梦角的旧配置覆盖回去 */
+  try{ yzSetGlobalSnapshot(); }catch(e){}
   // 兜底已移除：它会把其它屏幕里未初始化的空输入框写进 D，导致昵称等被覆盖
   save();updateHomeAvatar();$('#chatTitle').textContent=D.nick||'他';
   startMomLoop();startFeelLoop();startLetterLoop();
