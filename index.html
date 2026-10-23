@@ -2093,7 +2093,10 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-23-v28diag",
+window.__YZ_BUILD="2026-10-23-v28diag";
+const DKEY='yuzhou_data_v4';
+const ICONS={
+ phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
  chat:'<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
  cards:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18"/></svg>',
  together:'<svg viewBox="0 0 24 24"><path d="M12 21s-7-4.5-9.3-8.5A5 5 0 0 1 12 6a5 5 0 0 1 9.3 6.5C19 16.5 12 21 12 21z"/></svg>',
@@ -10523,7 +10526,7 @@ function yzDiagPhSpeed(){
     var mem=D.phHimChgSpeed;
     var cur=yzSetCurChar();
     var per=(D.setPer&&D.setPer[cur]&&D.setPer[cur].phHimChgSpeed!==undefined)?D.setPer[cur].phHimChgSpeed:'无';
-    var ls='读不到';
+    var ls='无法读取';
     try{ var raw=localStorage.getItem(DKEY); if(raw){ var o=JSON.parse(raw); ls=(o.phHimChgSpeed!==undefined?o.phHimChgSpeed:'无'); } }catch(e){ ls='错误'; }
     el.textContent='诊断｜内存='+mem+' ／ 梦角包='+per+' ／ 存储='+ls;
   }catch(e){}
@@ -10997,7 +11000,6 @@ function saveProfile(){
   try{ yzSetCommit(yzSetCurChar()); }catch(e){}
   // 兜底已移除：它会把其它屏幕里未初始化的空输入框写进 D，导致昵称等被覆盖
   save();updateHomeAvatar();$('#chatTitle').textContent=D.nick||'他';
-  try{yzDiagPhSpeed();}catch(e){}
   startMomLoop();startFeelLoop();startLetterLoop();
 }
 function setAccent(c){
