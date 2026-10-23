@@ -1066,7 +1066,10 @@ svg [fill="currentColor"]{stroke:none;}
 .phoff.phoff-dark{background:#000;}
 .phofflogo{width:44px;height:44px;opacity:0;}
 .phoff.offlogo-show .phofflogo{opacity:.5;transition:opacity .6s ease;}
-.phofftxt{color:#555;font-size:13px;opacity:0;transition:opacity .6s ease;}
+.phofftxt{color:#8e8e93;font-size:14px;font-weight:500;letter-spacing:.3px;opacity:0;transition:opacity .6s ease;}
+.phoff.phoff-dark .phofftxt{color:#c7c7cc;}
+.phoff.phoff-dark .phbtn{background:rgba(255,255,255,.16);color:#fff;}
+.phoff.phoff-dark .phbtn.on{background:#4caf50;color:#fff;}
 .phoff.show .phofftxt{opacity:1;}
 .phoffbtns{display:flex;flex-direction:column;gap:12px;margin-top:18px;width:100%;max-width:280px;opacity:0;pointer-events:none;transition:opacity .5s ease;}
 .phoff.btns-show .phoffbtns{opacity:1;pointer-events:auto;}
@@ -2090,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-23-v20";
+window.__YZ_BUILD="2026-10-23-v21";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3125,7 +3128,7 @@ function yzPhRender(){
 function yzPhHimName(){ try{ var id=D.phHimId||yzCurKaoCharId(); var ch=(D.charas||[]).find(function(c){return c.id===id;}); if(ch&&ch.nick)return ch.nick; }catch(e){} return D.nick||'他'; }
 function yzPhHimCard(){ try{ var id=D.phHimId||yzCurKaoCharId(); if(typeof pickCardFor==='function')return pickCardFor(id); }catch(e){} return ''; }
 function yzPhRenderHim(body){
-  var _hst=yzPhHimState(D.phHimId)||{pct:100,charging:false,power:true};
+  var _hst=yzPhHimState(D.phHimId)||{pct:100,charging:false,power:true,helped:false,chgTries:0,chgAcc:0,acc:0};
   var him=yzPhPct(_hst.pct===undefined?100:_hst.pct);
   if(!_hst.power){
     body.innerHTML='<div class="phoff" id="phOff">'
@@ -3163,26 +3166,31 @@ function yzPhRenderHim(body){
 function yzPhHelpCharge(){
   var body=$('#phBody'); if(!body)return;
   /* 立即锁住：按钮马上消失，重复点击直接忽略 */
+  if(window.__yzPhHelping)return;
+  window.__yzPhHelping=true;
   var _s0=yzPhHimState(D.phHimId);
-  if(_s0){ if(_s0.helped)return; _s0.helped=true; _s0.power=true; _s0.charging=true; _s0.chgAcc=0; _s0.chgTries=0; if((_s0.pct||0)<5)_s0.pct=5; }
+  if(!_s0){ try{ yzPhInit(); _s0=yzPhHimState(D.phHimId); }catch(e){} }
+  if(_s0){ if(_s0.helped){ window.__yzPhHelping=false; return; } _s0.helped=true; _s0.power=true; _s0.charging=true; _s0.chgAcc=0; _s0.chgTries=0; if((_s0.pct||0)<5)_s0.pct=5; }
+  try{ if(D.ph&&D.ph.himHelped!==undefined)D.ph.himHelped=true; }catch(e){}
   try{ saveFlush(); }catch(e){ try{save();}catch(e2){} }
   var _hb=document.getElementById('phHelpBtn'); if(_hb&&_hb.parentNode)_hb.parentNode.removeChild(_hb);
   /* 开机动画：黑屏 -> 白苹果标志淡入 -> 转白屏亮起 */
   body.innerHTML='<div class="phboot"><div class="phbootlogo">'+YZ_PH_APPLE+'</div></div>';
   var lg=body.querySelector('.phbootlogo');
   var bt=body.querySelector('.phboot');
-  setTimeout(function(){ if(lg)lg.classList.add('show'); },120);
-  setTimeout(function(){ if(bt)bt.classList.add('phboot-light'); },1500);
+  setTimeout(function(){ if(lg)lg.classList.add('show'); },200);
+  setTimeout(function(){ if(bt)bt.classList.add('phboot-light'); },2600);
   setTimeout(function(){
     yzPhInit();
     window.__yzOffPlayed=false;
     var _st=yzPhHimState(D.phHimId);
     if(_st){ _st.power=true; _st.charging=true; _st.chgAcc=0; _st.chgTries=0; _st.helped=true; if((_st.pct||0)<5)_st.pct=5; }
     try{ saveFlush(); }catch(e){ try{save();}catch(e2){} }
+    window.__yzPhHelping=false;
     yzPhRender();
     /* 道谢弹窗 */
     yzPhThanks();
-  },2200);
+  },4200);
 }
 function yzPhLeave(){
   try{ var _s=yzPhHimState(D.phHimId); if(_s)_s.helped=false; save(); }catch(e){}
