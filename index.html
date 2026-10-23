@@ -2090,7 +2090,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-23-v18";
+window.__YZ_BUILD="2026-10-23-v19";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -2602,10 +2602,33 @@ function yzGroupSetting(cv){
 }
 
 let D=load();
+try{ if(!D||!D.charas||!D.charas.length){ window.__yzWriteLock=true; } }catch(e){}
 try{ var _bg0=JSON.parse(localStorage.getItem(DKEY+'_big')||'{}'); for(var _bk0 in _bg0){ if(_bg0[_bk0]&&!D[_bk0])D[_bk0]=_bg0[_bk0]; } }catch(e){}
 function load(){
-  try{console.log('[LOAD] raw=',(localStorage.getItem(DKEY)||'NULL').slice(0,120));const r=localStorage.getItem(DKEY)||localStorage.getItem('yuzhou_data_v3')||localStorage.getItem('yuzhou_data_v2');console.log('[LOAD] r取到=',r?('有'+r.length):'无');if(r){
-    const o=JSON.parse(r);
+  /* 先把原始数据安全解析出来，任何后续步骤出错都不能丢掉它 */
+  var _yzRaw=null;
+  try{ _yzRaw=localStorage.getItem(DKEY)||localStorage.getItem('yuzhou_data_v3')||localStorage.getItem('yuzhou_data_v2'); }catch(e){}
+  var _yzBase=null;
+  if(_yzRaw){ try{ _yzBase=JSON.parse(_yzRaw); }catch(e){ try{console.error('LOAD_PARSE_FAIL');}catch(_){} } }
+  /* 抢救：如果当前数据明显是空的（没梦角/没聊天），从旧版本键里找更完整的 */
+  try{
+    function _yzScore(x){ if(!x||typeof x!=='object')return -1; var sc=0;
+      if(x.charas&&x.charas.length)sc+=1000+x.charas.length*10;
+      if(x.convs&&x.convs.length){sc+=500;x.convs.forEach(function(c){if(c&&c.msgs)sc+=c.msgs.length;});}
+      if(x.setPer)sc+=Object.keys(x.setPer).length;
+      if(x.bubble)sc+=50;
+      if(x.msgs&&x.msgs.length)sc+=x.msgs.length;
+      return sc; }
+    var _cur=_yzScore(_yzBase), _best=_yzBase, _bestKey='';
+    ['yuzhou_data_v3','yuzhou_data_v2','yuzhou_data_v1'].forEach(function(k){
+      try{ var raw=localStorage.getItem(k); if(!raw)return; var ob=JSON.parse(raw); var sc=_yzScore(ob);
+        if(sc>_cur){ _cur=sc; _best=ob; _bestKey=k; } }catch(e){}
+    });
+    if(_bestKey&&_best){ _yzBase=_best; try{console.warn('YZ_RESCUE_FROM',_bestKey);}catch(_){} }
+  }catch(e){}
+  if(_yzBase&&typeof _yzBase==='object'){ window.__yzSafeBase=_yzBase; }
+  try{console.log('[LOAD] raw=',(localStorage.getItem(DKEY)||'NULL').slice(0,120));const r=_yzRaw;console.log('[LOAD] r取到=',r?('有'+r.length):'无');if(r){
+    const o=(_yzBase&&typeof _yzBase==='object')?_yzBase:JSON.parse(r);
     if(!o.tiles)o.tiles=DEFAULT_TILES.slice();
     if(!o.moments)o.moments=[];
     if(o.momGap===undefined)o.momGap=1;
@@ -2707,6 +2730,8 @@ if(o.tranGap===undefined)o.tranGap=30;
 
     return o;
   }}catch(e){try{console.error('LOAD_PARSE_FAIL',e);}catch(_){}}
+  if(window.__yzSafeBase) return window.__yzSafeBase;
+  if(window.__yzSafeBase) return window.__yzSafeBase;
   return {theme:'light',nick:'他',myNick:'我',avatarHim:'',avatarMe:'',
     pageBg:'',chatBg:'',momBg:'',lockBg:'',lockFg:'',fontColor:'',himFontColor:'',meFontColor:'',bubble:'',bubbleHim:'',bubbleMe:'',heroImg:'',himLetterBg:'',meLetterBg:'',
     readOn:true,typingOn:true,
@@ -2763,9 +2788,8 @@ YZDB.open(function(ok){
         var o=JSON.parse(existing);
         if(o&&typeof o==='object'){
           /* IDB 存的是完整数据（含图片），为权威源；localStorage 只是瘦身兜底 */
-          /* 只补当前内存里缺失的键，不用旧数据覆盖刚做的改动 */
-          for(var _ok in o){ if(o[_ok]!==undefined && D[_ok]===undefined) D[_ok]=o[_ok]; }
-          try{ var _bg=JSON.parse(localStorage.getItem(DKEY+'_big')||'{}'); for(var _bk in _bg){ if(_bg[_bk] && D[_bk]===undefined)D[_bk]=_bg[_bk]; } }catch(e){}
+          D=Object.assign(D,o);
+          try{ var _bg=JSON.parse(localStorage.getItem(DKEY+'_big')||'{}'); for(var _bk in _bg){ if(_bg[_bk])D[_bk]=_bg[_bk]; } }catch(e){}
           try{ if(D.themeAuto){ applyThemeAuto(true); yzBindThemeAuto(); } else { document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light'); } }catch(_){}
           try{renderHome();applyCustom();}catch(_){}
           window.__yzBigReady=true;
@@ -2784,6 +2808,8 @@ var YZ_BIGKEYS=['packs','heroImg','avatarMe','avatarHim','himBg','himAv','diaryB
 function yzSlender(){try{var o={};for(var k in D){if(YZ_BIGKEYS.indexOf(k)>=0)continue;if(k==='charas'||k==='convs'){continue;}o[k]=D[k];}if(D.charas)o.charas=(D.charas||[]).map(function(c){var x={};for(var k in c){if(k==='avatar')continue;x[k]=c[k];}return x;});if(D.convs)o.convs=(D.convs||[]).map(function(cv){var x={};for(var k in cv){if(k==='msgs')continue;x[k]=cv[k];}x.msgs=(cv.msgs||[]).map(function(m){var y={};for(var k in m){if(k==='src')continue;y[k]=m[k];}if(m.type==='img')y.src='';return y;});return x;});return JSON.stringify(o);}catch(e){return '';}}
 var _yzSavePending=false, _yzSaveTimer2=null;
 function save(){
+  /* 数据异常为空时不解锁，避免把空数据写回去覆盖真实数据 */
+  try{ if(window.__yzWriteLock&&D&&D.charas&&D.charas.length)window.__yzWriteLock=false; }catch(e){}
   /* 防抖合并：120ms 内的多次 save 只真正写一次，避免高频全量序列化卡顿 */
   if(_yzSavePending){ return; }
   _yzSavePending=true;
@@ -2793,7 +2819,7 @@ function save(){
 /* 立即落盘（关键操作如退出/切页时用） */
 function saveFlush(){ try{ if(_yzSaveTimer2){clearTimeout(_yzSaveTimer2);_yzSaveTimer2=null;} _yzSavePending=false; saveNow(); }catch(e){} }
 var _yzBigT=null,_yzBigSig='';function yzSaveBigs(){try{var o={},sig='';for(var i=0;i<YZ_BIGKEYS.length;i++){var k=YZ_BIGKEYS[i];if(D[k]){o[k]=D[k];sig+=k+':'+String(D[k]).length+';';}}if(sig===_yzBigSig)return; /* 没变不写 */ _yzBigSig=sig;if(_yzBigT)clearTimeout(_yzBigT);_yzBigT=setTimeout(function(){_yzBigT=null;try{localStorage.setItem(DKEY+'_big',JSON.stringify(o));}catch(e){}},2000);}catch(e){}}
-function saveNow(){var __j='';try{var _top=[];__j=JSON.stringify(D,function(k,v){ if(k&&YZ_BIGKEYS.indexOf(k)>=0&&_top.indexOf(k)<0&&this===D)return undefined; return v;});}catch(e){return;}try{yzSaveBigs();}catch(e){}try{YZDB.set(DKEY,__j);}catch(e){}if(YZDB&&YZDB.ready){window.__yzSaveErr=false;/* localStorage 黎身版改为防抖写，避免每次写大字符串卡顿 */try{if(window.__yzSlenderT)clearTimeout(window.__yzSlenderT);window.__yzSlenderT=setTimeout(function(){window.__yzSlenderT=null;try{var sl=yzSlender();if(sl)localStorage.setItem(DKEY,sl);}catch(e){}},400);}catch(e){}}else{try{localStorage.setItem(DKEY,__j);window.__yzSaveErr=false;}catch(e){window.__yzSaveErr=true;}}}
+function saveNow(){if(window.__yzWriteLock)return;var __j='';try{var _top=[];__j=JSON.stringify(D,function(k,v){ if(k&&YZ_BIGKEYS.indexOf(k)>=0&&_top.indexOf(k)<0&&this===D)return undefined; return v;});}catch(e){return;}try{yzSaveBigs();}catch(e){}try{YZDB.set(DKEY,__j);}catch(e){}if(YZDB&&YZDB.ready){window.__yzSaveErr=false;/* localStorage 黎身版改为防抖写，避免每次写大字符串卡顿 */try{if(window.__yzSlenderT)clearTimeout(window.__yzSlenderT);window.__yzSlenderT=setTimeout(function(){window.__yzSlenderT=null;try{var sl=yzSlender();if(sl)localStorage.setItem(DKEY,sl);}catch(e){}},400);}catch(e){}}else{try{localStorage.setItem(DKEY,__j);window.__yzSaveErr=false;}catch(e){window.__yzSaveErr=true;}}}
 function $(s){return document.querySelector(s);}
 function pad(n){return n<10?'0'+n:''+n;}
 
@@ -3940,21 +3966,21 @@ function yzBuildSetGroups(){
   }catch(e){}
 }
 
-/* 美化三个子页：把原有设置行原样搬进去（不改任何内容） */
-var YZ_BEAUTY_SUBS=[
-  {name:'设置各功能背景',html:`<div class="row"><div class="lab">网站图标</div><div class="chip" onclick="pickFavicon()">选择图片</div></div><div class="row"><div class="lab">梦角信封背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('himLetterBg')">上传图</div><div class="chip" onclick="setColor('himLetterBg','')">清</div></div></div><div class="row"><div class="lab">我的信封背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('meLetterBg')">上传图</div><div class="chip" onclick="setColor('meLetterBg','')">清</div></div></div><div class="row"><div class="lab">页面背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('pageBg')">上传图</div><div class="chip" onclick="setColor('pageBg','')">清</div></div></div><div class="row"><div class="lab">第二页背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('page2Bg')">上传图</div><div class="chip" onclick="setColor('page2Bg','')">清</div></div></div><div class="row"><div class="lab">聊天背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('chatBg')">上传图</div><div class="chip" onclick="setColor('chatBg','')">清</div></div></div><div class="row"><div class="lab">动态背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('momBg')">上传图</div><div class="chip" onclick="setColor('momBg','')">清</div></div></div><div class="row"><div class="lab">测一测背景</div><div style="display:flex;gap:8px;align-items:center;flex:1;min-width:0;justify-content:flex-end"><div class="chip" onclick="pickBg('fingerBg')">上传图</div><input type="color" id="setFingerBgColor" oninput="setColor('fingerBg',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fingerBg','')">清</div></div></div>`},
-  {name:'锁屏',html:`<div class="row"><div class="lab">锁屏名称</div><input type="text" id="setLockName" oninput="saveBeauty()" placeholder="留空则不显示"></div><div class="row"><div class="lab">锁屏背景</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="pickBg('lockBg')">上传图</div><div class="chip" onclick="setColor('lockBg','')">清</div></div></div><div class="row"><div class="lab">锁屏字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('lockFg','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('lockFg','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setLockFgColor" oninput="setColor('lockFg',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('lockFg','')">清</div></div></div>`},
-  {name:'各美化设置',html:`<div class="row"><div class="lab">强调色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setAccentColor" oninput="setAccent(this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setAccent('')">清</div></div></div><div class="row"><div class="lab">转账字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('fontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('fontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setFontColorColor" oninput="setColor('fontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fontColor','')">清</div></div></div><div class="row"><div class="lab">梦角气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleHim','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleHim','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleHimColor" oninput="setColor('bubbleHim',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleHim','')">清</div></div></div><div class="row"><div class="lab">我方气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleMe','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleMe','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleMeColor" oninput="setColor('bubbleMe',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleMe','')">清</div></div></div><div class="row" style="flex-direction:column;align-items:stretch">
-          <div class="lab" style="margin-bottom:8px">气泡 CSS（.msg .bubble 通用，写一条两边都生效）</div>
-          <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty();yzPreviewBubbleDebounced();"></textarea>
-          <div class="lab" style="margin-top:12px;margin-bottom:6px">预览</div>
-          <div id="bubblePreview" style="background:var(--card);border:1px solid var(--sub);border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;contain:layout paint style;isolation:isolate">
-            <div class="msg him" style="display:flex"><div class="bubble">梦角消息示例</div></div>
-            <div class="msg me" style="display:flex"><div class="bubble">我的消息示例</div></div>
-          </div>
-        </div><div class="row"><div class="lab">气泡大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setBubbleSize" min="80" max="140" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="bubbleSizeVal" style="min-width:38px;text-align:right">100%</span></div></div><div class="row"><div class="lab">聊天字体大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setChatFontSize" min="11" max="22" step="1" value="14" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="chatFontSizeVal" style="min-width:38px;text-align:right">14px</span></div></div><div class="row"><div class="lab">转账卡片大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setTranSize" min="80" max="150" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="tranSizeVal" style="min-width:38px;text-align:right">100%</span></div></div><div class="row"><div class="lab">转账卡片色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setTranColor" oninput="setColor('tranColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('tranColor','')">清</div></div></div><div class="row"><div class="lab">梦角消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('himFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('himFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setHimFontColorColor" oninput="setColor('himFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('himFontColor','')">清</div></div></div><div class="row"><div class="lab">我的消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('meFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('meFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setMeFontColorColor" oninput="setColor('meFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('meFontColor','')">清</div></div></div>`},
-
-];
+/* 分组结果缓存：重建失败时用这份显示，避免子页空白 */
+function yzSetGroupCacheSave(){
+  try{
+    var b=document.getElementById('setSubBody'); if(!b)return;
+    var gs=b.querySelectorAll('.group'); if(!gs.length)return;
+    var html=b.innerHTML;
+    if(html&&html.length>200){ window.__yzSetGroupCache=html; try{ sessionStorage.setItem('yzSetGroupCache',html); }catch(e){} }
+  }catch(e){}
+}
+function yzSetGroupCacheLoad(){
+  try{ if(window.__yzSetGroupCache)return window.__yzSetGroupCache; }catch(e){}
+  try{ var v=sessionStorage.getItem('yzSetGroupCache'); if(v&&v.length>200){ window.__yzSetGroupCache=v; return v; } }catch(e){}
+  return '';
+}
+/* 分组结果缓存：重建失败时用这份显示，避免子页空白 */
 function yzBeautySubOf(name){
   for(var i=0;i<YZ_BEAUTY_SUBS.length;i++){ if(YZ_BEAUTY_SUBS[i].name===name)return YZ_BEAUTY_SUBS[i]; }
   return null;
@@ -4012,6 +4038,8 @@ function yzOpenSetSub(name){
     if(!all.length){ try{ yzBuildSetGroups(); }catch(e){} all=[].slice.call(subs.querySelectorAll('.group')); }
     /* 先隐藏全部，再只显示命中的那一组 */
     all.forEach(function(g){ g.style.display='none'; });
+    yzSetGroupCacheSave();
+    yzSetGroupCacheSave();
     var hit=all.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;})[0];
     /* 命中的组如果是空壳（没有任何行），说明分组被移空了，强制重建后再找一次 */
     if(!hit || !hit.querySelector('.row')){
@@ -4019,6 +4047,26 @@ function yzOpenSetSub(name){
       all=[].slice.call(subs.querySelectorAll('.group'));
       all.forEach(function(g){ g.style.display='none'; });
       hit=all.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;})[0];
+    }
+    /* 仍然没有：用缓存把整块内容恢复出来 */
+    if(!hit){
+      var _cache=yzSetGroupCacheLoad();
+      if(_cache){
+        subs.innerHTML=_cache;
+        all=[].slice.call(subs.querySelectorAll('.group'));
+        all.forEach(function(g){ g.style.display='none'; });
+        hit=all.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;})[0];
+      }
+    }
+    /* 仍然没有：用缓存把整块内容恢复出来 */
+    if(!hit){
+      var _cache=yzSetGroupCacheLoad();
+      if(_cache){
+        subs.innerHTML=_cache;
+        all=[].slice.call(subs.querySelectorAll('.group'));
+        all.forEach(function(g){ g.style.display='none'; });
+        hit=all.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;})[0];
+      }
     }
     if(hit)hit.style.display='';
     var t=document.getElementById('setSubTitle'); if(t)t.textContent=name;
