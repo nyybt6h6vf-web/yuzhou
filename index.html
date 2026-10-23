@@ -2094,7 +2094,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-23-v32diag";
+window.__YZ_BUILD="2026-10-23-v33diag";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -10534,7 +10534,7 @@ function yzDiagPhSpeed(){
     var per=(D.setPer&&D.setPer[cur]&&D.setPer[cur].phHimChgSpeed!==undefined)?D.setPer[cur].phHimChgSpeed:'无';
     var ls='无法读';
     try{ var raw=localStorage.getItem(DKEY); if(raw){ var o=JSON.parse(raw); ls=(o.phHimChgSpeed!==undefined?o.phHimChgSpeed:'无'); } }catch(e){ ls='错'; }
-    el.textContent='诊断｜框数='+cnt+' 值='+iv+' 内存='+mem+' 包='+per+' 存储='+ls+' 刷'+window.__yzDiagN;
+    el.textContent='诊断｜框数='+cnt+' 值='+iv+' 内存='+mem+' 包='+per+' 存储='+ls+' 刷'+window.__yzDiagN+' | '+window.__yzProbe;
   }catch(e){}
 }
 function fillSettings(){
@@ -10724,6 +10724,7 @@ function saveBeauty(){
   if($('#setPhHimAutoAt'))D.phHimAutoAt=Math.max(0,Math.min(100,parseFloat($('#setPhHimAutoAt').value)||0));
   if($('#setPhMyAutoAt'))D.phMyAutoAt=Math.max(0,Math.min(100,parseFloat($('#setPhMyAutoAt').value)||0));
   if($('#setPhHimChgSpeed'))D.phHimChgSpeed=Math.max(1,parseFloat($('#setPhHimChgSpeed').value)||1);
+  try{ window.__yzSpLog=(window.__yzSpLog||[]); var _sv=document.getElementById('setPhHimChgSpeed'); window.__yzSpLog.push((_sv?_sv.value:'NOEL')+'->'+D.phHimChgSpeed); if(window.__yzSpLog.length>8)window.__yzSpLog.shift(); }catch(e){}
   if($('#setPhMyChgSpeed'))D.phMyChgSpeed=Math.max(1,parseFloat($('#setPhMyChgSpeed').value)||1);
 
   saveSoon();scheduleApply();
@@ -10998,6 +10999,7 @@ function saveProfile(){
   if($('#setPhHimChgRate'))D.phHimChgRate=Math.max(0,Math.min(100,parseFloat($('#setPhHimChgRate').value)||0));
   if($('#setPhHimAutoAt'))D.phHimAutoAt=Math.max(0,Math.min(100,parseFloat($('#setPhHimAutoAt').value)||0));
   if($('#setPhMyAutoAt'))D.phMyAutoAt=Math.max(0,Math.min(100,parseFloat($('#setPhMyAutoAt').value)||0));
+  try{ var _pe=document.querySelector('#setPhHimChgSpeed'); window.__yzProbe=(_pe?('FOUND v='+_pe.value+' vis='+(_pe.offsetParent!==null)):'NULL'); }catch(e){ window.__yzProbe='ERR'; }
   if($('#setPhHimChgSpeed'))D.phHimChgSpeed=Math.max(1,parseFloat($('#setPhHimChgSpeed').value)||1);
   if($('#setPhMyChgSpeed'))D.phMyChgSpeed=Math.max(1,parseFloat($('#setPhMyChgSpeed').value)||1);
   /* 小手机与电量：立即同步进当前梦角包，避免被其他保存路径覆盖 */
