@@ -2093,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-23-v25";
+window.__YZ_BUILD="2026-10-23-v26";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -10972,6 +10972,14 @@ function saveProfile(){
   if($('#setFeelGap')&&String($('#setFeelGap').value).trim()!=='')D.feelGap=parseFloat($('#setFeelGap').value)||30;
   if($('#setReplyGap')&&String($('#setReplyGap').value).trim()!=='')D.replyGap=parseFloat($('#setReplyGap').value)||5;
   if($('#setLetterGap')&&String($('#setLetterGap').value).trim()!=='')D.letterGap=parseFloat($('#setLetterGap').value)||10;
+  /* 小手机与电量：这9项原先只写在 saveBeauty 里，saveProfile 从未读取导致改不动 */
+  if($('#setPhMyDrop'))D.phMyDrop=Math.max(1,parseFloat($('#setPhMyDrop').value)||5);
+  if($('#setPhHimDrop'))D.phHimDrop=Math.max(1,parseFloat($('#setPhHimDrop').value)||2);
+  if($('#setPhHimChgRate'))D.phHimChgRate=Math.max(0,Math.min(100,parseFloat($('#setPhHimChgRate').value)||0));
+  if($('#setPhHimAutoAt'))D.phHimAutoAt=Math.max(0,Math.min(100,parseFloat($('#setPhHimAutoAt').value)||0));
+  if($('#setPhMyAutoAt'))D.phMyAutoAt=Math.max(0,Math.min(100,parseFloat($('#setPhMyAutoAt').value)||0));
+  if($('#setPhHimChgSpeed'))D.phHimChgSpeed=Math.max(1,parseFloat($('#setPhHimChgSpeed').value)||1);
+  if($('#setPhMyChgSpeed'))D.phMyChgSpeed=Math.max(1,parseFloat($('#setPhMyChgSpeed').value)||1);
   /* 把本轮改动提交到当前选中梦角的设置包 */
   try{ yzSetCommit(yzSetCurChar()); }catch(e){}
   // 兜底已移除：它会把其它屏幕里未初始化的空输入框写进 D，导致昵称等被覆盖
