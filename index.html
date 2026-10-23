@@ -1786,8 +1786,7 @@ svg [fill="currentColor"]{stroke:none;}
         <div class="row"><div class="lab">梦角默认掉电量到几度充电</div><input type="number" id="setPhHimAutoAt" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">我的小手机自动充电</div><div class="chip" id="phMyAutoBtn" onclick="yzPhToggleMyAuto()">关闭</div></div>
         <div class="row"><div class="lab">我默认掉电量到几度充电</div><input type="number" id="setPhMyAutoAt" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row"><div class="lab">梦角充电速度（分钟/度）</div><input type="number" id="setPhHimChgSpeed" oninput="window.__yzHit=(window.__yzHit||0)+1; document.getElementById('yzPhDiag').textContent='输入触发'+window.__yzHit+' 值='+this.value; saveProfile();" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
-        <div class="row" id="yzPhDiagRow"><div class="lab" id="yzPhDiag" style="font-size:12px;color:#e0637a;line-height:1.7;white-space:normal">诊断行：加载中</div></div>
+        <div class="row"><div class="lab">梦角充电速度（分钟/度）</div><input type="number" id="setPhHimChgSpeed" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">我充电速度（分钟/度）</div><input type="number" id="setPhMyChgSpeed" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
       </div>
     </div>
@@ -2094,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-23-v34diag";
+window.__YZ_BUILD="2026-10-23-v35";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4046,7 +4045,6 @@ function yzOpenSetSub(name){
     var t=document.getElementById('setSubTitle'); if(t)t.textContent=name;
     try{ yzPhCondRows(); }catch(e){}
     go('setSub');
-    try{ var _dg=document.querySelectorAll('#setSubBody .group'); for(var _i=0;_i<_dg.length;_i++){ var _g=_dg[_i]; if(_g.style.display==='none')continue; if(!_g.querySelector('#setPhHimChgSpeed'))continue; if(_g.querySelector('#yzPhDiag'))continue; var _dr=document.createElement('div'); _dr.className='row'; _dr.innerHTML='<div class="lab" id="yzPhDiag" style="font-size:11px;color:#e0637a;line-height:1.6;white-space:normal">诊断加载中</div>'; _g.insertBefore(_dr,_g.firstChild.nextSibling); break; } }catch(e){}
     /* go() 之后可能重建过，再兜一次，确保只有命中那组显示 */
     var all2=[].slice.call(subs.querySelectorAll('.group'));
     all2.forEach(function(g){ g.style.display='none'; });
@@ -10520,23 +10518,6 @@ function yzSafeEl(id){
   }catch(err){}
   return _yzDummy;
 }
-function yzDiagPhSpeed(){
-  try{
-    var el=document.getElementById('yzPhDiag');
-    if(!el)return;
-    window.__yzDiagN=(window.__yzDiagN||0)+1;
-    var all=document.querySelectorAll('#setPhHimChgSpeed');
-    var inp=document.getElementById('setPhHimChgSpeed');
-    var iv=inp?('['+inp.value+']'):'找不到';
-    var cnt=all.length;
-    var mem=D.phHimChgSpeed;
-    var cur=yzSetCurChar();
-    var per=(D.setPer&&D.setPer[cur]&&D.setPer[cur].phHimChgSpeed!==undefined)?D.setPer[cur].phHimChgSpeed:'无';
-    var ls='无法读';
-    try{ var raw=localStorage.getItem(DKEY); if(raw){ var o=JSON.parse(raw); ls=(o.phHimChgSpeed!==undefined?o.phHimChgSpeed:'无'); } }catch(e){ ls='错'; }
-    el.textContent='诊断｜框数='+cnt+' 值='+iv+' 内存='+mem+' 包='+per+' 存储='+ls+' 刷'+window.__yzDiagN+' | '+window.__yzProbe;
-  }catch(e){}
-}
 function fillSettings(){
   try{renderMemInfo();}catch(e){}
   try{if(yzSafeEl('setProactiveGap'))yzSafeEl('setProactiveGap').value=(D.proactiveGap===undefined?10:D.proactiveGap);var _pb=document.getElementById('proactiveBtn');if(_pb)_pb.textContent=D.proactive?'开启':'关闭';}catch(e){}
@@ -10656,7 +10637,6 @@ function fillSettings(){
     else if(D[k]!==undefined){el.value=D[k];}
   });
   if(yzSafeEl('feelToggle'))yzSafeEl('feelToggle').textContent=D.feelOn===false?'关闭':'开启';
-  try{yzDiagPhSpeed();}catch(e){}
   try{var _ka=document.getElementById('keepAliveBtn');if(_ka)_ka.textContent=D.keepAlive?'开启':'关闭';}catch(e){}
   try{ if(D.keepAlive){ yzKeepAlive(); } }catch(e){}
   if(yzSafeEl('readToggle'))yzSafeEl('readToggle').textContent=D.readOn?'开启':'关闭';
@@ -10724,7 +10704,6 @@ function saveBeauty(){
   if($('#setPhHimAutoAt'))D.phHimAutoAt=Math.max(0,Math.min(100,parseFloat($('#setPhHimAutoAt').value)||0));
   if($('#setPhMyAutoAt'))D.phMyAutoAt=Math.max(0,Math.min(100,parseFloat($('#setPhMyAutoAt').value)||0));
   if($('#setPhHimChgSpeed'))D.phHimChgSpeed=Math.max(1,parseFloat($('#setPhHimChgSpeed').value)||1);
-  try{ window.__yzSpLog=(window.__yzSpLog||[]); var _sv=document.getElementById('setPhHimChgSpeed'); window.__yzSpLog.push((_sv?_sv.value:'NOEL')+'->'+D.phHimChgSpeed); if(window.__yzSpLog.length>8)window.__yzSpLog.shift(); }catch(e){}
   if($('#setPhMyChgSpeed'))D.phMyChgSpeed=Math.max(1,parseFloat($('#setPhMyChgSpeed').value)||1);
 
   saveSoon();scheduleApply();
@@ -10999,7 +10978,6 @@ function saveProfile(){
   if($('#setPhHimChgRate'))D.phHimChgRate=Math.max(0,Math.min(100,parseFloat($('#setPhHimChgRate').value)||0));
   if($('#setPhHimAutoAt'))D.phHimAutoAt=Math.max(0,Math.min(100,parseFloat($('#setPhHimAutoAt').value)||0));
   if($('#setPhMyAutoAt'))D.phMyAutoAt=Math.max(0,Math.min(100,parseFloat($('#setPhMyAutoAt').value)||0));
-  try{ var _pe=document.querySelector('#setPhHimChgSpeed'); window.__yzProbe=(_pe?('FOUND v='+_pe.value+' vis='+(_pe.offsetParent!==null)):'NULL'); }catch(e){ window.__yzProbe='ERR'; }
   if($('#setPhHimChgSpeed'))D.phHimChgSpeed=Math.max(1,parseFloat($('#setPhHimChgSpeed').value)||1);
   if($('#setPhMyChgSpeed'))D.phMyChgSpeed=Math.max(1,parseFloat($('#setPhMyChgSpeed').value)||1);
   /* 小手机与电量：立即同步进当前梦角包，避免被其他保存路径覆盖 */
