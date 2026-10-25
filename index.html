@@ -2093,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-25-v37";
+window.__YZ_BUILD="2026-10-25-v38";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -10733,22 +10733,43 @@ function yzForceLockCss(){
     var css=ta.value||'';
     D.bubble=css;
 
-    /* 1) 直接写 localStorage 瘦身版，绕过 save()/防抖/IDB */
-    var sl=yzSlender();
-    localStorage.setItem(DKEY, sl);
+    /* 先盘点 localStorage 各键的体积 */
+    var list=[];
+    for(var i=0;i<localStorage.length;i++){
+      var k=localStorage.key(i);
+      var v=localStorage.getItem(k)||'';
+      list.push({k:k,n:v.length});
+    }
+    list.sort(function(a,b){return b.n-a.n;});
+    var tot=0; for(var j=0;j<list.length;j++)tot+=list[j].n;
+    var top=list.slice(0,5).map(function(x){return x.k.replace('yuzhou_data_v4','主数据')+'='+Math.round(x.n/1024)+'K';}).join(' / ');
 
-    /* 2) 写 IDB */
-    try{ var full=JSON.stringify(D); YZDB.set(DKEY, full); }catch(e){}
+    /* 写入 */
+    var ok=false, err='';
+    try{
+      var sl=yzSlender();
+      localStorage.setItem(DKEY, sl);
+      ok=true;
+    }catch(e){ err=(e&&e.name?e.name:'')+' '+(e&&e.message?e.message:e); }
 
-    /* 3) 立刻回读核对 */
-    var back='';
-    try{ back=JSON.parse(localStorage.getItem(DKEY)||'{}').bubble||''; }catch(e){ back=''; }
+    if(!ok){
+      /* 再试：清掉 _big 再写 */
+      try{ localStorage.removeItem(DKEY+'_big'); }catch(e){}
+      try{
+        var sl2=yzSlender();
+        localStorage.setItem(DKEY, sl2);
+        ok=true;
+      }catch(e2){ err=(e2&&e2.name?e2.name:'')+' '+(e2&&e2.message?e2.message:e2); }
+    }
 
-    if(back===css){
-      say('写入成功，回读一致（'+(css.length)+'字）','#2e9e5b');
-      try{toast('气泡CSS已锁定');}catch(e){}
+    if(ok){
+      try{ YZDB.set(DKEY, JSON.stringify(D)); }catch(e){}
+      var back='';
+      try{ back=JSON.parse(localStorage.getItem(DKEY)||'{}').bubble||''; }catch(e){}
+      if(back===css){ say('成功｜'+(css.length)+'字｜总占用'+Math.round(tot/1024)+'K｜'+top,'#2e9e5b'); }
+      else{ say('写入OK但回读不一致｜'+top); }
     }else{
-      say('回读不一致！写入'+css.length+'字，读回'+back.length+'字。localStorage 可能被拦或配额不足');
+      say('写入失败｜总占用'+Math.round(tot/1024)+'K｜最大几块：'+top+'｜错误：'+err);
     }
   }catch(e){
     say('失败：'+(e&&e.message?e.message:e));
