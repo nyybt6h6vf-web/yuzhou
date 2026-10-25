@@ -2093,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-25-v40";
+window.__YZ_BUILD="2026-10-25-v41";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -2766,7 +2766,12 @@ YZDB.open(function(ok){
         var o=JSON.parse(existing);
         if(o&&typeof o==='object'){
           /* IDB 存的是完整数据（含图片），为权威源；localStorage 只是瘦身兜底 */
-          D=Object.assign(D,o);
+          var _t=window.__yzTouched||{};
+          for(var _k in o){
+            if(o.hasOwnProperty(_k)===false)continue;
+            if(_t[_k])continue;
+            D[_k]=o[_k];
+          }
           try{ var _bg=JSON.parse(localStorage.getItem(DKEY+'_big')||'{}'); for(var _bk in _bg){ if(_bg[_bk])D[_bk]=_bg[_bk]; } }catch(e){}
           try{ if(D.themeAuto){ applyThemeAuto(true); yzBindThemeAuto(); } else { document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light'); } }catch(_){}
           try{renderHome();applyCustom();}catch(_){}
@@ -2797,7 +2802,7 @@ function save(){
 /* 立即落盘（关键操作如退出/切页时用） */
 function saveFlush(){ try{ if(_yzSaveTimer2){clearTimeout(_yzSaveTimer2);_yzSaveTimer2=null;} _yzSavePending=false; saveNow(); }catch(e){} }
 var _yzBigT=null,_yzBigSig='';function yzSaveBigs(){try{var o={},sig='';for(var i=0;i<YZ_BIGKEYS.length;i++){var k=YZ_BIGKEYS[i];if(D[k]){o[k]=D[k];sig+=k+':'+String(D[k]).length+';';}}if(sig===_yzBigSig)return; /* 没变不写 */ _yzBigSig=sig;if(_yzBigT)clearTimeout(_yzBigT);_yzBigT=setTimeout(function(){_yzBigT=null;try{localStorage.setItem(DKEY+'_big',JSON.stringify(o));}catch(e){}},2000);}catch(e){}}
-function saveNow(){var __j='';try{var _top=[];__j=JSON.stringify(D,function(k,v){ if(k&&YZ_BIGKEYS.indexOf(k)>=0&&_top.indexOf(k)<0&&this===D)return undefined; return v;});}catch(e){return;}try{yzSaveBigs();}catch(e){}try{YZDB.set(DKEY,__j);}catch(e){}try{if(D&&D.appVer)localStorage.setItem('yzAppVer',D.appVer);}catch(e){}if(YZDB&&YZDB.ready){window.__yzSaveErr=false;/* localStorage 黎身版改为防抖写，避免每次写大字符串卡顿 */try{if(window.__yzSlenderT)clearTimeout(window.__yzSlenderT);window.__yzSlenderT=setTimeout(function(){window.__yzSlenderT=null;try{var sl=yzSlender();if(sl)localStorage.setItem(DKEY,sl);}catch(e){}},300);}catch(e){}}else{try{localStorage.setItem(DKEY,__j);window.__yzSaveErr=false;}catch(e){window.__yzSaveErr=true;}}}
+function saveNow(){try{window.__yzTouched=window.__yzTouched||{};for(var _tk in D){if(Object.prototype.toString.call(D[_tk])!=='[object Function]')window.__yzTouched[_tk]=1;}}catch(_te){}var __j='';try{var _top=[];__j=JSON.stringify(D,function(k,v){ if(k&&YZ_BIGKEYS.indexOf(k)>=0&&_top.indexOf(k)<0&&this===D)return undefined; return v;});}catch(e){return;}try{yzSaveBigs();}catch(e){}try{YZDB.set(DKEY,__j);}catch(e){}try{if(D&&D.appVer)localStorage.setItem('yzAppVer',D.appVer);}catch(e){}if(YZDB&&YZDB.ready){window.__yzSaveErr=false;/* localStorage 黎身版改为防抖写，避免每次写大字符串卡顿 */try{if(window.__yzSlenderT)clearTimeout(window.__yzSlenderT);window.__yzSlenderT=setTimeout(function(){window.__yzSlenderT=null;try{var sl=yzSlender();if(sl)localStorage.setItem(DKEY,sl);}catch(e){}},300);}catch(e){}}else{try{localStorage.setItem(DKEY,__j);window.__yzSaveErr=false;}catch(e){window.__yzSaveErr=true;}}}
 function $(s){return document.querySelector(s);}
 function pad(n){return n<10?'0'+n:''+n;}
 
