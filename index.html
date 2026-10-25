@@ -2093,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-25-v38";
+window.__YZ_BUILD="2026-10-25-v39";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -2605,7 +2605,7 @@ function yzGroupSetting(cv){
 }
 
 let D=load();
-try{ var _bg0=JSON.parse(localStorage.getItem(DKEY+'_big')||'{}'); for(var _bk0 in _bg0){ if(_bg0[_bk0]&&!D[_bk0])D[_bk0]=_bg0[_bk0]; } try{localStorage.removeItem(DKEY+'_big');}catch(_e0){} }catch(e){}
+try{ var _bg0=JSON.parse(localStorage.getItem(DKEY+'_big')||'{}'); for(var _bk0 in _bg0){ if(_bg0[_bk0]&&!D[_bk0])D[_bk0]=_bg0[_bk0]; } }catch(e){}
 function load(){
   try{console.log('[LOAD] raw=',(localStorage.getItem(DKEY)||'NULL').slice(0,120));const r=localStorage.getItem(DKEY)||localStorage.getItem('yuzhou_data_v3')||localStorage.getItem('yuzhou_data_v2');console.log('[LOAD] r取到=',r?('有'+r.length):'无');if(r){
     const o=JSON.parse(r);
@@ -2767,7 +2767,7 @@ YZDB.open(function(ok){
         if(o&&typeof o==='object'){
           /* IDB 存的是完整数据（含图片），为权威源；localStorage 只是瘦身兜底 */
           D=Object.assign(D,o);
-          try{ var _bg=JSON.parse(localStorage.getItem(DKEY+'_big')||'{}'); for(var _bk in _bg){ if(_bg[_bk])D[_bk]=_bg[_bk]; } }catch(e){} try{YZDB.get(DKEY+'_big',function(_bgv){ if(_bgv){ try{ var _bgo=JSON.parse(_bgv); for(var _bk2 in _bgo){ if(_bgo[_bk2])D[_bk2]=_bgo[_bk2]; } }catch(_e1){} try{if(typeof renderHome==='function')renderHome();}catch(_e2){} } });}catch(_e3){}
+          try{ var _bg=JSON.parse(localStorage.getItem(DKEY+'_big')||'{}'); for(var _bk in _bg){ if(_bg[_bk])D[_bk]=_bg[_bk]; } }catch(e){}
           try{ if(D.themeAuto){ applyThemeAuto(true); yzBindThemeAuto(); } else { document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light'); } }catch(_){}
           try{renderHome();applyCustom();}catch(_){}
           window.__yzBigReady=true;
@@ -2796,46 +2796,8 @@ function save(){
 }
 /* 立即落盘（关键操作如退出/切页时用） */
 function saveFlush(){ try{ if(_yzSaveTimer2){clearTimeout(_yzSaveTimer2);_yzSaveTimer2=null;} _yzSavePending=false; saveNow(); }catch(e){} }
-var _yzBigT=null,_yzBigSig='';function yzSaveBigs(){try{var o={},sig='';for(var i=0;i<YZ_BIGKEYS.length;i++){var k=YZ_BIGKEYS[i];if(D[k]){o[k]=D[k];sig+=k+':'+String(D[k]).length+';';}}if(sig===_yzBigSig)return; /* 没变不写 */ _yzBigSig=sig;if(_yzBigT)clearTimeout(_yzBigT);_yzBigT=setTimeout(function(){_yzBigT=null;/* v37: 大图片只存 IDB，不再重复写入 localStorage，避免撑爆 5MB 配额 */try{YZDB.set(DKEY+'_big',JSON.stringify(o));}catch(e){}},2000);}catch(e){}}
-function saveNow(){var __j='';try{var _top=[];__j=JSON.stringify(D,function(k,v){ if(k&&YZ_BIGKEYS.indexOf(k)>=0&&_top.indexOf(k)<0&&this===D)return undefined; return v;});}catch(e){return;}try{yzSaveBigs();}catch(e){}try{YZDB.set(DKEY,__j);}catch(e){}
-  /* v37 配额保护：localStorage 只存小字段，失败时自动瘦身重试 */
-  function _yzLsWrite(){
-    try{
-      var sl=yzSlender();
-      if(!sl)return true;
-      try{ localStorage.setItem(DKEY,sl); return true; }
-      catch(err){
-        /* 配额满：清掉旧的 _big 副本 + 精简聊天记录再试 */
-        try{ localStorage.removeItem(DKEY+'_big'); }catch(e2){}
-        try{
-          var o2=JSON.parse(sl);
-          if(o2.convs&&o2.convs.length){
-            o2.convs=o2.convs.map(function(cv){
-              var c2={};for(var kk in cv){if(kk==='msgs')continue;c2[kk]=cv[kk];}
-              c2.msgs=(cv.msgs||[]).slice(-40);
-              return c2;
-            });
-          }
-          localStorage.setItem(DKEY,JSON.stringify(o2));
-          window.__yzQuotaTrim=true;
-          return true;
-        }catch(err2){
-          try{ localStorage.removeItem(DKEY); }catch(e3){}
-          window.__yzSaveErr=true;
-          window.__yzQuotaFail=true;
-          return false;
-        }
-      }
-    }catch(e){return false;}
-  }
-  if(YZDB&&YZDB.ready){
-    window.__yzSaveErr=false;
-    try{if(window.__yzSlenderT)clearTimeout(window.__yzSlenderT);window.__yzSlenderT=setTimeout(function(){window.__yzSlenderT=null;_yzLsWrite();},300);}catch(e){}
-  }else{
-    window.__yzSaveErr=false;
-    _yzLsWrite();
-  }
-}
+var _yzBigT=null,_yzBigSig='';function yzSaveBigs(){try{var o={},sig='';for(var i=0;i<YZ_BIGKEYS.length;i++){var k=YZ_BIGKEYS[i];if(D[k]){o[k]=D[k];sig+=k+':'+String(D[k]).length+';';}}if(sig===_yzBigSig)return; /* 没变不写 */ _yzBigSig=sig;if(_yzBigT)clearTimeout(_yzBigT);_yzBigT=setTimeout(function(){_yzBigT=null;try{localStorage.setItem(DKEY+'_big',JSON.stringify(o));}catch(e){}},2000);}catch(e){}}
+function saveNow(){var __j='';try{var _top=[];__j=JSON.stringify(D,function(k,v){ if(k&&YZ_BIGKEYS.indexOf(k)>=0&&_top.indexOf(k)<0&&this===D)return undefined; return v;});}catch(e){return;}try{yzSaveBigs();}catch(e){}try{YZDB.set(DKEY,__j);}catch(e){}if(YZDB&&YZDB.ready){window.__yzSaveErr=false;/* localStorage 黎身版改为防抖写，避免每次写大字符串卡顿 */try{if(window.__yzSlenderT)clearTimeout(window.__yzSlenderT);window.__yzSlenderT=setTimeout(function(){window.__yzSlenderT=null;try{var sl=yzSlender();if(sl)localStorage.setItem(DKEY,sl);}catch(e){}},300);}catch(e){}}else{try{localStorage.setItem(DKEY,__j);window.__yzSaveErr=false;}catch(e){window.__yzSaveErr=true;}}}
 function $(s){return document.querySelector(s);}
 function pad(n){return n<10?'0'+n:''+n;}
 
@@ -10733,43 +10695,22 @@ function yzForceLockCss(){
     var css=ta.value||'';
     D.bubble=css;
 
-    /* 先盘点 localStorage 各键的体积 */
-    var list=[];
-    for(var i=0;i<localStorage.length;i++){
-      var k=localStorage.key(i);
-      var v=localStorage.getItem(k)||'';
-      list.push({k:k,n:v.length});
-    }
-    list.sort(function(a,b){return b.n-a.n;});
-    var tot=0; for(var j=0;j<list.length;j++)tot+=list[j].n;
-    var top=list.slice(0,5).map(function(x){return x.k.replace('yuzhou_data_v4','主数据')+'='+Math.round(x.n/1024)+'K';}).join(' / ');
+    /* 1) 直接写 localStorage 瘦身版，绕过 save()/防抖/IDB */
+    var sl=yzSlender();
+    localStorage.setItem(DKEY, sl);
 
-    /* 写入 */
-    var ok=false, err='';
-    try{
-      var sl=yzSlender();
-      localStorage.setItem(DKEY, sl);
-      ok=true;
-    }catch(e){ err=(e&&e.name?e.name:'')+' '+(e&&e.message?e.message:e); }
+    /* 2) 写 IDB */
+    try{ var full=JSON.stringify(D); YZDB.set(DKEY, full); }catch(e){}
 
-    if(!ok){
-      /* 再试：清掉 _big 再写 */
-      try{ localStorage.removeItem(DKEY+'_big'); }catch(e){}
-      try{
-        var sl2=yzSlender();
-        localStorage.setItem(DKEY, sl2);
-        ok=true;
-      }catch(e2){ err=(e2&&e2.name?e2.name:'')+' '+(e2&&e2.message?e2.message:e2); }
-    }
+    /* 3) 立刻回读核对 */
+    var back='';
+    try{ back=JSON.parse(localStorage.getItem(DKEY)||'{}').bubble||''; }catch(e){ back=''; }
 
-    if(ok){
-      try{ YZDB.set(DKEY, JSON.stringify(D)); }catch(e){}
-      var back='';
-      try{ back=JSON.parse(localStorage.getItem(DKEY)||'{}').bubble||''; }catch(e){}
-      if(back===css){ say('成功｜'+(css.length)+'字｜总占用'+Math.round(tot/1024)+'K｜'+top,'#2e9e5b'); }
-      else{ say('写入OK但回读不一致｜'+top); }
+    if(back===css){
+      say('写入成功，回读一致（'+(css.length)+'字）','#2e9e5b');
+      try{toast('气泡CSS已锁定');}catch(e){}
     }else{
-      say('写入失败｜总占用'+Math.round(tot/1024)+'K｜最大几块：'+top+'｜错误：'+err);
+      say('回读不一致！写入'+css.length+'字，读回'+back.length+'字。localStorage 可能被拦或配额不足');
     }
   }catch(e){
     say('失败：'+(e&&e.message?e.message:e));
