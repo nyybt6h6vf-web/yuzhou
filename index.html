@@ -2093,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-25-v42";
+window.__YZ_BUILD="2026-10-25-v43";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -10700,22 +10700,44 @@ function yzForceLockCss(){
     var css=ta.value||'';
     D.bubble=css;
 
-    /* 1) 直接写 localStorage 瘦身版，绕过 save()/防抖/IDB */
-    var sl=yzSlender();
-    localStorage.setItem(DKEY, sl);
+    var oks=[];
+    var err='';
 
-    /* 2) 写 IDB */
-    try{ var full=JSON.stringify(D); YZDB.set(DKEY, full); }catch(e){}
+    /* 1) 关键小字段写 localStorage */
+    try{
+      var _m = {
+        appVer: D.appVer,
+        bubble: D.bubble,
+        bubbleSize: D.bubbleSize,
+        bubbleHim: D.bubbleHim,
+        bubbleMe: D.bubbleMe,
+        chatFontSize: D.chatFontSize,
+        accentColor: D.accentColor,
+        fontColor: D.fontColor,
+        theme: D.theme,
+        setCurChar: D.setCurChar,
+        lockName: D.lockName,
+        slogan: D.slogan
+      };
+      localStorage.setItem(DKEY+'_min',JSON.stringify(_m));
+      oks.push('小数据');
+    }catch(e1){ err='小数据写入失败 '+(e1&&e1.message?e1.message:e1); }
 
-    /* 3) 立刻回读核对 */
+    /* 2) 主数据写 IDB */
+    try{
+      YZDB.set(DKEY, JSON.stringify(D));
+      oks.push('主数据');
+    }catch(e2){ err+=' 主数据写入失败 '+(e2&&e2.message?e2.message:e2); }
+
+    /* 3) 回读核对 */
     var back='';
-    try{ back=JSON.parse(localStorage.getItem(DKEY)||'{}').bubble||''; }catch(e){ back=''; }
+    try{ back=JSON.parse(localStorage.getItem(DKEY+'_min')||'{}')['bubble']||''; }catch(e3){ }
 
     if(back===css){
-      say('写入成功，回读一致（'+(css.length)+'字）','#2e9e5b');
-      try{toast('气泡CSS已锁定');}catch(e){}
+      say('成功：'+oks.join('呪')+' | '+css.length+'字','#2e9e5b');
+      try{toast('气泡CSS 已锁定');}catch(e){}
     }else{
-      say('回读不一致！写入'+css.length+'字，读回'+back.length+'字。localStorage 可能被拦或配额不足');
+      say('写入失败：'+(err?err:'回读不一贴'));
     }
   }catch(e){
     say('失败：'+(e&&e.message?e.message:e));
