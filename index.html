@@ -2093,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-25-v46";
+window.__YZ_BUILD="2026-10-25-v47";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3078,7 +3078,7 @@ function yzPhViewHim(cid){
     if(!cid)return;
     D.phHimId=cid;
     D.phPage=2;
-    try{ window.__yzOffPlayed=false; window.__yzPhHelpedOnce=false; }catch(e){}
+    try{ window.__yzOffPlayed=false; window.__yzPhHelpedOnce=false; window.__yzPhHelping=false; var _sv=yzPhHimState(cid); if(_sv){ if(!_sv.power)_sv.helped=false; } }catch(e){}
     try{ save(); }catch(e){}
     var _old=document.getElementById('yzPhPickSheet');
     if(_old&&_old.parentNode)_old.parentNode.removeChild(_old);
@@ -3137,7 +3137,7 @@ function yzPhHimCard(){ try{ var id=D.phHimId||yzCurKaoCharId(); if(typeof pickC
 function yzPhRenderHim(body){
   var _hst=yzPhHimState(D.phHimId)||{pct:100,charging:false,power:true,helped:false,chgTries:0,chgAcc:0,acc:0};
   var him=yzPhPct(_hst.pct===undefined?100:_hst.pct);
-  if(!_hst.power){
+  if(!_hst.power){ if(_hst.helped){ _hst.helped=false; try{ save(); }catch(e){} }
     body.innerHTML='<div class="phoff" id="phOff">'
       +'<div class="phofflogo"></div>'
       +'<div class="phofftxt">'+esc(yzPhHimName())+'的手机关机了</div>'
@@ -3177,7 +3177,7 @@ function yzPhHelpCharge(){
   window.__yzPhHelping=true; window.__yzPhHelpedOnce=true;
   var _s0=yzPhHimState(D.phHimId);
   if(!_s0){ try{ yzPhInit(); _s0=yzPhHimState(D.phHimId); }catch(e){} }
-  if(_s0){ if(_s0.helped){ window.__yzPhHelping=false; return; } _s0.helped=true; _s0.power=true; _s0.charging=true; _s0.chgAcc=0; _s0.chgTries=0; if((_s0.pct||0)<5)_s0.pct=5; }
+  if(_s0){ _s0.helped=true; _s0.power=true; _s0.charging=true; _s0.chgAcc=0; _s0.chgTries=0; if((_s0.pct||0)<5)_s0.pct=5; }
   try{ saveFlush(); }catch(e){ try{save();}catch(e2){} }
   var _hb=document.getElementById('phHelpBtn'); if(_hb&&_hb.parentNode)_hb.parentNode.removeChild(_hb);
   /* 开机动画：用独立覆盖层播放，避免被 tick 重渲染冲掉 */
