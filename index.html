@@ -2093,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-25-v47";
+window.__YZ_BUILD="2026-10-25-v48";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3269,7 +3269,7 @@ function yzFavReread(){
     yzFavInit();
     /* 每类独立回看概率：msg/music/moment/diary/letter */
     var pools={};
-    var _fcid=(typeof yzSetCurChar==='function')?yzSetCurChar():'';
+    var _fcid=(D.phHimId||(typeof yzCtxCharId==='function'?yzCtxCharId():'')||''); if(!_fcid&&typeof yzSetCurChar==='function')_fcid=yzSetCurChar();
     var _fscid=''; try{ _fscid=yzSingleConvIdOf(_fcid); }catch(e){}
     pools.msg=[];
     var _srcMsgs=[];
@@ -3294,12 +3294,12 @@ function yzFavReread(){
       if(Math.random()*100>=r)return;
       /* 随机抽一条“当前不在收藏里”的：删掉的也能重新被回看到 */
       var _curKeys={};
-      try{ (D.favs[t]||[]).forEach(function(f){ var kk=(f&&f.k!==undefined&&f.k!==null)?String(f.k):String((f&&(f.id||f.url||f.title||f.text))||''); if(kk)_curKeys[kk]=1; }); }catch(e){}
+      try{ (D.myFavs[t]||[]).forEach(function(f){ var kk=(f&&f.k!==undefined&&f.k!==null)?String(f.k):String((f&&(f.id||f.url||f.title||f.text))||''); if(kk)_curKeys[kk]=1; }); }catch(e){}
       var cand=pool.filter(function(x){ var k=(x.item.id||x.item.url||x.item.title||x.item.text||'')+''; return !_curKeys[k]; });
       if(!cand.length)return;
       var pick=cand[Math.floor(Math.random()*cand.length)];
       var rr=D['reread'+keyCap+'FavRate']; if(rr===undefined)rr=20;
-      if(Math.random()*100<rr){ yzFavAdd(pick.type,pick.item,pick.src); }
+      if(Math.random()*100<rr){ pick.item.cid=_fcid; yzMyFavAdd(pick.type,pick.item,pick.src); }
     });
   }catch(e){}
 }
