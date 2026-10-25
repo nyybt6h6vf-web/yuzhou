@@ -2093,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-25-v45";
+window.__YZ_BUILD="2026-10-25-v46";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -2604,7 +2604,7 @@ function yzGroupSetting(cv){
   d.classList.add('show');
 }
 
-let D=load();try{var _mn=JSON.parse(localStorage.getItem(DKEY+'_min')||'{}');for(var _mk in _mn){if(_mn[_mk]!==undefined&&_mn[_mk]!==null)D[_mk]=_mn[_mk];}}catch(e){}
+let D=load();try{var _mn=JSON.parse(localStorage.getItem(DKEY+'_min')||'{}');window.__yzTouched=window.__yzTouched||{};for(var _mk in _mn){if(_mn[_mk]!==undefined&&_mn[_mk]!==null){D[_mk]=_mn[_mk];window.__yzTouched[_mk]=1;}}}catch(e){}
 try{ var _bg0=JSON.parse(localStorage.getItem(DKEY+'_big')||'{}'); for(var _bk0 in _bg0){ if(_bg0[_bk0]&&!D[_bk0])D[_bk0]=_bg0[_bk0]; } }catch(e){}
 function load(){
   try{console.log('[LOAD] raw=',(localStorage.getItem(DKEY)||'NULL').slice(0,120));const r=localStorage.getItem(DKEY)||localStorage.getItem('yuzhou_data_v3')||localStorage.getItem('yuzhou_data_v2');console.log('[LOAD] r取到=',r?('有'+r.length):'无');if(r){
@@ -11039,6 +11039,7 @@ function saveProfile(){
   if($('#setPhMyAutoAt'))D.phMyAutoAt=Math.max(0,Math.min(100,parseFloat($('#setPhMyAutoAt').value)||0));
   if($('#setPhHimChgSpeed'))D.phHimChgSpeed=Math.max(1,parseFloat($('#setPhHimChgSpeed').value)||1);
   if($('#setPhMyChgSpeed'))D.phMyChgSpeed=Math.max(1,parseFloat($('#setPhMyChgSpeed').value)||1);
+  try{var _pm=JSON.parse(localStorage.getItem(DKEY+"_min")||"{}");var _ks=["phHimDrop","phMyDrop","phHimChgRate","phHimAutoAt","phMyAutoAt","phHimChgSpeed","phMyChgSpeed","phAutoHim","phAutoMy"];for(var _i=0;_i<_ks.length;_i++){_pm[_ks[_i]]=D[_ks[_i]];}localStorage.setItem(DKEY+"_min",JSON.stringify(_pm));}catch(e){}
   /* 小手机与电量：立即同步进当前梦角包，避免被其他保存路径覆盖 */
   try{ var _pk=['phMyDrop','phHimDrop','phHimChgRate','phHimAutoAt','phMyAutoAt','phHimChgSpeed','phMyChgSpeed','phAutoHim','phAutoMy']; var _pc=yzSetCurChar(); if(_pc){ if(!D.setPer)D.setPer={}; if(!D.setPer[_pc])D.setPer[_pc]={}; for(var _pi=0;_pi<_pk.length;_pi++){ var _kk=_pk[_pi]; if(D[_kk]!==undefined) D.setPer[_pc][_kk]=D[_kk]; } } }catch(e){}
   /* 把本轮改动提交到当前选中梦角的设置包 */
