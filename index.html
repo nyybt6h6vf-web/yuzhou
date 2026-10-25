@@ -2093,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-23-v35";
+window.__YZ_BUILD="2026-10-25-v36";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3975,6 +3975,7 @@ var YZ_BEAUTY_SUBS=[
   {name:'各美化设置',html:`<div class="row"><div class="lab">强调色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setAccentColor" oninput="setAccent(this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setAccent('')">清</div></div></div><div class="row"><div class="lab">转账字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('fontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('fontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setFontColorColor" oninput="setColor('fontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fontColor','')">清</div></div></div><div class="row"><div class="lab">梦角气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleHim','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleHim','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleHimColor" oninput="setColor('bubbleHim',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleHim','')">清</div></div></div><div class="row"><div class="lab">我方气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleMe','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleMe','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleMeColor" oninput="setColor('bubbleMe',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleMe','')">清</div></div></div><div class="row" style="flex-direction:column;align-items:stretch">
           <div class="lab" style="margin-bottom:8px">气泡 CSS（.msg .bubble 通用，写一条两边都生效）</div>
           <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty();yzPreviewBubbleDebounced();"></textarea>
+          <div style="margin-top:10px;display:flex;gap:8px;align-items:center"><div class="chip" onclick="yzForceLockCss()">强制写入并核对</div><div id="yzLockMsg" style="font-size:12px;color:#e05252"></div></div>
           <div class="lab" style="margin-top:12px;margin-bottom:6px">预览</div>
           <div id="bubblePreview" style="background:var(--card);border:1px solid var(--sub);border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;contain:layout paint style;isolation:isolate">
             <div class="msg him" style="display:flex"><div class="bubble">梦角消息示例</div></div>
@@ -10684,6 +10685,36 @@ function saveSoon(){
     if(_yzSaveTimer)clearTimeout(_yzSaveTimer);
     _yzSaveTimer=setTimeout(function(){ _yzSaveTimer=null; try{save();}catch(e){} }, 1200);
   }catch(e){}
+}
+function yzForceLockCss(){
+  var msg=document.getElementById('yzLockMsg');
+  function say(t,c){ if(msg){ msg.textContent=t; msg.style.color=c||'#e05252'; } }
+  try{
+    var ta=document.getElementById('setBubble');
+    if(!ta){ say('没有找到输入框'); return; }
+    var css=ta.value||'';
+    D.bubble=css;
+
+    /* 1) 直接写 localStorage 瘦身版，绕过 save()/防抖/IDB */
+    var sl=yzSlender();
+    localStorage.setItem(DKEY, sl);
+
+    /* 2) 写 IDB */
+    try{ var full=JSON.stringify(D); YZDB.set(DKEY, full); }catch(e){}
+
+    /* 3) 立刻回读核对 */
+    var back='';
+    try{ back=JSON.parse(localStorage.getItem(DKEY)||'{}').bubble||''; }catch(e){ back=''; }
+
+    if(back===css){
+      say('写入成功，回读一致（'+(css.length)+'字）','#2e9e5b');
+      try{toast('气泡CSS已锁定');}catch(e){}
+    }else{
+      say('回读不一致！写入'+css.length+'字，读回'+back.length+'字。localStorage 可能被拦或配额不足');
+    }
+  }catch(e){
+    say('失败：'+(e&&e.message?e.message:e));
+  }
 }
 function saveBeauty(){
   if($('#setLockName'))D.lockName=$('#setLockName').value;
