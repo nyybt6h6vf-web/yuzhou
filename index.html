@@ -2093,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-27-v51";
+window.__YZ_BUILD="2026-10-27-v52";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4911,7 +4911,7 @@ function respond(){
   function _emit(item,idx){
     try{
       if(item.kind==='voice'){ push({from:'him',type:'voice',sec:item.sec||3,text:item.text,_t:clockStr()}); }
-      else if(item.kind==='img'){ push({from:'him',type:'img',src:item.src,_t:clockStr()}); }
+      else if(item.kind==='img'){ var _m2={from:'him',type:'img',src:item.src,_t:clockStr()}; if(_quoteRef&&idx===_quoteAt){ _m2.quote=_quoteRef; } push(_m2); }
       else { var _m3={from:'him',text:item.text,type:'text',_t:clockStr()}; if(_quoteRef&&idx===_quoteAt){ _m3.quote=_quoteRef; } push(_m3); }
     }catch(e){}
   }
