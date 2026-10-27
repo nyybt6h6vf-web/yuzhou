@@ -2095,7 +2095,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-27-v57";
+window.__YZ_BUILD="2026-10-27-v58";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4828,9 +4828,7 @@ function pickMultiCardsFor(cid){
   var cs=(lib&&lib.main&&lib.main.length)?lib.main:DEFAULT_CARDS;
   var _ok=(typeof window!=='undefined'&&window.__yzComboOn!==undefined&&window.__yzComboOn!==null)?window.__yzComboOn:yzComboRollOnce();
   if(!_ok||!cs.length)return pickCardFor(cid);
-  var minC=Math.max(2,parseInt(D.comboMin)||2);
-  var maxC=Math.max(minC,parseInt(D.comboMax)||minC);
-  var k=minC+Math.floor(Math.random()*(maxC-minC+1));
+  var k=(window.__yzComboCount>0)?window.__yzComboCount:Math.max(2,parseInt(D.comboMin)||2);
   var pool=cs.slice();var out=[];
   for(var i=0;i<k&&pool.length;i++){out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);}
   if(out.length<=1)return out[0]||pickCardFor(cid);
@@ -4841,9 +4839,7 @@ function pickMultiCards(){
   if(!cs||!cs.length){cs=(D.cards&&D.cards.length)?D.cards:DEFAULT_CARDS;}
   var _ok2=(typeof window!=='undefined'&&window.__yzComboOn!==undefined&&window.__yzComboOn!==null)?window.__yzComboOn:yzComboRollOnce();
   if(!_ok2||!cs.length)return pickCard();
-  const minC=Math.max(2,parseInt(D.comboMin)||2);
-  const maxC=Math.max(minC,parseInt(D.comboMax)||minC);
-  const k=minC+Math.floor(Math.random()*(maxC-minC+1));
+  const k=(window.__yzComboCount>0)?window.__yzComboCount:Math.max(2,parseInt(D.comboMin)||2);
   const pool=cs.slice();const out=[];
   for(let i=0;i<k&&pool.length;i++){out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);}
   if(out.length<=1)return out[0]||pickCard();
@@ -4942,7 +4938,15 @@ function respond(){
   if(_cv&&_cv.type==='group'){ respondGroup(_cv); return; }
   const delay=replyDelayMs();
   const gap=sendGapMs();
-  try{ window.__yzComboOn=yzComboRollOnce(); }catch(e){}
+  try{
+    window.__yzComboOn=yzComboRollOnce();
+    window.__yzComboCount=0;
+    if(window.__yzComboOn){
+      var _cmin=Math.max(2,parseInt(D.comboMin)||2);
+      var _cmax=Math.max(_cmin,parseInt(D.comboMax)||_cmin);
+      window.__yzComboCount=_cmin+Math.floor(Math.random()*(_cmax-_cmin+1));
+    }
+  }catch(e){}
   var plan=yzBuildPlan({cid:yzCurKaoCharId()});
   /* 拍一拍：梦角这一轮回复只掷一次骰子（与他发几条无关） */
   try{ maybePat(); }catch(e){}
