@@ -2093,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-27-v50";
+window.__YZ_BUILD="2026-10-27-v51";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4288,7 +4288,7 @@ function renderChat(){
     let quoteHtml='';
     if(m.quote&&m.quote.brief){
       const qsrc=(m.quote.type==='img'&&m.quote.src)?('<img class="qimg" src="'+m.quote.src+'">'):'';
-      var _qw=''; try{ var _qm2=D.msgs[m.quote.i]; if(_qm2)_qw=quoteWho(_qm2)+'：'; }catch(e){}
+      var _qw=''; try{ if(m.quote.who){ _qw=m.quote.who+'：'; } else { var _qm2=D.msgs[m.quote.i]; if(_qm2)_qw=quoteWho(_qm2)+'：'; } }catch(e){}
       quoteHtml='<div class="qbox" onclick="jumpMsg('+(m.quote.i)+')">'+qsrc+'<div class="qtxt">'+esc(_qw)+((m.quote.type==='img')?'[图片]':esc(m.quote.brief))+'</div></div>';
     }
     b.insertAdjacentHTML('beforeend',`<div class="msg ${me?'me':'him'}${(!me&&m.auto)?' yz-auto':''}" data-mi="${i}">${(!me&&m.auto)?'<span class="auto-dot"></span>':''}${avHTML(me?'me':'him',m.who)}<div class="bubwrap">${nameHtml}${quoteHtml}${bubbleHTML(m,i)}${readHtml}${himStamp}${meStamp}</div></div>`);
@@ -4897,16 +4897,22 @@ function respond(){
         }
         if(_poolQ.length){
           var _pickQ=_poolQ[Math.floor(Math.random()*_poolQ.length)];
-          _quoteRef={brief:quoteBrief(_pickQ),type:_pickQ.type||'text',src:_pickQ.type==='img'?(_pickQ.src||''):''};
+          var _whoQ='';
+          try{ _whoQ=(typeof quoteWho==='function'?quoteWho(_pickQ):'')||''; }catch(e){}
+          if(!_whoQ)_whoQ='你';
+          _quoteRef={brief:quoteBrief(_pickQ),type:_pickQ.type||'text',who:_whoQ,src:_pickQ.type==='img'?(_pickQ.src||''):''};
         }
       }
     }
   }catch(e){}
-  function _emit(item){
+  /* 本轮挂给哪一条：按本轮条数随机挑一个位置，只挂一次 */
+  var _quoteAt=-1;
+  if(_quoteRef&&plan.length){ _quoteAt=Math.floor(Math.random()*plan.length); }
+  function _emit(item,idx){
     try{
       if(item.kind==='voice'){ push({from:'him',type:'voice',sec:item.sec||3,text:item.text,_t:clockStr()}); }
       else if(item.kind==='img'){ push({from:'him',type:'img',src:item.src,_t:clockStr()}); }
-      else { var _m3={from:'him',text:item.text,type:'text',_t:clockStr()}; if(_quoteRef){ _m3.quote=_quoteRef; _quoteRef=null; } push(_m3); }
+      else { var _m3={from:'him',text:item.text,type:'text',_t:clockStr()}; if(_quoteRef&&idx===_quoteAt){ _m3.quote=_quoteRef; } push(_m3); }
     }catch(e){}
   }
   setTyping(true);
@@ -4914,9 +4920,9 @@ function respond(){
   plan.forEach(function(item,idx){
     var t=delay+gap*idx;
     if(idx===_last){
-      setTimeout(function(){ setTyping(false); if(idx===0)markRead(); _emit(item); },t);
+      setTimeout(function(){ setTyping(false); if(idx===0)markRead(); _emit(item,idx); },t);
     }else{
-      setTimeout(function(){ _emit(item); },t);
+      setTimeout(function(){ _emit(item,idx); },t);
     }
   });
 }
