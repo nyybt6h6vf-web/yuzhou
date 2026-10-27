@@ -2095,7 +2095,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-27-v54";
+window.__YZ_BUILD="2026-10-27-v55";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3025,15 +3025,17 @@ function yzPhDiag(){
   function w(t){ if(out){ out.textContent+=t+'\n'; } }
   if(out) out.textContent='';
   var ks=['phHimDrop','phMyDrop','phHimChgRate','phHimAutoAt','phMyAutoAt','phHimChgSpeed','phMyChgSpeed','phAutoHim','phAutoMy'];
+  var ids={phHimDrop:'setPhHimDrop',phMyDrop:'setPhMyDrop',phHimChgRate:'setPhHimChgRate',phHimAutoAt:'setPhHimAutoAt',phMyAutoAt:'setPhMyAutoAt',phHimChgSpeed:'setPhHimChgSpeed',phMyChgSpeed:'setPhMyChgSpeed',phAutoHim:'phHimAutoBtn',phAutoMy:'phMyAutoBtn'};
   var cid=(typeof yzSetCurChar==='function')?yzSetCurChar():'';
   w('当前梦角='+cid);
   var mn={}; try{ mn=JSON.parse(localStorage.getItem(DKEY+'_min')||'{}')||{}; }catch(e){}
   var sp={}; try{ sp=(D.setPer&&D.setPer[cid])||{}; }catch(e){}
   w('--- 输入框 / 内存D / _min / setPer ---');
   for(var i=0;i<ks.length;i++){
-    var k=ks[i]; var el=document.getElementById('set'+k.charAt(0).toUpperCase()+k.slice(1));
-    var iv=el?String(el.value):'(无框)';
-    w(k+' | 框='+iv+' | D='+D[k]+' | min='+mn[k]+' | setPer='+sp[k]);
+    var k=ks[i]; var el=document.getElementById(ids[k]);
+    var iv='(无此项)'; var dv=String(D[k]);
+    if(el){ iv=(el.tagName==='INPUT')?String(el.value):String(el.textContent); var dv2=(el.tagName==='INPUT')?null:null; }
+    w(k+' | 框='+iv+' | D='+dv+' | min='+mn[k]+' | setPer='+sp[k]);
   }
   w('--- _min 里是否存在九项 ---');
   var cnt=0; for(var j=0;j<ks.length;j++){ if(mn[ks[j]]!==undefined)cnt++; }
@@ -3051,8 +3053,9 @@ function yzPhDiag(){
     } else { w('YZDB 不可用'); }
   }catch(e){ w('IDB读失败:'+e.message); }
 }
-function yzPhToggleHimAuto(){ D.phAutoHim=!D.phAutoHim; save(); yzPhCondRows(); toast(D.phAutoHim?'已开启梦角小手机自动充电':'已关闭梦角小手机自动充电'); }
-function yzPhToggleMyAuto(){ D.phAutoMy=!D.phAutoMy; save(); yzPhCondRows(); toast(D.phAutoMy?'已开启我的小手机自动充电':'已关闭我的小手机自动充电'); }
+function yzPhSyncPer(k){ try{ var c=(typeof yzSetCurChar==='function')?yzSetCurChar():''; if(!c)return; if(!D.setPer)D.setPer={}; if(!D.setPer[c])D.setPer[c]={}; D.setPer[c][k]=D[k]; }catch(e){} }
+function yzPhToggleHimAuto(){ D.phAutoHim=!D.phAutoHim; yzPhSyncPer('phAutoHim'); try{ yzSetCommit(yzSetCurChar()); }catch(e){} save(); yzPhCondRows(); toast(D.phAutoHim?'已开启梦角小手机自动充电':'已关闭梦角小手机自动充电'); }
+function yzPhToggleMyAuto(){ D.phAutoMy=!D.phAutoMy; yzPhSyncPer('phAutoMy'); try{ yzSetCommit(yzSetCurChar()); }catch(e){} save(); yzPhCondRows(); toast(D.phAutoMy?'已开启我的小手机自动充电':'已关闭我的小手机自动充电'); }
 function yzPhCurPager(){ var v=parseInt(D.phPage,10); if(!v||v<1||v>2)v=1; D.phPage=v; return v; }
 /* 选一个梦角的小手机查看 */
 function yzPhPickHim(){
@@ -10612,13 +10615,19 @@ function fillSettings(){
   try{if(yzSafeEl('setBubbleSize'))yzSafeEl('setBubbleSize').value=(D.bubbleSize!==undefined?D.bubbleSize:100);if(yzSafeEl('bubbleSizeVal'))yzSafeEl('bubbleSizeVal').textContent=(D.bubbleSize!==undefined?D.bubbleSize:100)+'%';}catch(e){}
   try{if(yzSafeEl('setChatFontSize'))yzSafeEl('setChatFontSize').value=(D.chatFontSize!==undefined?D.chatFontSize:14);if(yzSafeEl('chatFontSizeVal'))yzSafeEl('chatFontSizeVal').textContent=(D.chatFontSize!==undefined?D.chatFontSize:14)+'px';}catch(e){}
   try{if(yzSafeEl('setTranSize'))yzSafeEl('setTranSize').value=(D.tranSize!==undefined?D.tranSize:100);if(yzSafeEl('tranSizeVal'))yzSafeEl('tranSizeVal').textContent=(D.tranSize!==undefined?D.tranSize:100)+'%';}catch(e){}
-  if(yzSafeEl('setPhHimDrop'))yzSafeEl('setPhHimDrop').value=(D.phHimDrop===undefined?2:D.phHimDrop);
-  if(yzSafeEl('setPhMyDrop'))yzSafeEl('setPhMyDrop').value=(D.phMyDrop===undefined?5:D.phMyDrop);
-  if(yzSafeEl('setPhHimChgRate'))yzSafeEl('setPhHimChgRate').value=(D.phHimChgRate===undefined?25:D.phHimChgRate);
-  if(yzSafeEl('setPhHimAutoAt'))yzSafeEl('setPhHimAutoAt').value=(D.phHimAutoAt===undefined?20:D.phHimAutoAt);
-  if(yzSafeEl('setPhMyAutoAt'))yzSafeEl('setPhMyAutoAt').value=(D.phMyAutoAt===undefined?20:D.phMyAutoAt);
-  if(yzSafeEl('setPhHimChgSpeed'))yzSafeEl('setPhHimChgSpeed').value=(D.phHimChgSpeed===undefined?1:D.phHimChgSpeed);
-  if(yzSafeEl('setPhMyChgSpeed'))yzSafeEl('setPhMyChgSpeed').value=(D.phMyChgSpeed===undefined?1:D.phMyChgSpeed);
+  try{
+    var _phc=(typeof yzSetCurChar==='function')?yzSetCurChar():'';
+    function _phv(k,def){ try{ if(_phc&&D.setPer&&D.setPer[_phc]&&D.setPer[_phc][k]!==undefined)return D.setPer[_phc][k]; }catch(e){} return (D[k]===undefined?def:D[k]); }
+    if(yzSafeEl('setPhHimDrop'))yzSafeEl('setPhHimDrop').value=_phv('phHimDrop',2);
+    if(yzSafeEl('setPhMyDrop'))yzSafeEl('setPhMyDrop').value=_phv('phMyDrop',5);
+    if(yzSafeEl('setPhHimChgRate'))yzSafeEl('setPhHimChgRate').value=_phv('phHimChgRate',25);
+    if(yzSafeEl('setPhHimAutoAt'))yzSafeEl('setPhHimAutoAt').value=_phv('phHimAutoAt',20);
+    if(yzSafeEl('setPhMyAutoAt'))yzSafeEl('setPhMyAutoAt').value=_phv('phMyAutoAt',20);
+    if(yzSafeEl('setPhHimChgSpeed'))yzSafeEl('setPhHimChgSpeed').value=_phv('phHimChgSpeed',1);
+    if(yzSafeEl('setPhMyChgSpeed'))yzSafeEl('setPhMyChgSpeed').value=_phv('phMyChgSpeed',1);
+    if(yzSafeEl('phHimAutoBtn'))yzSafeEl('phHimAutoBtn').textContent=_phv('phAutoHim',false)?'开启':'关闭';
+    if(yzSafeEl('phMyAutoBtn'))yzSafeEl('phMyAutoBtn').textContent=_phv('phAutoMy',false)?'开启':'关闭';
+  }catch(e){}
   if(yzSafeEl('setFingerBgColor'))yzSafeEl('setFingerBgColor').value=((D.fingerBg&&D.fingerBg.startsWith('#'))?D.fingerBg:'#9db2d6');
 
   try{if(yzSafeEl('phHimAutoBtn'))yzSafeEl('phHimAutoBtn').textContent=D.phAutoHim?'开启':'关闭';}catch(e){}
