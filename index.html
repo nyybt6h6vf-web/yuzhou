@@ -2095,7 +2095,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-27-v58";
+window.__YZ_BUILD="2026-10-27-v59";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4869,10 +4869,11 @@ function yzBuildPlan(opt){
   var _fixedN=(opt&&opt.count)?Math.max(1,parseInt(opt.count)||1):0;
   if(_fixedN){ _minN=_fixedN; _maxN=_fixedN; }
   function _roll(pr){ if(!(pr>0))return false; if(pr>=100)return true; return Math.random()*100<pr; }
-  function _mkMain(){ var t=pickMultiCardsFor(_cid); return t?{kind:'main',text:t}:null; }
+  function _mkMain(){ var t=pickCardFor(_cid); return t?{kind:'main',text:t}:null; }
+  function _mkMainCombo(){ var t=pickMultiCardsFor(_cid); return t?{kind:'main',text:t}:null; }
   function _mkPack(){ return _packs.length?{kind:'img',src:_packs[Math.floor(Math.random()*_packs.length)]}:null; }
   function _mkKao(){ return _kaoPool.length?{kind:'kao',text:_kaoPool[Math.floor(Math.random()*_kaoPool.length)]}:null; }
-  function _mkVoice(){ var t=pickMultiCardsFor(_cid); return t?{kind:'voice',text:t,sec:1+Math.floor(Math.random()*10)}:null; }
+  function _mkVoice(){ var t=pickCardFor(_cid); return t?{kind:'voice',text:t,sec:1+Math.floor(Math.random()*10)}:null; }
   function _mkEmoji(){ var p2=yzEmojiPoolFor(_cid); if(!p2||!p2.length)return null; return {kind:'text',text:p2[Math.floor(Math.random()*p2.length)]}; }
   function _mkRandom(){
     var pool=[function(){return _mkMain();}];
@@ -4887,7 +4888,8 @@ function yzBuildPlan(opt){
   if(_roll(_mainP)){
     var k=_minN+Math.floor(Math.random()*(_maxN-_minN+1));
     if(k>n)k=n;
-    for(var _i=0;_i<k;_i++){ var mm=_mkMain(); if(mm){ plan.push(mm); used++; } }
+    var _comboAt=(window.__yzComboOn===true)?Math.floor(Math.random()*k):-1;
+    for(var _i=0;_i<k;_i++){ var mm=(_i===_comboAt)?_mkMainCombo():_mkMain(); if(mm){ plan.push(mm); used++; } }
     /* emoji 混入：整轮只掷一次，命中时随机抽其中一条主字卡混入 */
     try{
       if(parseInt(D.emojiMix)||0){
