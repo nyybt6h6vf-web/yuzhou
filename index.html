@@ -1788,6 +1788,8 @@ svg [fill="currentColor"]{stroke:none;}
         <div class="row"><div class="lab">我默认掉电量到几度充电</div><input type="number" id="setPhMyAutoAt" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">梦角充电速度（分钟/度）</div><input type="number" id="setPhHimChgSpeed" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">我充电速度（分钟/度）</div><input type="number" id="setPhMyChgSpeed" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
+        <div class="row"><div class="lab">诊断：九项到底存哪了</div><div class="chip" onclick="yzPhDiag()">查</div></div>
+        <div id="yzPhDiagOut" style="font-size:11px;line-height:1.6;padding:8px 4px;white-space:pre-wrap;word-break:break-all;color:#666"></div>
       </div>
     </div>
   </div>
@@ -2093,7 +2095,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-27-v52";
+window.__YZ_BUILD="2026-10-27-v53";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3016,6 +3018,38 @@ function yzPhTick(){
     try{ yzPhStatusIcon(); }catch(e){}
     if($('#phony') && $('#phony').classList.contains('active') && !D.phFavOpen){ try{ yzPhRender(); }catch(e){} }
   }catch(e){}
+}
+
+function yzPhDiag(){
+  var out=document.getElementById('yzPhDiagOut');
+  function w(t){ if(out){ out.textContent+=t+'\n'; } }
+  if(out) out.textContent='';
+  var ks=['phHimDrop','phMyDrop','phHimChgRate','phHimAutoAt','phMyAutoAt','phHimChgSpeed','phMyChgSpeed','phAutoHim','phAutoMy'];
+  var cid=(typeof yzSetCurChar==='function')?yzSetCurChar():'';
+  w('当前梦角='+cid);
+  var mn={}; try{ mn=JSON.parse(localStorage.getItem(DKEY+'_min')||'{}')||{}; }catch(e){}
+  var sp={}; try{ sp=(D.setPer&&D.setPer[cid])||{}; }catch(e){}
+  w('--- 输入框 / 内存D / _min / setPer ---');
+  for(var i=0;i<ks.length;i++){
+    var k=ks[i]; var el=document.getElementById('set'+k.charAt(0).toUpperCase()+k.slice(1));
+    var iv=el?String(el.value):'(无框)';
+    w(k+' | 框='+iv+' | D='+D[k]+' | min='+mn[k]+' | setPer='+sp[k]);
+  }
+  w('--- _min 里是否存在九项 ---');
+  var cnt=0; for(var j=0;j<ks.length;j++){ if(mn[ks[j]]!==undefined)cnt++; }
+  w('_min 命中 '+cnt+'/9');
+  w('_min 键总数='+Object.keys(mn).length);
+  try{
+    if(window.YZDB&&YZDB.get){
+      YZDB.get(DKEY,function(v){
+        var o={}; try{ o=JSON.parse(v||'{}')||{}; }catch(e){}
+        var c2=0; for(var j2=0;j2<ks.length;j2++){ if(o[ks[j2]]!==undefined)c2++; }
+        w('--- IDB ---');
+        w('IDB 命中 '+c2+'/9  如 phHimChgSpeed='+o.phHimChgSpeed);
+        w('IDB 键总数='+Object.keys(o).length);
+      });
+    } else { w('YZDB 不可用'); }
+  }catch(e){ w('IDB读失败:'+e.message); }
 }
 function yzPhToggleHimAuto(){ D.phAutoHim=!D.phAutoHim; save(); yzPhCondRows(); toast(D.phAutoHim?'已开启梦角小手机自动充电':'已关闭梦角小手机自动充电'); }
 function yzPhToggleMyAuto(){ D.phAutoMy=!D.phAutoMy; save(); yzPhCondRows(); toast(D.phAutoMy?'已开启我的小手机自动充电':'已关闭我的小手机自动充电'); }
@@ -4761,8 +4795,8 @@ function pickCardFor(cid){
 function pickMultiCardsFor(cid){
   var lib=(D.cardLib||{})[cid];
   var cs=(lib&&lib.main&&lib.main.length)?lib.main:DEFAULT_CARDS;
-  var pr=parseFloat(D.comboRate)||0;
-  if(pr<=0||!cs.length||Math.random()*100>=pr)return pickCardFor(cid);
+  var _ok=(typeof window!=='undefined'&&window.__yzComboOn!==undefined&&window.__yzComboOn!==null)?window.__yzComboOn:yzComboRollOnce();
+  if(!_ok||!cs.length)return pickCardFor(cid);
   var minC=Math.max(2,parseInt(D.comboMin)||2);
   var maxC=Math.max(minC,parseInt(D.comboMax)||minC);
   var k=minC+Math.floor(Math.random()*(maxC-minC+1));
@@ -4774,8 +4808,8 @@ function pickMultiCardsFor(cid){
 function pickMultiCards(){
   var cs=null; try{var _id=(typeof yzCurKaoCharId==='function')?yzCurKaoCharId():'';var _lb=(D.cardLib||{})[_id];if(_lb&&_lb.main&&_lb.main.length)cs=_lb.main;}catch(e){}
   if(!cs||!cs.length){cs=(D.cards&&D.cards.length)?D.cards:DEFAULT_CARDS;}
-  const pr=parseFloat(D.comboRate)||0;
-  if(pr<=0||!cs.length||Math.random()*100>=pr)return pickCard();
+  var _ok2=(typeof window!=='undefined'&&window.__yzComboOn!==undefined&&window.__yzComboOn!==null)?window.__yzComboOn:yzComboRollOnce();
+  if(!_ok2||!cs.length)return pickCard();
   const minC=Math.max(2,parseInt(D.comboMin)||2);
   const maxC=Math.max(minC,parseInt(D.comboMax)||minC);
   const k=minC+Math.floor(Math.random()*(maxC-minC+1));
@@ -4793,6 +4827,7 @@ function pickMultiCards(){
    5) 所有消息总数不超 sendMax
    opt: {cid}
    返回： plan = [{kind:'main'|'img'|'kao'|'voice', text/src, sec}] */
+function yzComboRollOnce(){ try{ var pr=parseFloat(D.comboRate)||0; if(pr<=0)return false; if(pr>=100)return true; return Math.random()*100<pr; }catch(e){ return false; } }
 function yzBuildPlan(opt){
   var _cid=(opt&&opt.cid)?opt.cid:((typeof yzCurKaoCharId==='function')?yzCurKaoCharId():'');
   var _mainP=yzMainRate();
@@ -4876,6 +4911,7 @@ function respond(){
   if(_cv&&_cv.type==='group'){ respondGroup(_cv); return; }
   const delay=replyDelayMs();
   const gap=sendGapMs();
+  try{ window.__yzComboOn=yzComboRollOnce(); }catch(e){}
   var plan=yzBuildPlan({cid:yzCurKaoCharId()});
   /* 拍一拍：梦角这一轮回复只掷一次骰子（与他发几条无关） */
   try{ maybePat(); }catch(e){}
