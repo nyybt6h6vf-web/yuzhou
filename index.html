@@ -166,7 +166,7 @@ svg [fill="currentColor"]{stroke:none;}
 .gmk-chat .yz-timebar,.gb-chat .yz-timebar{margin:8px 0 4px;}
 /* 主动消息标记：左侧雾蓝竖线 + 左上角小圆点 */
 .msg.yz-auto{position:relative;}
-.msg .auto-dot{position:absolute;left:41px;top:15px;width:7px;height:7px;border-radius:50%;background:#859ecb;z-index:3;pointer-events:none;}
+.msg .auto-dot{position:absolute;left:41px;top:15px;width:7px;height:7px;border-radius:50%;background:var(--yz-auto-dot,#859ecb);z-index:3;pointer-events:none;}
 .msg{position:relative;}
 
 #listenChat .yz-timebar{margin:8px 0 4px;}
@@ -378,7 +378,7 @@ svg [fill="currentColor"]{stroke:none;}
 .duo .avatar,.duo .avatar2{flex:0 0 64px!important;width:64px!important;height:64px!important;}
     .duo .linkline{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44%;height:40px;overflow:visible;contain:layout paint;isolation:isolate;}
     .duo .linkline svg{width:100%;height:100%;display:block;overflow:visible;contain:paint;}
-    .duo .linkline .ecg{fill:none;stroke:#e0567a;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;opacity:.9;stroke-dasharray:900;stroke-dashoffset:900;animation:ecgdraw 2.4s cubic-bezier(.6,0,.4,1) infinite;will-change:stroke-dashoffset;transform:translateZ(0);}
+    .duo .linkline .ecg{fill:none;stroke:var(--yz-ecg,#e0567a);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;opacity:.9;stroke-dasharray:900;stroke-dashoffset:900;animation:ecgdraw 2.4s cubic-bezier(.6,0,.4,1) infinite;will-change:stroke-dashoffset;transform:translateZ(0);}
     @keyframes ecgdraw{0%{stroke-dashoffset:900}70%{stroke-dashoffset:0}100%{stroke-dashoffset:0}}
     @keyframes ecgline{0%,100%{opacity:.5}35%{opacity:1}60%{opacity:.75}}
     .duo .linkline{animation:ecgline 2.4s ease-in-out infinite;}
@@ -2095,7 +2095,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-27-v53";
+window.__YZ_BUILD="2026-10-27-v54";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4021,7 +4021,7 @@ var YZ_BEAUTY_SUBS=[
             <div class="msg him" style="display:flex"><div class="bubble">梦角消息示例</div></div>
             <div class="msg me" style="display:flex"><div class="bubble">我的消息示例</div></div>
           </div>
-        </div><div class="row"><div class="lab">气泡大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setBubbleSize" min="80" max="140" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="bubbleSizeVal" style="min-width:38px;text-align:right">100%</span></div></div><div class="row"><div class="lab">聊天字体大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setChatFontSize" min="11" max="22" step="1" value="14" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="chatFontSizeVal" style="min-width:38px;text-align:right">14px</span></div></div><div class="row"><div class="lab">转账卡片大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setTranSize" min="80" max="150" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="tranSizeVal" style="min-width:38px;text-align:right">100%</span></div></div><div class="row"><div class="lab">转账卡片色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setTranColor" oninput="setColor('tranColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('tranColor','')">清</div></div></div><div class="row"><div class="lab">梦角消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('himFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('himFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setHimFontColorColor" oninput="setColor('himFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('himFontColor','')">清</div></div></div><div class="row"><div class="lab">我的消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('meFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('meFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setMeFontColorColor" oninput="setColor('meFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('meFontColor','')">清</div></div></div>`},
+        </div><div class="row"><div class="lab">气泡大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setBubbleSize" min="80" max="140" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="bubbleSizeVal" style="min-width:38px;text-align:right">100%</span></div></div><div class="row"><div class="lab">聊天字体大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setChatFontSize" min="11" max="22" step="1" value="14" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="chatFontSizeVal" style="min-width:38px;text-align:right">14px</span></div></div><div class="row"><div class="lab">转账卡片大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setTranSize" min="80" max="150" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="tranSizeVal" style="min-width:38px;text-align:right">100%</span></div></div><div class="row"><div class="lab">转账卡片色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setTranColor" oninput="setColor('tranColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('tranColor','')">清</div></div></div><div class="row"><div class="lab">梦角消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('himFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('himFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setHimFontColorColor" oninput="setColor('himFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('himFontColor','')">清</div></div></div><div class="row"><div class="lab">我的消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('meFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('meFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setMeFontColorColor" oninput="setColor('meFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('meFontColor','')">清</div></div></div><div class="row"><div class="lab">主动消息标记颜色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('autoDotColor','#859ecb')" style="background:#859ecb;color:#fff;border:1px solid var(--sub)">默认</div><input type="color" id="setAutoDotColorColor" oninput="setColor('autoDotColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('autoDotColor','')">清</div></div></div><div class="row"><div class="lab">主页心电图颜色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('ecgColor','#e0567a')" style="background:#e0567a;color:#fff;border:1px solid var(--sub)">默认</div><input type="color" id="setEcgColorColor" oninput="setColor('ecgColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('ecgColor','')">清</div></div></div>`},
 
 ];
 function yzBeautySubOf(name){
@@ -5538,7 +5538,10 @@ function yzVerRender(){
 function yzForceUpdate(){
   /* 清缓存 + 注销 SW + 带时间戳重拉最新代码（聊天记录不会丢） */
   var u=location.href.split("#")[0].split("?")[0];
-  var done=function(){ try{ location.replace(u+"?v="+Date.now()); }catch(e){ location.reload(); } };
+  var _fired=false;
+  var done=function(){ if(_fired)return; _fired=true; try{ location.replace(u+"?v="+Date.now()); }catch(e){ location.reload(); } };
+  /* 兜底：最多等 1.5 秒，避免清缓存卡住导致按钮像没反应 */
+  setTimeout(done,1500);
   try{
     var jobs=[];
     if(window.caches&&caches.keys){ jobs.push(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); })); }
@@ -10718,8 +10721,12 @@ function fillSettings(){
 }
 function yzMarkSetStatus(){
   try{
-    var scr=document.getElementById('settings'); if(!scr)return;
-    var rows=scr.querySelectorAll('.row');
+    var _list=[];
+    var _s1=document.getElementById('settings'); if(_s1)_list.push(_s1);
+    var _s2=document.getElementById('setSubBody'); if(_s2)_list.push(_s2);
+    var _rowsAll=[];
+    _list.forEach(function(sc){ var rr=sc.querySelectorAll('.row'); for(var q=0;q<rr.length;q++)_rowsAll.push(rr[q]); });
+    var rows=_rowsAll;
     rows.forEach(function(row){
       var lab=row.querySelector('.lab'); if(!lab)return;
       /* 找该行关联的 key：优先 pickBg('X')，否则 setColor('X',...) */
@@ -10742,7 +10749,7 @@ function yzMarkSetStatus(){
 function setColor(k,v){
   D[k]=v||'';
   if(k==='lockBg'){setTimeout(()=>$,0);}
-  const cid={lockFg:'setLockFgColor',fontColor:'setFontColorColor',himFontColor:'setHimFontColorColor',meFontColor:'setMeFontColorColor',bubbleHim:'setBubbleHimColor',bubbleMe:'setBubbleMeColor',tranColor:'setTranColor',pageBg:null,chatBg:null,momBg:null,lockBg:null}[k];
+  const cid={lockFg:'setLockFgColor',fontColor:'setFontColorColor',himFontColor:'setHimFontColorColor',meFontColor:'setMeFontColorColor',autoDotColor:'setAutoDotColorColor',ecgColor:'setEcgColorColor',bubbleHim:'setBubbleHimColor',bubbleMe:'setBubbleMeColor',tranColor:'setTranColor',pageBg:null,chatBg:null,momBg:null,lockBg:null}[k];
   if(cid){const inp=$('#'+cid);if(inp)inp.value=v||'#000000';}
   save();
   scheduleApply();
@@ -10839,7 +10846,7 @@ function scheduleApply(){
 _applyTimer=setTimeout(()=>{_applyTimer=null;applyCustom();},800);
 }
 /* ===== 美化方案槽位 ===== */
-var YZ_BEAUTY_KEYS=['favicon','avatarShape','accentColor','theme','themeAuto','lockName','lockBg','himLetterBg','meLetterBg','lockFg','slogan','pageBg','page2Bg','chatBg','fontColor','bubbleHim','bubbleMe','tranColor','himFontColor','meFontColor','bubbleSize','chatFontSize','tranSize','momBg','bubble','fingerBg'];
+var YZ_BEAUTY_KEYS=['favicon','avatarShape','accentColor','theme','themeAuto','lockName','lockBg','himLetterBg','meLetterBg','lockFg','slogan','pageBg','page2Bg','chatBg','fontColor','bubbleHim','bubbleMe','tranColor','himFontColor','meFontColor','bubbleSize','chatFontSize','tranSize','momBg','bubble','fingerBg','autoDotColor','ecgColor'];
 function yzBeautySnap(){
   var o={};
   YZ_BEAUTY_KEYS.forEach(function(k){ o[k]=(D[k]===undefined?'':D[k]); });
@@ -11250,6 +11257,8 @@ function applyCustom(){
     else mq.style.background=mb||'';
   }
   try{ var _avs=(D.avatarShape==='square')?'8px':'50%'; document.documentElement.style.setProperty('--yz-av-radius',_avs); }catch(e){}
+  try{ var _adc=(D.autoDotColor||'').trim(); if(_adc){ document.documentElement.style.setProperty('--yz-auto-dot',_adc); } else { document.documentElement.style.removeProperty('--yz-auto-dot'); } }catch(e){}
+  try{ var _egc=(D.ecgColor||'').trim(); if(_egc){ document.documentElement.style.setProperty('--yz-ecg',_egc); } else { document.documentElement.style.removeProperty('--yz-ecg'); } }catch(e){}
   try{ yzMarkAvatarShape(); }catch(e){}
   try{ var _ac=(D.accentColor||'').trim(); if(_ac){ document.documentElement.style.setProperty('--accent',_ac); document.documentElement.style.setProperty('--accent-soft',_ac); } else { document.documentElement.style.removeProperty('--accent'); document.documentElement.style.removeProperty('--accent-soft'); } }catch(e){}
   const fc=(D.fontColor||'').trim();
