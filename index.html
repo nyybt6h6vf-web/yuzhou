@@ -2093,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-27-v49";
+window.__YZ_BUILD="2026-10-27-v50";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4879,11 +4879,34 @@ function respond(){
   var plan=yzBuildPlan({cid:yzCurKaoCharId()});
   /* 拍一拍：梦角这一轮回复只掷一次骰子（与他发几条无关） */
   try{ maybePat(); }catch(e){}
+  /* 引用回复：本轮只掷一次。只从当前会话里挑我发的消息，绝不跨会话 */
+  var _quoteRef=null;
+  try{
+    var _qr=parseFloat(D.quoteRate);
+    if(!isNaN(_qr)&&_qr>0&&Math.random()*100<_qr){
+      var _cvQ=yzCurConv();
+      var _arrQ=(_cvQ&&_cvQ.msgs&&_cvQ.msgs.length)?_cvQ.msgs:D.msgs;
+      if(_arrQ&&_arrQ.length){
+        var _stQ=Math.max(0,_arrQ.length-10); var _poolQ=[];
+        for(var _iQ=_stQ;_iQ<_arrQ.length;_iQ++){
+          var _mQ=_arrQ[_iQ]; if(!_mQ)continue;
+          if(_mQ.from!=='me')continue;
+          if(_mQ.type==='sys')continue;
+          if(_mQ.type==='text'&&!String(_mQ.text||'').trim())continue;
+          _poolQ.push(_mQ);
+        }
+        if(_poolQ.length){
+          var _pickQ=_poolQ[Math.floor(Math.random()*_poolQ.length)];
+          _quoteRef={brief:quoteBrief(_pickQ),type:_pickQ.type||'text',src:_pickQ.type==='img'?(_pickQ.src||''):''};
+        }
+      }
+    }
+  }catch(e){}
   function _emit(item){
     try{
       if(item.kind==='voice'){ push({from:'him',type:'voice',sec:item.sec||3,text:item.text,_t:clockStr()}); }
       else if(item.kind==='img'){ push({from:'him',type:'img',src:item.src,_t:clockStr()}); }
-      else { push({from:'him',text:item.text,type:'text',_t:clockStr()}); }
+      else { var _m3={from:'him',text:item.text,type:'text',_t:clockStr()}; if(_quoteRef){ _m3.quote=_quoteRef; _quoteRef=null; } push(_m3); }
     }catch(e){}
   }
   setTyping(true);
