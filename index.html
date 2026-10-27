@@ -2093,7 +2093,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-25-v48";
+window.__YZ_BUILD="2026-10-27-v49";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -5052,7 +5052,7 @@ function himSayFor(who,opt){
           function _send(mm){ if(_into){ _into(mm); } else { _p(mm); } }
           if(it.kind==='voice'){ var m={from:'him',type:'voice',sec:it.sec||3,text:it.text,_t:clockStr()}; if(who)m.who=who; if(_auto)m.auto=true; _send(m); }
           else if(it.kind==='img'){ var m2={from:'him',type:'img',src:it.src,_t:clockStr()}; if(who)m2.who=who; if(_auto)m2.auto=true; _send(m2); }
-          else { var m3={from:'him',text:it.text,type:'text',_t:clockStr()}; if(who)m3.who=who; if(_auto)m3.auto=true; _send(m3); }
+          else { var m3={from:'him',text:it.text,type:'text',_t:clockStr()}; if(who)m3.who=who; if(_auto)m3.auto=true; try{ var _qr0=parseFloat(D.quoteRate); if(!isNaN(_qr0)&&_qr0>0&&Math.random()*100<_qr0){ var _srcArr=null; try{ if(_into){ var _cv0=(D.convs||[]).find(function(cc){return cc.id===D.curConv;}); if(_cv0&&_cv0.msgs)_srcArr=_cv0.msgs; } else { _srcArr=D.msgs; } }catch(e2){} if(_srcArr&&_srcArr.length){ var _st=Math.max(0,_srcArr.length-10); var _pool=[]; for(var _ix=_st;_ix<_srcArr.length;_ix++){ var _qm0=_srcArr[_ix]; if(!_qm0)continue; if(_qm0.type==='sys')continue; if(_qm0.from!=='me')continue; if(_qm0.type==='text'&&!_qm0.text)continue; _pool.push(_ix); } if(_pool.length){ var _qi0=_pool[Math.floor(Math.random()*_pool.length)]; var _qt0=_srcArr[_qi0]; m3.quote={i:_qi0,brief:(typeof quoteBrief==='function'?quoteBrief(_qt0):''),type:_qt0.type||'text',src:_qt0.type==='img'?(_qt0.src||''):''}; } } } }catch(e3){} _send(m3); }
         }catch(e){}
       }
       if(opt&&opt.sync){ _doSend(); } else { setTimeout(_doSend, t); }
