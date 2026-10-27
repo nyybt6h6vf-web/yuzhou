@@ -2095,7 +2095,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-27-v56";
+window.__YZ_BUILD="2026-10-27-v57";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -2852,7 +2852,21 @@ function tick(){
   try{if(!window.__yzFavLast||Date.now()-window.__yzFavLast>180000){window.__yzFavLast=Date.now();yzFavReread();}}catch(e){}
 }
 
+function yzSettingsLeaveFlush(){
+  try{
+    var _c=(typeof yzSetCurChar==='function')?yzSetCurChar():'';
+    if(!_c)return;
+    var ks=['phHimDrop','phMyDrop','phHimChgRate','phHimAutoAt','phMyAutoAt','phHimChgSpeed','phMyChgSpeed','phAutoHim','phAutoMy'];
+    if(!D.setPer)D.setPer={}; if(!D.setPer[_c])D.setPer[_c]={};
+    for(var i=0;i<ks.length;i++){ if(D[ks[i]]!==undefined) D.setPer[_c][ks[i]]=D[ks[i]]; }
+    try{ yzSetCommit(_c); }catch(e){}
+    saveFlush();
+  }catch(e){}
+}
+document.addEventListener('visibilitychange',function(){ try{ if(document.visibilityState==='hidden'){ yzSettingsLeaveFlush(); } }catch(e){} });
+window.addEventListener('pagehide',function(){ try{ yzSettingsLeaveFlush(); }catch(e){} });
 function go(id){
+  try{ var _cur=document.querySelector('.screen.active'); if(_cur&&(_cur.id==='settings'||_cur.id==='setSub')&&id!=='settings'&&id!=='setSub'){ yzSettingsLeaveFlush(); } }catch(e){}
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const el=$('#'+id);if(el)el.classList.add('active');
   if(id!=='lock'){try{yzPassGate();}catch(e){}}
