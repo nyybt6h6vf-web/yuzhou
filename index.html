@@ -164,44 +164,53 @@ svg [fill="currentColor"]{stroke:none;}
 .yz-timebar{display:flex;justify-content:center;margin:10px 0 6px;}
 .yz-timebar span{background:rgba(140,145,175,.18);color:var(--sub);font-size:11px;border-radius:10px;padding:3px 12px;text-align:center;max-width:86%;}
 .gmk-chat .yz-timebar,.gb-chat .yz-timebar{margin:8px 0 4px;}
-/* ===== 简讯页：仿 iOS 短信 ===== */
-#chat .navbar.yz-ios-top{position:relative;display:flex;align-items:center;justify-content:center;padding:6px 0 8px;}
-#chat .navbar.yz-ios-top .back{position:absolute;left:8px;top:50%;transform:translateY(-50%);z-index:2;}
-#chat .yz-ios-head{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;max-width:70%;}
-#chat .yz-ios-av{width:38px;height:38px;border-radius:50%;overflow:hidden;background:var(--icon-bg,#eee);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;}
-#chat .yz-ios-av img{width:100%;height:100%;object-fit:cover;display:block;}
-#chat .yz-ios-nm{display:flex;align-items:center;gap:3px;font-size:12.5px;font-weight:600;color:var(--text);line-height:1.2;}
-#chat .yz-ios-arw{font-size:13px;color:var(--sub);opacity:.75;font-weight:400;}
-[data-theme="dark"] #chat .yz-ios-nm{color:#fff;}
-[data-theme="dark"] #chat .yz-ios-arw{color:#fff;opacity:.6;}
+/* ===== 简讯页：仿 iOS 短信（重写） ===== */
+#chat .navbar.yz-ios-top{position:relative !important;display:flex !important;align-items:center !important;justify-content:center !important;padding:4px 0 2px !important;}
+#chat .navbar.yz-ios-top .back{position:absolute !important;left:8px !important;top:50% !important;transform:translateY(-50%) !important;z-index:2 !important;}
+#chat .yz-ios-head{display:flex !important;flex-direction:column !important;align-items:center !important;gap:2px !important;cursor:pointer !important;max-width:70% !important;}
+#chat .yz-ios-av{width:56px !important;height:56px !important;border-radius:50% !important;overflow:hidden !important;background:var(--icon-bg,#eee) !important;display:flex !important;align-items:center !important;justify-content:center !important;font-size:20px !important;font-weight:700 !important;color:#fff !important;}
+#chat .yz-ios-av img{width:100% !important;height:100% !important;object-fit:cover !important;display:block !important;}
+#chat .yz-ios-nm{display:flex !important;align-items:center !important;gap:3px !important;font-size:12.5px !important;font-weight:600 !important;color:var(--text) !important;line-height:1.2 !important;}
+#chat .yz-ios-arw{font-size:13px !important;color:var(--sub) !important;opacity:.75 !important;font-weight:400 !important;}
+[data-theme="dark"] #chat .yz-ios-nm{color:#fff !important;}
+[data-theme="dark"] #chat .yz-ios-arw{color:#fff !important;opacity:.6 !important;}
 
-/* iOS 气泡默认样式（仅在未填写气泡CSS时生效） */
-#chat.yz-bub-default .msg .bubble{position:relative;box-shadow:none;border-radius:18px;font-size:16px;line-height:1.32;padding:8px 13px;}
-#chat.yz-bub-default .msg.him .bubble{background:var(--yz-bub-him,#E9E9EB);color:#000;}
-#chat.yz-bub-default .msg.me .bubble{background:var(--yz-bub-me,#0A84FF);color:#fff;}
-[data-theme="dark"] #chat.yz-bub-default .msg.him .bubble{background:var(--yz-bub-him,#26252A);color:#fff;}
-#chat.yz-bub-default .msg.him .bubble::before{content:'';position:absolute;left:-6px;bottom:0;width:12px;height:12px;background:inherit;border-bottom-right-radius:12px 12px;transform:skewX(12deg);}
-#chat.yz-bub-default .msg.me .bubble::after{content:'';position:absolute;right:-6px;bottom:0;width:12px;height:12px;background:inherit;border-bottom-left-radius:12px 12px;transform:skewX(-12deg);}
-#chat.yz-bub-default .msg{margin-bottom:2px;}
-#chat.yz-bub-default .msg .avatarbox{display:none;}
-#chat.yz-ios-layout .msg .avatarbox.yz-av-hide{visibility:hidden;}
-#chat.yz-bub-default .bubwrap{max-width:76%;}
+/* ---- 布局类：无论有没有气泡CSS都生效 ---- */
+#chat.yz-ios-layout .msg{margin-bottom:2px !important;position:relative !important;}
+#chat.yz-ios-layout .bubwrap{max-width:76% !important;}
+#chat.yz-ios-layout .msg .avatarbox.yz-av-hide{visibility:hidden !important;}
 
-/* 引用框：气泡内嵌套小卡片 */
-#chat.yz-bub-default .qbox{margin:0 0 4px -4px;padding:4px 8px;border-left:none;border-radius:8px;background:rgba(255,255,255,.30);font-size:12.5px;line-height:1.3;}
-#chat.yz-bub-default .msg.him .qbox{background:rgba(0,0,0,.07);}
-#chat.yz-bub-default .qbox .qtxt{opacity:.85;}
-#chat.yz-bub-default .readtag{text-align:right;margin:2px 6px 0;font-size:10.5px;}
+/* ---- iOS 默认气泡外观 ---- */
+#chat.yz-bub-default .msg .bubble{position:relative !important;box-shadow:none !important;border-radius:18px !important;font-size:16px !important;line-height:1.3 !important;padding:7px 12px !important;}
+#chat.yz-bub-default .msg.him .bubble{background:#E9E9EB !important;color:#000 !important;}
+#chat.yz-bub-default .msg.me .bubble{background:#0A84FF !important;color:#fff !important;}
+[data-theme="dark"] #chat.yz-bub-default .msg.him .bubble{background:#26252A !important;color:#fff !important;}
+/* 尾巴：SVG 曲线，跟 iOS 一致 */
+#chat.yz-bub-default .msg.him .bubble::before{content:'' !important;position:absolute !important;left:-7px !important;bottom:0 !important;width:9px !important;height:14px !important;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 14'%3E%3Cpath d='M9 0C9 8 5 12 0 14V14H9Z' fill='%23E9E9EB'/%3E%3C/svg%3E") no-repeat center/100% 100% !important;}
+#chat.yz-bub-default .msg.me .bubble::after{content:'' !important;position:absolute !important;right:-7px !important;bottom:0 !important;width:9px !important;height:14px !important;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 14'%3E%3Cpath d='M0 0C0 8 4 12 9 14V14H0Z' fill='%230A84FF'/%3E%3C/svg%3E") no-repeat center/100% 100% !important;}
+[data-theme="dark"] #chat.yz-bub-default .msg.him .bubble::before{background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 14'%3E%3Cpath d='M9 0C9 8 5 12 0 14V14H9Z' fill='%2326252A'/%3E%3C/svg%3E") no-repeat center/100% 100% !important;}
+/* 有气泡CSS时隐藏默认尾巴 */
+#chat.yz-ios-layout:not(.yz-bub-default) .msg .bubble::before,
+#chat.yz-ios-layout:not(.yz-bub-default) .msg .bubble::after{content:none !important;}
 
-/* 梦角信息面板（仿 iOS 样式） */
-#charaDial .yzci-name{display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0 14px;}
-#charaDial .yzci-nmtx{font-size:18px;font-weight:700;color:var(--text);}
-#charaDial .yzci-list{text-align:left;border-radius:12px;overflow:hidden;background:var(--card,rgba(128,128,128,.08));}
-#charaDial .yzci-row{display:flex;align-items:center;padding:11px 14px;font-size:14px;border-bottom:1px solid var(--line,rgba(128,128,128,.16));color:var(--text);}
-#charaDial .yzci-row:last-child{border-bottom:none;}
-#charaDial .yzci-k{color:var(--sub);flex:0 0 auto;}
-#charaDial .yzci-v{flex:1;word-break:break-all;}
-#charaDial .yzci-edit{flex:0 0 auto;margin-left:8px;font-size:12.5px;color:var(--accent,#0A84FF);cursor:pointer;padding:2px 6px;}
+/* ---- 引用框：气泡内嵌小卡（无论有无CSS都生效） ---- */
+#chat.yz-ios-layout .qbox{margin:0 0 4px 0 !important;padding:4px 9px !important;border-left:none !important;border-radius:10px !important;background:rgba(255,255,255,.35) !important;font-size:12.5px !important;line-height:1.3 !important;max-width:100% !important;box-sizing:border-box !important;}
+#chat.yz-ios-layout .msg.him .qbox{background:rgba(0,0,0,.06) !important;}
+#chat.yz-ios-layout .qbox .qtxt{opacity:.85 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;}
+#chat.yz-ios-layout .qbox img.qimg{border-radius:6px !important;max-width:40px !important;}
+#chat.yz-ios-layout .readtag{text-align:right !important;margin:2px 8px 0 !important;font-size:10.5px !important;}
+#chat.yz-ios-layout .msg.him .readtag{text-align:left !important;margin:2px 0 0 8px !important;}
+
+/* ---- 预览区：同样的 iOS 外观 ---- */
+#bubblePreview.yz-bub-default .bubble{position:relative !important;box-shadow:none !important;border-radius:18px !important;font-size:15px !important;line-height:1.3 !important;padding:7px 12px !important;}
+#bubblePreview.yz-bub-default .msg.him .bubble{background:#E9E9EB !important;color:#000 !important;}
+#bubblePreview.yz-bub-default .msg.me .bubble{background:#0A84FF !important;color:#fff !important;}
+#bubblePreview.yz-bub-default .msg.him .bubble::before{content:'' !important;position:absolute !important;left:-7px !important;bottom:0 !important;width:9px !important;height:14px !important;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 14'%3E%3Cpath d='M9 0C9 8 5 12 0 14V14H9Z' fill='%23E9E9EB'/%3E%3C/svg%3E") no-repeat center/100% 100% !important;}
+#bubblePreview.yz-bub-default .msg.me .bubble::after{content:'' !important;position:absolute !important;right:-7px !important;bottom:0 !important;width:9px !important;height:14px !important;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 14'%3E%3Cpath d='M0 0C0 8 4 12 9 14V14H0Z' fill='%230A84FF'/%3E%3C/svg%3E") no-repeat center/100% 100% !important;}
+
+/* ---- 主动消息小圆点：气泡右下角 ---- */
+#chat.yz-ios-layout .msg.yz-auto .bubwrap{position:relative !important;}
+#chat.yz-ios-layout .msg.yz-auto .auto-dot{position:absolute !important;right:-4px !important;bottom:2px !important;left:auto !important;top:auto !important;width:7px !important;height:7px !important;border-radius:50% !important;background:var(--yz-auto-dot,#859ecb) !important;z-index:3 !important;pointer-events:none !important;}
 
 /* 主动消息标记：左侧雾蓝竖线 + 左上角小圆点 */
 .msg.yz-auto{position:relative;}
@@ -2138,7 +2147,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-28-v62";
+window.__YZ_BUILD="2026-10-28-v63";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4104,7 +4113,7 @@ var YZ_BEAUTY_SUBS=[
           <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty();yzChatBubMode();yzPreviewBubbleDebounced();"></textarea>
           <div style="margin-top:10px;display:flex;gap:8px;align-items:center"><div class="chip" onclick="yzForceLockCss()">强制写入并核对</div><div id="yzLockMsg" style="font-size:12px;color:#e05252"></div></div>
           <div class="lab" style="margin-top:12px;margin-bottom:6px">预览</div>
-          <div id="bubblePreview" style="background:var(--card);border:1px solid var(--sub);border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;contain:layout paint style;isolation:isolate">
+          <div id="bubblePreview" class="yz-ios-layout yz-bub-default" style="background:var(--card);border:1px solid var(--sub);border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;contain:layout paint style;isolation:isolate">
             <div class="msg him" style="display:flex"><div class="bubble">梦角消息示例</div></div>
             <div class="msg me" style="display:flex"><div class="bubble">我的消息示例</div></div>
           </div>
@@ -4132,6 +4141,7 @@ function yzOpenBeautySub(name){
     try{ fillSettings(); }catch(e){}
     try{ yzBeautyRender(); }catch(e){}
     try{ yzPhCondRows(); }catch(e){}
+    try{ yzAvModeRender(); }catch(e){}
   }catch(e){}
 }
 function yzPhCondRows(){
@@ -4420,7 +4430,7 @@ function renderChat(){
     }
     var _showAv=true;
     try{ if(D.avMode==='first'){ var _pv=D.msgs[i-1]; _showAv=(!_pv)||(_pv.from!==m.from)||(_pv.type==='sept')||(_pv.type==='sys')||(_pv.type==='pat'); } }catch(e){}
-    var _avH=_showAv?avHTML(me?'me':'him',m.who):'<div class="avatarbox yz-av-hide"></div>';
+    var _avH=_showAv?avHTML(me?'me':'him',m.who):'<div class="avatarbox yz-av-hide" style="visibility:hidden"></div>';
     b.insertAdjacentHTML('beforeend',`<div class="msg ${me?'me':'him'}${(!me&&m.auto)?' yz-auto':''}" data-mi="${i}">${(!me&&m.auto)?'<span class="auto-dot"></span>':''}${_avH}<div class="bubwrap">${nameHtml}${quoteHtml}${bubbleHTML(m,i)}${readHtml}${himStamp}${meStamp}</div></div>`);
   }catch(_e){} });
   /* typing 指示器由 setTyping() 单独增删，不在这里重建 */
@@ -4470,6 +4480,7 @@ function yzChatBubMode(){
     var raw=String((D&&D.bubble)||'').trim();
     /* 新布局永远生效 */
     el.classList.add('yz-ios-layout');
+    el.classList.remove('yz-legacy');
     /* 未填 CSS 时才用 iOS 默认气泡外观 */
     el.classList.toggle('yz-bub-default',raw==='');
   }catch(e){}
