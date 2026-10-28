@@ -181,23 +181,34 @@ svg [fill="currentColor"]{stroke:none;}
 #chat.yz-ios-layout .msg .avatarbox.yz-av-hide{visibility:hidden !important;}
 
 /* ---- iOS 默认气泡外观 ---- */
-#chat.yz-bub-default .msg .bubble{position:relative !important;box-shadow:none !important;border-radius:18px !important;font-size:16px !important;line-height:1.3 !important;padding:7px 12px !important;}
+#chat.yz-bub-default .msg .bubble{position:relative !important;box-shadow:none !important;border-radius:18px !important;line-height:1.3 !important;}
 #chat.yz-bub-default .msg.him .bubble{background:#E9E9EB !important;color:#000 !important;}
 #chat.yz-bub-default .msg.me .bubble{background:#0A84FF !important;color:#fff !important;}
 [data-theme="dark"] #chat.yz-bub-default .msg.him .bubble{background:#26252A !important;color:#fff !important;}
-/* 尾巴：用旋转方块贴出圆弧尖角（不依赖图片） */
-#chat.yz-bub-default .msg .bubble::before{
+/* 尖角：气泡本体收平一个角 + 小三角贴角，做出 iOS 那种尖 */
+#chat.yz-bub-default .msg.him .bubble{border-bottom-left-radius:5px !important;}
+#chat.yz-bub-default .msg.me .bubble{border-bottom-right-radius:5px !important;}
+#chat.yz-bub-default .msg.him .bubble::before{
   content:'' !important;position:absolute !important;
-  bottom:-1px !important;width:11px !important;height:11px !important;
-  background:inherit !important;z-index:-1 !important;
-  border-radius:0 0 3px 0 !important;
+  left:-0.5em !important;bottom:0 !important;top:auto !important;right:auto !important;
+  width:0.75em !important;height:0.75em !important;
+  background:#E9E9EB !important;
+  clip-path:polygon(100% 0,100% 100%,0 100%) !important;
+  border-radius:0 !important;transform:none !important;z-index:-1 !important;
 }
-#chat.yz-bub-default .msg.him .bubble::before{left:-4px !important;transform:rotate(48deg) !important;border-bottom-right-radius:0 !important;border-bottom-left-radius:0 !important;border-top-left-radius:2px !important;}
-#chat.yz-bub-default .msg.me .bubble::before{right:-4px !important;left:auto !important;transform:rotate(-48deg) !important;border-bottom-right-radius:0 !important;border-bottom-left-radius:0 !important;border-top-right-radius:2px !important;}
+[data-theme="dark"] #chat.yz-bub-default .msg.him .bubble::before{background:#26252A !important;}
+#chat.yz-bub-default .msg.me .bubble::before{
+  content:'' !important;position:absolute !important;
+  right:-0.5em !important;bottom:0 !important;top:auto !important;left:auto !important;
+  width:0.75em !important;height:0.75em !important;
+  background:#0A84FF !important;
+  clip-path:polygon(0 0,100% 100%,0 100%) !important;
+  border-radius:0 !important;transform:none !important;z-index:-1 !important;
+}
 #chat.yz-bub-default .msg .bubble::after{content:none !important;}
-
-/* 只在最后一条（tail 类）显示尾巴，其余全圆角 */
-#chat.yz-ios-layout .msg .bubble.yz-no-tail::before{content:none !important;}
+/* 填了自定义气泡CSS：所有伪元素尾巴彻底禁用，不留任何色块 */
+#chat.yz-ios-layout:not(.yz-bub-default) .msg .bubble::before,
+#chat.yz-ios-layout:not(.yz-bub-default) .msg .bubble::after{content:none !important;display:none !important;background:none !important;}
 
 /* ---- 引用框：气泡内嵌小卡（无论有无CSS都生效） ---- */
 #chat.yz-ios-layout .qbox{margin:0 0 4px 0 !important;padding:4px 9px !important;border-left:none !important;border-radius:10px !important;background:rgba(255,255,255,.35) !important;font-size:12.5px !important;line-height:1.3 !important;max-width:100% !important;box-sizing:border-box !important;}
@@ -208,15 +219,17 @@ svg [fill="currentColor"]{stroke:none;}
 #chat.yz-ios-layout .msg.him .readtag{text-align:left !important;margin:2px 0 0 8px !important;}
 
 /* ---- 预览区：同样的 iOS 外观 ---- */
-#bubblePreview.yz-bub-default .bubble{position:relative !important;box-shadow:none !important;border-radius:18px !important;font-size:15px !important;line-height:1.3 !important;padding:7px 12px !important;}
+#bubblePreview.yz-bub-default .bubble{position:relative !important;box-shadow:none !important;border-radius:18px !important;line-height:1.3 !important;}
 #bubblePreview.yz-bub-default .msg.him .bubble{background:#E9E9EB !important;color:#000 !important;}
 #bubblePreview.yz-bub-default .msg.me .bubble{background:#0A84FF !important;color:#fff !important;}
-#bubblePreview.yz-bub-default .msg.him .bubble::before{content:'' !important;position:absolute !important;left:-7px !important;bottom:0 !important;width:9px !important;height:14px !important;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 14'%3E%3Cpath d='M9 0C9 8 5 12 0 14V14H9Z' fill='%23E9E9EB'/%3E%3C/svg%3E") no-repeat center/100% 100% !important;}
-#bubblePreview.yz-bub-default .msg.me .bubble::after{content:'' !important;position:absolute !important;right:-7px !important;bottom:0 !important;width:9px !important;height:14px !important;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 14'%3E%3Cpath d='M0 0C0 8 4 12 9 14V14H0Z' fill='%230A84FF'/%3E%3C/svg%3E") no-repeat center/100% 100% !important;}
+#bubblePreview.yz-bub-default .msg.him .bubble{border-bottom-left-radius:5px !important;}
+#bubblePreview.yz-bub-default .msg.me .bubble{border-bottom-right-radius:5px !important;}
+#bubblePreview.yz-bub-default .msg.him .bubble::before{content:'' !important;position:absolute !important;left:-6px !important;bottom:0 !important;top:auto !important;width:11px !important;height:11px !important;background:#E9E9EB !important;clip-path:polygon(100% 0,100% 100%,0 100%) !important;border-radius:0 !important;transform:none !important;z-index:-1 !important;}
+#bubblePreview.yz-bub-default .msg.me .bubble::before{content:'' !important;position:absolute !important;right:-6px !important;bottom:0 !important;top:auto !important;left:auto !important;width:11px !important;height:11px !important;background:#0A84FF !important;clip-path:polygon(0 0,100% 100%,0 100%) !important;border-radius:0 !important;transform:none !important;z-index:-1 !important;}
 
 /* ---- 主动消息小圆点：气泡右下角 ---- */
 #chat.yz-ios-layout .yz-bubpos{position:relative !important;display:inline-block !important;max-width:100% !important;}
-#chat.yz-ios-layout .yz-bubpos .auto-dot{position:absolute !important;right:-3px !important;bottom:-3px !important;left:auto !important;top:auto !important;width:8px !important;height:8px !important;border-radius:50% !important;background:var(--yz-auto-dot,#859ecb) !important;z-index:4 !important;pointer-events:none !important;box-shadow:0 0 0 2px var(--chat-bg,#fff) !important;}
+#chat.yz-ios-layout .yz-bubpos .auto-dot{position:absolute !important;right:-2px !important;bottom:-2px !important;left:auto !important;top:auto !important;width:5px !important;height:5px !important;border-radius:50% !important;background:var(--yz-auto-dot,#859ecb) !important;z-index:4 !important;pointer-events:none !important;box-shadow:0 0 0 1px var(--chat-bg,#fff) !important;}
 
 /* 主动消息标记：左侧雾蓝竖线 + 左上角小圆点 */
 .msg.yz-auto{position:relative;}
@@ -2153,7 +2166,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-28-v64";
+window.__YZ_BUILD="2026-10-28-v65";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
