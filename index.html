@@ -180,10 +180,11 @@ svg [fill="currentColor"]{stroke:none;}
 #chat.yz-bub-default .msg.him .bubble{background:var(--yz-bub-him,#E9E9EB);color:#000;}
 #chat.yz-bub-default .msg.me .bubble{background:var(--yz-bub-me,#0A84FF);color:#fff;}
 [data-theme="dark"] #chat.yz-bub-default .msg.him .bubble{background:var(--yz-bub-him,#26252A);color:#fff;}
-#chat.yz-bub-default .msg.him .bubble::before{content:'';position:absolute;left:-5px;bottom:0;width:10px;height:14px;background:inherit;border-bottom-left-radius:14px 12px;}
-#chat.yz-bub-default .msg.me .bubble::after{content:'';position:absolute;right:-5px;bottom:0;width:10px;height:14px;background:inherit;border-bottom-right-radius:14px 12px;}
+#chat.yz-bub-default .msg.him .bubble::before{content:'';position:absolute;left:-6px;bottom:0;width:12px;height:12px;background:inherit;border-bottom-right-radius:12px 12px;transform:skewX(12deg);}
+#chat.yz-bub-default .msg.me .bubble::after{content:'';position:absolute;right:-6px;bottom:0;width:12px;height:12px;background:inherit;border-bottom-left-radius:12px 12px;transform:skewX(-12deg);}
 #chat.yz-bub-default .msg{margin-bottom:2px;}
 #chat.yz-bub-default .msg .avatarbox{display:none;}
+#chat.yz-ios-layout .msg .avatarbox.yz-av-hide{visibility:hidden;}
 #chat.yz-bub-default .bubwrap{max-width:76%;}
 
 /* 引用框：气泡内嵌套小卡片 */
@@ -204,7 +205,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 /* 主动消息标记：左侧雾蓝竖线 + 左上角小圆点 */
 .msg.yz-auto{position:relative;}
-.msg .auto-dot{position:absolute;left:41px;top:15px;width:7px;height:7px;border-radius:50%;background:var(--yz-auto-dot,#859ecb);z-index:3;pointer-events:none;}
+.msg .auto-dot{position:absolute;right:-2px;bottom:-3px;width:7px;height:7px;border-radius:50%;background:var(--yz-auto-dot,#859ecb);z-index:3;pointer-events:none;}
 .msg{position:relative;}
 
 #listenChat .yz-timebar{margin:8px 0 4px;}
@@ -2137,7 +2138,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-28-v61";
+window.__YZ_BUILD="2026-10-28-v62";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -2918,7 +2919,7 @@ function yzSettingsLeaveFlush(){
   }catch(e){}
 }
 document.addEventListener('visibilitychange',function(){ try{ if(document.visibilityState==='hidden'){ yzSettingsLeaveFlush(); } }catch(e){} });
-try{ document.addEventListener('DOMContentLoaded',function(){ try{ yzChatBubMode(); }catch(e){} }); }catch(e){}
+try{ document.addEventListener('DOMContentLoaded',function(){ try{ yzChatBubMode(); }catch(e){} try{ yzAvModeRender(); }catch(e){} }); }catch(e){}
 window.addEventListener('pagehide',function(){ try{ yzSettingsLeaveFlush(); }catch(e){} });
 function go(id){
   try{ var _cur=document.querySelector('.screen.active'); if(_cur&&(_cur.id==='settings'||_cur.id==='setSub')&&id!=='settings'&&id!=='setSub'){ yzSettingsLeaveFlush(); } }catch(e){}
@@ -4107,7 +4108,7 @@ var YZ_BEAUTY_SUBS=[
             <div class="msg him" style="display:flex"><div class="bubble">梦角消息示例</div></div>
             <div class="msg me" style="display:flex"><div class="bubble">我的消息示例</div></div>
           </div>
-        </div><div class="row"><div class="lab">气泡大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setBubbleSize" min="80" max="140" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="bubbleSizeVal" style="min-width:38px;text-align:right">100%</span></div></div><div class="row"><div class="lab">聊天字体大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setChatFontSize" min="11" max="22" step="1" value="14" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="chatFontSizeVal" style="min-width:38px;text-align:right">14px</span></div></div><div class="row"><div class="lab">转账卡片大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setTranSize" min="80" max="150" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="tranSizeVal" style="min-width:38px;text-align:right">100%</span></div></div><div class="row"><div class="lab">转账卡片色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setTranColor" oninput="setColor('tranColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('tranColor','')">清</div></div></div><div class="row"><div class="lab">梦角消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('himFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('himFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setHimFontColorColor" oninput="setColor('himFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('himFontColor','')">清</div></div></div><div class="row"><div class="lab">我的消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('meFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('meFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setMeFontColorColor" oninput="setColor('meFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('meFontColor','')">清</div></div></div><div class="row"><div class="lab">主动消息标记颜色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('autoDotColor','#859ecb')" style="background:#859ecb;color:#fff;border:1px solid var(--sub)">默认</div><input type="color" id="setAutoDotColorColor" oninput="setColor('autoDotColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('autoDotColor','')">清</div></div></div><div class="row"><div class="lab">主页心电图颜色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('ecgColor','#e0567a')" style="background:#e0567a;color:#fff;border:1px solid var(--sub)">默认</div><input type="color" id="setEcgColorColor" oninput="setColor('ecgColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('ecgColor','')">清</div></div></div>`},
+        </div><div class="row"><div class="lab">气泡大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setBubbleSize" min="80" max="140" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="bubbleSizeVal" style="min-width:38px;text-align:right">100%</span></div></div><div class="row"><div class="lab">聊天字体大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setChatFontSize" min="11" max="22" step="1" value="14" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="chatFontSizeVal" style="min-width:38px;text-align:right">14px</span></div></div><div class="row"><div class="lab">转账卡片大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setTranSize" min="80" max="150" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="tranSizeVal" style="min-width:38px;text-align:right">100%</span></div></div><div class="row"><div class="lab">转账卡片色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setTranColor" oninput="setColor('tranColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('tranColor','')">清</div></div></div><div class="row"><div class="lab">梦角消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('himFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('himFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setHimFontColorColor" oninput="setColor('himFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('himFontColor','')">清</div></div></div><div class="row"><div class="lab">我的消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('meFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('meFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setMeFontColorColor" oninput="setColor('meFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('meFontColor','')">清</div></div></div><div class="row"><div class="lab">头像显示</div><div style="display:flex;gap:6px;align-items:center"><div class="chip" id="yzAvModeEach" onclick="yzSetAvMode('each')">逐条显示</div><div class="chip" id="yzAvModeFirst" onclick="yzSetAvMode('first')">只在第一条</div></div></div><div class="row"><div class="lab">主动消息标记颜色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('autoDotColor','#859ecb')" style="background:#859ecb;color:#fff;border:1px solid var(--sub)">默认</div><input type="color" id="setAutoDotColorColor" oninput="setColor('autoDotColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('autoDotColor','')">清</div></div></div><div class="row"><div class="lab">主页心电图颜色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('ecgColor','#e0567a')" style="background:#e0567a;color:#fff;border:1px solid var(--sub)">默认</div><input type="color" id="setEcgColorColor" oninput="setColor('ecgColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('ecgColor','')">清</div></div></div>`},
 
 ];
 function yzBeautySubOf(name){
@@ -4362,8 +4363,7 @@ function renderChat(){
   try{ yzChatHeadSync(_cvT); }catch(e){}
   try{ yzChatBubMode(); }catch(e){}
   try{var _idline=document.getElementById('chatIdLine');if(_idline){if(_cvT&&_cvT.type!=='group'){var _cch=(D.charas||[]).find(function(c){return c.id===_cvT.charas[0];});_idline.textContent=(_cch&&_cch.accId)?('@'+_cch.accId):'';}else{_idline.textContent='';}}}catch(e){}
-  const cf=$('#chatFeeling');
-  if(cf){var _gcv=yzCurConv(); if(_gcv&&_gcv.type==='group'){cf.textContent='';cf.style.display='none';} else {const t=curFeeling();cf.textContent=t||'';cf.style.display=t?'':'none';}}
+  try{ var _cf1=document.getElementById('chatFeeling'); if(_cf1){ _cf1.textContent=''; _cf1.style.display='none'; } }catch(e){}
   if(!D.msgs.length){b.innerHTML='';}
   var _yzSessMs=D._yzChatEnterMs||yzNowMs();
   /* 窗口化渲染：只画最近 N 条，避免几千条 DOM 拖死滑动 */
@@ -4409,7 +4409,7 @@ function renderChat(){
       var _nx=D.msgs[i+1];
       var _isLast=(!_nx)||(_nx.from!=='me')||(_nx.type==='sept')||(_nx.type==='sys')||(_nx.type==='pat');
       if(_isLast){
-        meStamp=`<div class="readtag mestamp">${esc(m._t)}</div>`;
+        meStamp=`<div class="readtag mestamp">${D.readOn?'<span class="meread">已读</span>':''}${esc(m._t)}</div>`;
       }
     }
     let quoteHtml='';
@@ -4418,13 +4418,34 @@ function renderChat(){
       var _qw=''; try{ if(m.quote.who){ _qw=m.quote.who+'：'; } else { var _qm2=D.msgs[m.quote.i]; if(_qm2)_qw=quoteWho(_qm2)+'：'; } }catch(e){}
       quoteHtml='<div class="qbox" onclick="jumpMsg('+(m.quote.i)+')">'+qsrc+'<div class="qtxt">'+esc(_qw)+((m.quote.type==='img')?'[图片]':esc(m.quote.brief))+'</div></div>';
     }
-    b.insertAdjacentHTML('beforeend',`<div class="msg ${me?'me':'him'}${(!me&&m.auto)?' yz-auto':''}" data-mi="${i}">${(!me&&m.auto)?'<span class="auto-dot"></span>':''}${avHTML(me?'me':'him',m.who)}<div class="bubwrap">${nameHtml}${quoteHtml}${bubbleHTML(m,i)}${readHtml}${himStamp}${meStamp}</div></div>`);
+    var _showAv=true;
+    try{ if(D.avMode==='first'){ var _pv=D.msgs[i-1]; _showAv=(!_pv)||(_pv.from!==m.from)||(_pv.type==='sept')||(_pv.type==='sys')||(_pv.type==='pat'); } }catch(e){}
+    var _avH=_showAv?avHTML(me?'me':'him',m.who):'<div class="avatarbox yz-av-hide"></div>';
+    b.insertAdjacentHTML('beforeend',`<div class="msg ${me?'me':'him'}${(!me&&m.auto)?' yz-auto':''}" data-mi="${i}">${(!me&&m.auto)?'<span class="auto-dot"></span>':''}${_avH}<div class="bubwrap">${nameHtml}${quoteHtml}${bubbleHTML(m,i)}${readHtml}${himStamp}${meStamp}</div></div>`);
   }catch(_e){} });
   /* typing 指示器由 setTyping() 单独增删，不在这里重建 */
   try{ if(D.typingOn!==false && D._typing && $('#chat').classList.contains('active')){ if(!b.querySelector('.typing-ind')){ b.insertAdjacentHTML('beforeend','<div class="typing-ind"><span>对方正在输入中</span><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div>'); } } }catch(e){}
   bindTranTaps();
   window.__applyBubbleInline&&window.__applyBubbleInline();
   try{ var _hb=document.getElementById('holdBtn'); if(_hb)_hb.classList.toggle('on',!!D.sendHold); }catch(e){}
+}
+function yzSetAvMode(m){
+  try{
+    D.avMode=(m==='first')?'first':'each';
+    save();
+    yzAvModeRender();
+    try{ renderChat(); }catch(e){}
+    toast(D.avMode==='first'?'头像：只在第一条显示':'头像：逐条显示');
+  }catch(e){}
+}
+function yzAvModeRender(){
+  try{
+    var a=document.getElementById('yzAvModeEach');
+    var b=document.getElementById('yzAvModeFirst');
+    var cur=(D.avMode==='first')?'first':'each';
+    if(a)a.style.opacity=(cur==='each')?'1':'.45';
+    if(b)b.style.opacity=(cur==='first')?'1':'.45';
+  }catch(e){}
 }
 function yzChatHeadSync(cv){
   try{
@@ -4447,6 +4468,9 @@ function yzChatBubMode(){
   try{
     var el=document.getElementById('chat'); if(!el)return;
     var raw=String((D&&D.bubble)||'').trim();
+    /* 新布局永远生效 */
+    el.classList.add('yz-ios-layout');
+    /* 未填 CSS 时才用 iOS 默认气泡外观 */
     el.classList.toggle('yz-bub-default',raw==='');
   }catch(e){}
 }
@@ -10834,7 +10858,16 @@ function fillSettings(){
   document.querySelectorAll('input[id^="set"],textarea[id^="set"],select[id^="set"]').forEach(function(el){
     const id=el.id;
     if(id==='setFeelList'||id==='setPats'||id==='setTranAmts'||id==='setTranNotes'||id==='setMainRate')return;
-    if(el.type==='color')return;
+    if(el.type==='color'){
+      /* 颜色框：按 id 推算 D 中的键，有值就回填，保证显示的就是已选颜色 */
+      var _ck=null;
+      var _cid=el.id.replace(/^set/,'').replace(/Color$/,'');
+      if(_cid)_ck=_cid.charAt(0).toLowerCase()+_cid.slice(1);
+      if(!_ck)return;
+      var _cv=(D[_ck]===undefined?'':String(D[_ck])).trim();
+      if(/^#[0-9a-fA-F]{6}$/.test(_cv)){ try{ el.value=_cv; }catch(e){} }
+      return;
+    }
     const key=id.slice(3);
     const k=key.charAt(0).toLowerCase()+key.slice(1);
     if(el.type==='checkbox'){el.checked=!!D[k];}
@@ -11277,8 +11310,7 @@ function updateHomeAvatar(){
     else{b.innerHTML=`<img src="${DEFAV}">`;b.style.background='transparent';}
   }
   try{syncNoteAvatars();}catch(e){}
-  const cf=$('#chatFeeling');
-  if(cf){var _gcv2=yzCurConv(); if(_gcv2&&_gcv2.type==='group'){cf.textContent='';cf.style.display='none';} else {const t=curFeeling();cf.textContent=t||'';cf.style.display=t?'':'none';}}
+  try{ var _cf2=document.getElementById('chatFeeling'); if(_cf2){ _cf2.textContent=''; _cf2.style.display='none'; } }catch(e){}
 }
 /* 清空聊天记录：弹出现有会话，多选后删除选中会话的记录 */
 function clearChat(){ openClearChatSheet(); }
