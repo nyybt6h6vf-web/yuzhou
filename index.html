@@ -2178,7 +2178,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-29-v68";
+window.__YZ_BUILD="2026-10-29-v69";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4544,23 +4544,34 @@ function yzDiagBubble(){
   try{
     var out=[];
     var c=document.getElementById('chat');
-    out.push('chat类名: '+(c?c.className:'无chat'));
-    out.push('bubble原始值: '+JSON.stringify(String((D&&D.bubble)||'').slice(0,40)));
-    out.push('bubShape: '+(D&&D.bubShape));
+    out.push('chat类名: '+(c?c.className:'无'));
+    out.push('bubble值: '+JSON.stringify(String((D&&D.bubble)||'')));
+    out.push('shape: '+(D&&D.bubShape));
+    var msgs=document.querySelectorAll('#chatBody .msg');
+    out.push('消息数: '+msgs.length);
     var bb=document.querySelector('#chatBody .bubble');
     if(bb){
       var cs=getComputedStyle(bb);
-      out.push('气泡背景: '+cs.backgroundColor);
-      out.push('气泡圆角: '+cs.borderRadius);
+      out.push('背景:'+cs.backgroundColor);
+      out.push('圆角:'+cs.borderRadius);
+      out.push('字号:'+cs.fontSize);
+      out.push('内边:'+cs.padding);
       var bf=getComputedStyle(bb,'::before');
-      out.push('尾巴内容: '+bf.content);
-      out.push('尾巴尺寸: '+bf.width+' x '+bf.height);
-      out.push('尾巴位置: left='+bf.left+' bottom='+bf.bottom);
-      out.push('尾巴颜色: '+bf.backgroundColor);
-      out.push('尾巴裁剪: '+bf.clipPath);
-    }else{ out.push('聊天页没有气泡元素'); }
+      out.push('尾内容:'+bf.content);
+      out.push('尾尺寸:'+bf.width+'x'+bf.height);
+      out.push('尾位置:l='+bf.left+' b='+bf.bottom);
+      out.push('尾色:'+bf.backgroundColor);
+      out.push('尾裁剪:'+bf.clipPath);
+    }
+    var pv=document.querySelector('#bubblePreview .bubble');
+    if(pv){
+      var ps=getComputedStyle(pv);
+      out.push('【预览】圆角:'+ps.borderRadius+' 字号:'+ps.fontSize);
+      var pf=getComputedStyle(pv,'::before');
+      out.push('【预览】尾:'+pf.width+'x'+pf.height+' l='+pf.left+' b='+pf.bottom);
+    }
     var d=document.getElementById('yzLockMsg');
-    if(d){ d.style.color='#333'; d.style.whiteSpace='pre-wrap'; d.style.fontSize='11px'; d.style.lineHeight='1.5'; d.textContent=out.join('｜'); }
+    if(d){ d.style.color='#333'; d.style.whiteSpace='pre-wrap'; d.style.fontSize='10.5px'; d.style.lineHeight='1.5'; d.style.maxHeight='220px'; d.style.overflow='auto'; d.textContent=out.join('｜'); }
   }catch(e){}
 }
 function yzBubShapeRender(){
