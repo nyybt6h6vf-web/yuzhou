@@ -190,20 +190,20 @@ svg [fill="currentColor"]{stroke:none;}
 #chat.yz-bub-default .msg.me .bubble{border-bottom-right-radius:5px !important;}
 #chat.yz-bub-default .msg.him .bubble::before{
   content:'' !important;position:absolute !important;
-  left:-0.62em !important;bottom:-0.06em !important;top:auto !important;right:auto !important;
-  width:0.66em !important;height:0.5em !important;
+  left:-7px !important;bottom:-6px !important;top:auto !important;right:auto !important;
+  width:8px !important;height:9px !important;
   background:#E9E9EB !important;
-  clip-path:polygon(100% 0,100% 100%,0 32%) !important;
-  border-radius:0 !important;transform:none !important;z-index:-1 !important;
+  clip-path:polygon(0 0,100% 0,0 100%) !important;
+  border-radius:0 0 0 3px !important;transform:none !important;z-index:-1 !important;
 }
 [data-theme="dark"] #chat.yz-bub-default .msg.him .bubble::before{background:#26252A !important;}
 #chat.yz-bub-default .msg.me .bubble::before{
   content:'' !important;position:absolute !important;
-  right:-0.62em !important;bottom:-0.06em !important;top:auto !important;left:auto !important;
-  width:0.66em !important;height:0.5em !important;
+  right:-7px !important;bottom:-6px !important;top:auto !important;left:auto !important;
+  width:8px !important;height:9px !important;
   background:#0A84FF !important;
-  clip-path:polygon(0 0,100% 32%,0 100%) !important;
-  border-radius:0 !important;transform:none !important;z-index:-1 !important;
+  clip-path:polygon(0 0,100% 0,100% 100%) !important;
+  border-radius:0 0 3px 0 !important;transform:none !important;z-index:-1 !important;
 }
 #chat.yz-bub-default .msg .bubble::after{content:none !important;}
 /* 气泡形状：圆角模式（只在默认气泡生效） */
@@ -236,8 +236,8 @@ svg [fill="currentColor"]{stroke:none;}
 #bubblePreview.yz-bub-default .msg.me .bubble{background:#0A84FF !important;color:#fff !important;}
 #bubblePreview.yz-bub-default .msg.him .bubble{border-bottom-left-radius:5px !important;}
 #bubblePreview.yz-bub-default .msg.me .bubble{border-bottom-right-radius:5px !important;}
-#bubblePreview.yz-bub-default .msg.him .bubble::before{content:'' !important;position:absolute !important;left:-0.62em !important;bottom:-0.06em !important;top:auto !important;width:0.66em !important;height:0.5em !important;background:#E9E9EB !important;clip-path:polygon(100% 0,100% 100%,0 32%) !important;border-radius:0 !important;transform:none !important;z-index:-1 !important;}
-#bubblePreview.yz-bub-default .msg.me .bubble::before{content:'' !important;position:absolute !important;right:-0.62em !important;bottom:-0.06em !important;top:auto !important;left:auto !important;width:0.66em !important;height:0.5em !important;background:#0A84FF !important;clip-path:polygon(0 0,100% 32%,0 100%) !important;border-radius:0 !important;transform:none !important;z-index:-1 !important;}
+#bubblePreview.yz-bub-default .msg.him .bubble::before{content:'' !important;position:absolute !important;left:-7px !important;bottom:-6px !important;top:auto !important;width:8px !important;height:9px !important;background:#E9E9EB !important;clip-path:polygon(0 0,100% 0,0 100%) !important;border-radius:0 0 0 3px !important;transform:none !important;z-index:-1 !important;}
+#bubblePreview.yz-bub-default .msg.me .bubble::before{content:'' !important;position:absolute !important;right:-7px !important;bottom:-6px !important;top:auto !important;left:auto !important;width:8px !important;height:9px !important;background:#0A84FF !important;clip-path:polygon(0 0,100% 0,100% 100%) !important;border-radius:0 0 3px 0 !important;transform:none !important;z-index:-1 !important;}
 
 /* ---- 主动消息小圆点：气泡右下角 ---- */
 #chat.yz-ios-layout .yz-bubpos{position:relative !important;display:inline-block !important;max-width:100% !important;}
@@ -2178,7 +2178,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-29-v67";
+window.__YZ_BUILD="2026-10-29-v68";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4142,7 +4142,7 @@ var YZ_BEAUTY_SUBS=[
   {name:'各美化设置',html:`<div class="row"><div class="lab">强调色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setAccentColor" oninput="setAccent(this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setAccent('')">清</div></div></div><div class="row"><div class="lab">转账字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('fontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('fontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setFontColorColor" oninput="setColor('fontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('fontColor','')">清</div></div></div><div class="row"><div class="lab">梦角气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleHim','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleHim','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleHimColor" oninput="setColor('bubbleHim',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleHim','')">清</div></div></div><div class="row"><div class="lab">我方气泡色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('bubbleMe','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('bubbleMe','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setBubbleMeColor" oninput="setColor('bubbleMe',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('bubbleMe','')">清</div></div></div><div class="row"><div class="lab">气泡形状</div><div style="display:flex;gap:6px;align-items:center"><div class="chip" id="yzBubShapePoint" onclick="yzSetBubShape('point')">尖角</div><div class="chip" id="yzBubShapeRound" onclick="yzSetBubShape('round')">圆角</div></div></div><div class="row" style="flex-direction:column;align-items:stretch">
           <div class="lab" style="margin-bottom:8px">气泡 CSS（.msg .bubble 通用，写一条两边都生效）</div>
           <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty();yzChatBubMode();yzPreviewBubbleDebounced();"></textarea>
-          <div style="margin-top:10px;display:flex;gap:8px;align-items:center"><div class="chip" onclick="yzForceLockCss()">强制写入并核对</div><div id="yzLockMsg" style="font-size:12px;color:#e05252"></div></div>
+          <div style="margin-top:10px;display:flex;gap:8px;align-items:center"><div class="chip" onclick="yzForceLockCss()">强制写入并核对</div><div class="chip" onclick="yzDiagBubble()">查气泡状态</div><div id="yzLockMsg" style="font-size:12px;color:#e05252"></div></div>
           <div class="lab" style="margin-top:12px;margin-bottom:6px">预览</div>
           <div id="bubblePreview" class="yz-ios-layout yz-bub-default" style="background:var(--card);border:1px solid var(--sub);border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;contain:layout paint style;isolation:isolate">
             <div class="msg him" style="display:flex"><div class="bubble">梦角消息示例</div></div>
@@ -4538,6 +4538,29 @@ function yzSetBubShape(v){
     try{ yzPreviewBubble(); }catch(e){}
     try{ yzBubShapeRender(); }catch(e){}
     try{ if(typeof renderChat==='function')renderChat(); }catch(e){}
+  }catch(e){}
+}
+function yzDiagBubble(){
+  try{
+    var out=[];
+    var c=document.getElementById('chat');
+    out.push('chat类名: '+(c?c.className:'无chat'));
+    out.push('bubble原始值: '+JSON.stringify(String((D&&D.bubble)||'').slice(0,40)));
+    out.push('bubShape: '+(D&&D.bubShape));
+    var bb=document.querySelector('#chatBody .bubble');
+    if(bb){
+      var cs=getComputedStyle(bb);
+      out.push('气泡背景: '+cs.backgroundColor);
+      out.push('气泡圆角: '+cs.borderRadius);
+      var bf=getComputedStyle(bb,'::before');
+      out.push('尾巴内容: '+bf.content);
+      out.push('尾巴尺寸: '+bf.width+' x '+bf.height);
+      out.push('尾巴位置: left='+bf.left+' bottom='+bf.bottom);
+      out.push('尾巴颜色: '+bf.backgroundColor);
+      out.push('尾巴裁剪: '+bf.clipPath);
+    }else{ out.push('聊天页没有气泡元素'); }
+    var d=document.getElementById('yzLockMsg');
+    if(d){ d.style.color='#333'; d.style.whiteSpace='pre-wrap'; d.style.fontSize='11px'; d.style.lineHeight='1.5'; d.textContent=out.join('｜'); }
   }catch(e){}
 }
 function yzBubShapeRender(){
