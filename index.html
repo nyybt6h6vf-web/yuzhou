@@ -190,20 +190,22 @@ svg [fill="currentColor"]{stroke:none;}
 #chat.yz-bub-default .msg.me .bubble{border-bottom-right-radius:9px !important;}
 #chat.yz-bub-default .msg.him .bubble::before{
   content:'' !important;position:absolute !important;
-  left:-7px !important;bottom:0 !important;top:auto !important;right:auto !important;
-  width:8px !important;height:8px !important;
+  left:-7px !important;right:auto !important;bottom:0 !important;top:auto !important;
+  width:8px !important;height:8px !important;margin:0 !important;
   background:#E9E9EB !important;
   clip-path:polygon(0 0,100% 0,100% 100%) !important;
   border-radius:0 0 3px 0 !important;transform:none !important;z-index:-1 !important;
+  display:block !important;
 }
 [data-theme="dark"] #chat.yz-bub-default .msg.him .bubble::before{background:#26252A !important;}
 #chat.yz-bub-default .msg.me .bubble::before{
   content:'' !important;position:absolute !important;
-  right:-7px !important;bottom:0 !important;top:auto !important;left:auto !important;
-  width:8px !important;height:8px !important;
+  right:-7px !important;left:auto !important;bottom:0 !important;top:auto !important;
+  width:8px !important;height:8px !important;margin:0 !important;
   background:#0A84FF !important;
   clip-path:polygon(0 0,100% 0,0 100%) !important;
   border-radius:0 0 0 3px !important;transform:none !important;z-index:-1 !important;
+  display:block !important;
 }
 #chat.yz-bub-default .msg .bubble::after{content:none !important;}
 /* 气泡形状：圆角模式（只在默认气泡生效） */
@@ -2178,7 +2180,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-29-v70";
+window.__YZ_BUILD="2026-10-29-v71";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -11561,8 +11563,11 @@ function applyCustom(){
   const bh=(D.bubbleHim||'').trim();
   const bme=(D.bubbleMe||'').trim();
   const __hasCss=!!String(D.bubble||'').trim();
-  if(bh&&!__hasCss){css+=`.msg.him .bubble,.msg.him .bubble.voice,.msg.him .bubble.patb,.bubble.patb{background:${bh} !important;}`;}
-  if(bme&&!__hasCss){css+=`.msg.me .bubble,.msg.me .bubble.voice{background:${bme} !important;}`;}
+  /* 简讯页走 iOS 默认外观时，气泡色交给 iOS 那套，这里不再注入，避免把 iOS 背景盖掉 */
+  var __iosSkin=false;
+  try{ __iosSkin=!(String(D.bubble||'').trim()); }catch(e){}
+  if(bh&&!__hasCss&&!__iosSkin){css+=`.msg.him .bubble,.msg.him .bubble.voice,.msg.him .bubble.patb,.bubble.patb{background:${bh} !important;}`;}
+  if(bme&&!__hasCss&&!__iosSkin){css+=`.msg.me .bubble,.msg.me .bubble.voice{background:${bme} !important;}`;}
   /* 自定义气泡CSS：原样注入，不再硬拆，避免“只生效一半” */
   var rawBubble=String(D.bubble||'').trim().replace(/：/g,':');
   if(rawBubble){
