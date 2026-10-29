@@ -186,24 +186,24 @@ svg [fill="currentColor"]{stroke:none;}
 #chat.yz-bub-default .msg.me .bubble{background:#0A84FF !important;color:#fff !important;}
 [data-theme="dark"] #chat.yz-bub-default .msg.him .bubble{background:#26252A !important;color:#fff !important;}
 /* 尖角：气泡本体收平一个角 + 小三角贴角，做出 iOS 那种尖 */
-#chat.yz-bub-default .msg.him .bubble{border-bottom-left-radius:5px !important;}
-#chat.yz-bub-default .msg.me .bubble{border-bottom-right-radius:5px !important;}
+#chat.yz-bub-default .msg.him .bubble{border-bottom-left-radius:9px !important;}
+#chat.yz-bub-default .msg.me .bubble{border-bottom-right-radius:9px !important;}
 #chat.yz-bub-default .msg.him .bubble::before{
   content:'' !important;position:absolute !important;
-  left:-7px !important;bottom:-6px !important;top:auto !important;right:auto !important;
-  width:8px !important;height:9px !important;
+  left:-7px !important;bottom:0 !important;top:auto !important;right:auto !important;
+  width:8px !important;height:8px !important;
   background:#E9E9EB !important;
-  clip-path:polygon(0 0,100% 0,0 100%) !important;
-  border-radius:0 0 0 3px !important;transform:none !important;z-index:-1 !important;
+  clip-path:polygon(0 0,100% 0,100% 100%) !important;
+  border-radius:0 0 3px 0 !important;transform:none !important;z-index:-1 !important;
 }
 [data-theme="dark"] #chat.yz-bub-default .msg.him .bubble::before{background:#26252A !important;}
 #chat.yz-bub-default .msg.me .bubble::before{
   content:'' !important;position:absolute !important;
-  right:-7px !important;bottom:-6px !important;top:auto !important;left:auto !important;
-  width:8px !important;height:9px !important;
+  right:-7px !important;bottom:0 !important;top:auto !important;left:auto !important;
+  width:8px !important;height:8px !important;
   background:#0A84FF !important;
-  clip-path:polygon(0 0,100% 0,100% 100%) !important;
-  border-radius:0 0 3px 0 !important;transform:none !important;z-index:-1 !important;
+  clip-path:polygon(0 0,100% 0,0 100%) !important;
+  border-radius:0 0 0 3px !important;transform:none !important;z-index:-1 !important;
 }
 #chat.yz-bub-default .msg .bubble::after{content:none !important;}
 /* 气泡形状：圆角模式（只在默认气泡生效） */
@@ -234,10 +234,10 @@ svg [fill="currentColor"]{stroke:none;}
 #bubblePreview.yz-bub-default .bubble{position:relative !important;box-shadow:none !important;border-radius:18px !important;line-height:1.3 !important;}
 #bubblePreview.yz-bub-default .msg.him .bubble{background:#E9E9EB !important;color:#000 !important;}
 #bubblePreview.yz-bub-default .msg.me .bubble{background:#0A84FF !important;color:#fff !important;}
-#bubblePreview.yz-bub-default .msg.him .bubble{border-bottom-left-radius:5px !important;}
-#bubblePreview.yz-bub-default .msg.me .bubble{border-bottom-right-radius:5px !important;}
-#bubblePreview.yz-bub-default .msg.him .bubble::before{content:'' !important;position:absolute !important;left:-7px !important;bottom:-6px !important;top:auto !important;width:8px !important;height:9px !important;background:#E9E9EB !important;clip-path:polygon(0 0,100% 0,0 100%) !important;border-radius:0 0 0 3px !important;transform:none !important;z-index:-1 !important;}
-#bubblePreview.yz-bub-default .msg.me .bubble::before{content:'' !important;position:absolute !important;right:-7px !important;bottom:-6px !important;top:auto !important;left:auto !important;width:8px !important;height:9px !important;background:#0A84FF !important;clip-path:polygon(0 0,100% 0,100% 100%) !important;border-radius:0 0 3px 0 !important;transform:none !important;z-index:-1 !important;}
+#bubblePreview.yz-bub-default .msg.him .bubble{border-bottom-left-radius:9px !important;}
+#bubblePreview.yz-bub-default .msg.me .bubble{border-bottom-right-radius:9px !important;}
+#bubblePreview.yz-bub-default .msg.him .bubble::before{content:'' !important;position:absolute !important;left:-7px !important;bottom:0 !important;top:auto !important;width:8px !important;height:8px !important;background:#E9E9EB !important;clip-path:polygon(0 0,100% 0,100% 100%) !important;border-radius:0 0 3px 0 !important;transform:none !important;z-index:-1 !important;}
+#bubblePreview.yz-bub-default .msg.me .bubble::before{content:'' !important;position:absolute !important;right:-7px !important;bottom:0 !important;top:auto !important;left:auto !important;width:8px !important;height:8px !important;background:#0A84FF !important;clip-path:polygon(0 0,100% 0,0 100%) !important;border-radius:0 0 0 3px !important;transform:none !important;z-index:-1 !important;}
 
 /* ---- 主动消息小圆点：气泡右下角 ---- */
 #chat.yz-ios-layout .yz-bubpos{position:relative !important;display:inline-block !important;max-width:100% !important;}
@@ -2178,7 +2178,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-29-v69";
+window.__YZ_BUILD="2026-10-29-v70";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
