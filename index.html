@@ -2180,7 +2180,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-29-v71";
+window.__YZ_BUILD="2026-10-29-v72";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -2972,7 +2972,7 @@ function go(id){
   if(id==='home'){try{yzApplyHomeChara();}catch(e){}
   try{yzBindLisFloatDrag();}catch(e){}}
   if(id==='chatlist')renderChatList();
-  if(id==='chat'){try{yzChatBubMode();}catch(e){} D._yzChatEnterMs=Date.now(); try{window.__yzPatRolled=false;}catch(e){} try{window.__yzStampArmed=true;}catch(e){} renderChat();$('#chat').style.background=getChatBg();setTimeout(scrollBottom,30); try{var _cv=yzCurConv(); if(_cv){var _nl=(_cv.msgs||[]).length; if(_cv._readLen!==_nl){ _cv._readLen=_nl; save(); }}}catch(e){} try{renderHome();}catch(e){}}
+  if(id==='chat'){try{yzChatBubMode();}catch(e){} D._yzChatEnterMs=Date.now(); try{window.__yzPatRolled=false;}catch(e){} try{window.__yzStampArmed=true;}catch(e){} renderChat();$('#chat').style.background=getChatBg();try{yzChatBubMode();}catch(e){} setTimeout(scrollBottom,30); try{var _cv=yzCurConv(); if(_cv){var _nl=(_cv.msgs||[]).length; if(_cv._readLen!==_nl){ _cv._readLen=_nl; save(); }}}catch(e){} try{renderHome();}catch(e){}}
   if(id==='cards'){try{yzBindCards();renderCardTabs();}catch(e){}renderCards();}
   if(id==='together')renderTiles();
   if(id==='setSub'){ try{yzBuildSetGroups();}catch(e){} try{fillSettings();}catch(e){} }
@@ -4523,6 +4523,35 @@ function yzChatBubMode(){
     el.classList.remove('yz-legacy');
     el.classList.toggle('yz-bub-default',raw==='');
     yzBubShapeApply(el);
+    yzBubForceInline(el,raw==='');
+  }catch(e){}
+}
+/* 兜底：直接把默认气泡样式写成内联 !important，绕开所有 CSS 优先级问题 */
+function yzBubForceInline(el,useDefault){
+  try{
+    var body=document.getElementById('chatBody');
+    if(!body)return;
+    var bubs=body.querySelectorAll('.bubble');
+    for(var i=0;i<bubs.length;i++){
+      var b=bubs[i];
+      var me=false;
+      var m=b.closest('.msg');
+      if(m&&m.classList.contains('me'))me=true;
+      if(!useDefault){ continue; }
+      var round=(D&&D.bubShape==='round');
+      b.style.setProperty('box-shadow','none','important');
+      b.style.setProperty('border-radius','18px','important');
+      b.style.setProperty('position','relative','important');
+      if(round){
+        b.style.setProperty('border-bottom-left-radius','18px','important');
+        b.style.setProperty('border-bottom-right-radius','18px','important');
+      }else{
+        if(me){ b.style.setProperty('border-bottom-right-radius','9px','important'); b.style.setProperty('border-bottom-left-radius','18px','important'); }
+        else{ b.style.setProperty('border-bottom-left-radius','9px','important'); b.style.setProperty('border-bottom-right-radius','18px','important'); }
+      }
+      b.style.setProperty('background',me?'#0A84FF':'#E9E9EB','important');
+      b.style.setProperty('color',me?'#fff':'#000','important');
+    }
   }catch(e){}
 }
 function yzBubShapeApply(el){
@@ -11617,7 +11646,7 @@ function applyCustom(){
 
 window.__tranTap=function(i){try{tranAct(i);}catch(e){}};
 window.__bubbleDecls=null;
-window.__applyBubbleInline=function(){/* 纯样式表注入，不拆 inline */};
+window.__applyBubbleInline=function(){ try{ var _c=document.getElementById('chat'); var _r=String((D&&D.bubble)||'').trim(); yzBubForceInline(_c,_r===''); }catch(e){} };
 /* 把 CSS 文本里每条声明末尾补 !important（跳过注释、已有 important 的、@规则行） */
 function forceImportant(cssText){
   try{
