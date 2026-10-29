@@ -190,8 +190,8 @@ svg [fill="currentColor"]{stroke:none;}
 #chat.yz-bub-default .msg.me .bubble{border-bottom-right-radius:9px !important;}
 #chat.yz-bub-default .msg.him .bubble::before{
   content:'' !important;position:absolute !important;
-  left:-7px !important;right:auto !important;bottom:0 !important;top:auto !important;
-  width:8px !important;height:8px !important;margin:0 !important;
+  left:-10px !important;right:auto !important;bottom:-1px !important;top:auto !important;
+  width:11px !important;height:10px !important;margin:0 !important;
   background:#E9E9EB !important;
   clip-path:polygon(0 0,100% 0,100% 100%) !important;
   border-radius:0 0 3px 0 !important;transform:none !important;z-index:-1 !important;
@@ -200,8 +200,8 @@ svg [fill="currentColor"]{stroke:none;}
 [data-theme="dark"] #chat.yz-bub-default .msg.him .bubble::before{background:#26252A !important;}
 #chat.yz-bub-default .msg.me .bubble::before{
   content:'' !important;position:absolute !important;
-  right:-7px !important;left:auto !important;bottom:0 !important;top:auto !important;
-  width:8px !important;height:8px !important;margin:0 !important;
+  right:-10px !important;left:auto !important;bottom:-1px !important;top:auto !important;
+  width:11px !important;height:10px !important;margin:0 !important;
   background:#0A84FF !important;
   clip-path:polygon(0 0,100% 0,0 100%) !important;
   border-radius:0 0 0 3px !important;transform:none !important;z-index:-1 !important;
@@ -238,8 +238,8 @@ svg [fill="currentColor"]{stroke:none;}
 #bubblePreview.yz-bub-default .msg.me .bubble{background:#0A84FF !important;color:#fff !important;}
 #bubblePreview.yz-bub-default .msg.him .bubble{border-bottom-left-radius:9px !important;}
 #bubblePreview.yz-bub-default .msg.me .bubble{border-bottom-right-radius:9px !important;}
-#bubblePreview.yz-bub-default .msg.him .bubble::before{content:'' !important;position:absolute !important;left:-7px !important;bottom:0 !important;top:auto !important;width:8px !important;height:8px !important;background:#E9E9EB !important;clip-path:polygon(0 0,100% 0,100% 100%) !important;border-radius:0 0 3px 0 !important;transform:none !important;z-index:-1 !important;}
-#bubblePreview.yz-bub-default .msg.me .bubble::before{content:'' !important;position:absolute !important;right:-7px !important;bottom:0 !important;top:auto !important;left:auto !important;width:8px !important;height:8px !important;background:#0A84FF !important;clip-path:polygon(0 0,100% 0,0 100%) !important;border-radius:0 0 0 3px !important;transform:none !important;z-index:-1 !important;}
+#bubblePreview.yz-bub-default .msg.him .bubble::before{content:'' !important;position:absolute !important;left:-10px !important;right:auto !important;bottom:-1px !important;top:auto !important;width:11px !important;height:10px !important;background:#E9E9EB !important;clip-path:polygon(0 0,100% 0,100% 100%) !important;border-radius:0 0 3px 0 !important;transform:none !important;z-index:-1 !important;display:block !important;}
+#bubblePreview.yz-bub-default .msg.me .bubble::before{content:'' !important;position:absolute !important;right:-10px !important;left:auto !important;bottom:-1px !important;top:auto !important;width:11px !important;height:10px !important;background:#0A84FF !important;clip-path:polygon(0 0,100% 0,0 100%) !important;border-radius:0 0 0 3px !important;transform:none !important;z-index:-1 !important;display:block !important;}
 
 /* ---- 主动消息小圆点：气泡右下角 ---- */
 #chat.yz-ios-layout .yz-bubpos{position:relative !important;display:inline-block !important;max-width:100% !important;}
@@ -2180,7 +2180,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-29-v72";
+window.__YZ_BUILD="2026-10-29-v73";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4146,7 +4146,7 @@ var YZ_BEAUTY_SUBS=[
           <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty();yzChatBubMode();yzPreviewBubbleDebounced();"></textarea>
           <div style="margin-top:10px;display:flex;gap:8px;align-items:center"><div class="chip" onclick="yzForceLockCss()">强制写入并核对</div><div class="chip" onclick="yzDiagBubble()">查气泡状态</div><div id="yzLockMsg" style="font-size:12px;color:#e05252"></div></div>
           <div class="lab" style="margin-top:12px;margin-bottom:6px">预览</div>
-          <div id="bubblePreview" class="yz-ios-layout yz-bub-default" style="background:var(--card);border:1px solid var(--sub);border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;contain:layout paint style;isolation:isolate">
+          <div id="bubblePreview" class="yz-ios-layout yz-bub-default" style="background:var(--card);border:1px solid var(--sub);border-radius:14px;padding:14px 12px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;isolation:isolate">
             <div class="msg him" style="display:flex"><div class="bubble">梦角消息示例</div></div>
             <div class="msg me" style="display:flex"><div class="bubble">我的消息示例</div></div>
           </div>
