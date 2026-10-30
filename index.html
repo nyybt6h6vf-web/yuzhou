@@ -1774,6 +1774,7 @@ svg [fill="currentColor"]{stroke:none;}
          <div class="row"><div class="lab">主动来电间隔（分钟）</div><input type="number" id="setCallGap" min="1" max="1440" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">梦角挂电话概率（%）</div><input type="number" id="setCallHangRate" min="0" max="100" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">开启消息通知</div><div class="chip" onclick="yzAskNotify()">开启 / 检查</div></div>
+         <div class="row"><div class="lab">测试通知</div><div class="chip" onclick="yzTestNotify()">发一条试试</div></div>
         <div class="row"><div class="lab">后台保活（音频）</div><div class="chip" id="keepAliveBtn" onclick="yzToggleKeepAlive()">关闭</div></div>
         <div class="row"><div class="lab">主动发消息间隔（分钟）</div><input type="number" id="setProactiveGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">主动找我（开关）</div><div class="chip" onclick="toggleProactive()" id="proactiveBtn">关闭</div></div>
@@ -2176,7 +2177,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-30-v82";
+window.__YZ_BUILD="2026-10-30-v83";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
