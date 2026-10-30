@@ -385,7 +385,10 @@ svg [fill="currentColor"]{stroke:none;}
 [data-theme="dark"]{--yz-call-bg:#000000;--yz-call-fg:#ffffff;--yz-call-av:#1c1c1e;--yz-call-btn:#ffffff;--yz-call-btn-fg:#000000;}
 #call{background:var(--yz-call-bg,#0a0a0a)!important;color:var(--yz-call-fg,#fff)!important;}
 #call .cname,#call .cstat,#call .cend,#call .cbtn{color:var(--yz-call-fg,#fff)!important;}
-#call .cbtn.no,#call .cbtn.yes{background:var(--yz-call-btn,#fff)!important;box-shadow:none!important;}
+#call .cbtn.no,#call .cbtn.yes{background:var(--yz-call-btn,#fff)!important;box-shadow:none!important;color:var(--yz-call-btn-fg,#000)!important;}
+#call .cbtn{color:var(--yz-call-btn-fg,#000)!important;}
+#callbar .cend{background:var(--yz-call-btn,#fff)!important;color:var(--yz-call-btn-fg,#000)!important;}
+#callbar .cend svg{stroke:var(--yz-call-btn-fg,#000)!important;}
 #call .cbtn svg{stroke:var(--yz-call-btn-fg,#000)!important;}
 #call .cav{background:var(--yz-call-av,#1c1c1e)!important;box-shadow:none!important;}
 #call .cav{width:110px;height:110px;border-radius:38px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:700;background:var(--yz-call-av,#1c1c1e);box-shadow:0 10px 24px rgba(0,0,0,.35);}
@@ -2176,7 +2179,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-30-v77";
+window.__YZ_BUILD="2026-10-30-v78";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -2943,6 +2946,7 @@ function tick(){
   }
   try{yzPhTick();}catch(e){}
   try{yzCallTick();}catch(e){}
+  try{ if(!window.__yzLtrAt||Date.now()-window.__yzLtrAt>30000){ window.__yzLtrAt=Date.now(); yzLetterCatchUp(); } }catch(e){}
   try{if(!window.__yzFavLast||Date.now()-window.__yzFavLast>180000){window.__yzFavLast=Date.now();yzFavReread();}}catch(e){}
 }
 
@@ -6219,6 +6223,7 @@ function saveLetterPost(){
   save();go('letters');renderLetters();
   /* 10分钟未回复 → 自动标记已读 */
   const gap=Math.max(0.2,(D.replyGap||5))*60000;
+  try{ var _L0=(D.letters||[]).find(function(x){return x.id===id;}); if(_L0)_L0._dueAt=Date.now()+gap; save(); }catch(e){}
   setTimeout(()=>himReplyLetter(id),gap);
   /* 30分钟未回 → 自动已读（他可以不回，但要看）*/
   setTimeout(function(){ try{ var L=(D.letters||[]).find(function(x){return x.id===id;}); if(L&&!L.read){ L.read=true; save(); if(document.getElementById('letters')&&document.getElementById('letters').classList.contains('active'))renderLetters(); } }catch(e){} },30*60*1000);
@@ -6279,6 +6284,7 @@ function sendLetterReply(){
     try{ openLetter(id); }catch(e){}
     /* 梦角回信 */
     var gap=Math.max(0.2,(D.replyGap||5))*60000;
+    try{ var _L1=(D.letters||[]).find(function(x){return x.id===nid;}); if(_L1)_L1._dueAt=Date.now()+gap; save(); }catch(e){}
     setTimeout(function(){ himReplyLetter(nid); },gap);
     /* 30分钟未回 → 自动已读 */
     setTimeout(function(){ try{ var L=(D.letters||[]).find(function(x){return x.id===nid;}); if(L&&!L.read){ L.read=true; save(); if(document.getElementById('letters')&&document.getElementById('letters').classList.contains('active'))renderLetters(); } }catch(e){} },30*60*1000);
@@ -6286,11 +6292,29 @@ function sendLetterReply(){
     toast('已回信');
   }catch(e){}
 }
+/* 补跑：页面重开后，把到点的待回信补上 */
+function yzLetterCatchUp(){
+  try{
+    var now=Date.now();
+    (D.letters||[]).forEach(function(L){
+      if(!L||L.from!=='me'||L.replied)return;
+      if(!L._dueAt)return;
+      if(now<L._dueAt)return;
+      if(L._ranReply)return;
+      L._ranReply=true;
+      try{ himReplyLetter(L.id); }catch(e){}
+    });
+  }catch(e){}
+}
 function himReplyLetter(id){
   const lt=(D.letters||[]).find(x=>x.id===id);if(!lt||lt.replied)return;
   /* 抽回信概率：没中就不回（但信仍会30分钟后自动已读）*/
   var _rr=(D.replyRate!==undefined?D.replyRate:100);
-  if(Math.random()*100>=_rr){ return; }
+  if(Math.random()*100>=_rr){
+    /* 这轮没中：排到下一轮再试，不卡死 */
+    try{ var _g2=Math.max(0.2,(D.replyGap||5))*60000; lt._dueAt=Date.now()+_g2; lt._ranReply=false; save(); }catch(e){}
+    return;
+  }
   lt.replied=true;
   try{ lt.read=true; }catch(e){} /* 梦角回了 → 我写的那封置已读 */
   try{ var _ltFull=String(lt.text||'').replace(/^[\s\S]*?To[\uFF1A:][^\n]*\n+/,'').trim(); if(!_ltFull)_ltFull=String(lt.text||'').trim(); yzFavTry('letter',{text:(_ltFull||lt.preview||''),id:lt.id},lt.time||'','favLetterRate'); }catch(e){}
@@ -7986,6 +8010,10 @@ function momentCmtSend(id){
     var replyTo=window['__moReply_'+id]||'';
     mm.comments=mm.comments||[];
     mm.comments.push({from:'me',text:v,replyTo:replyTo});
+    /* 你发了评论 → 解锁，允许梦角再评一次；若是回复他的评论，则带上回复对象 */
+    mm.himReplied=false;
+    /* 梦角回复你时显示「梦角昵称 回复 我的昵称」；主动评论则不带回复 */
+    mm._pendingReplyTo=replyTo?(D.myNick||'我'):'';
     window['__moReply_'+id]='';
     inp.value='';
     save();
@@ -8024,24 +8052,30 @@ function momReply(m,skipRate){
     try{ var _cr=(D.commentRate===undefined?50:parseFloat(D.commentRate))||0; if(Math.random()*100>=_cr)return; }catch(e){}
   }
   m.comments=m.comments||[];
-  /* 一次发 1~N 条（N 由设置「梦角动态评论最大条数」决定），全部直接抽字卡，不带“回复XX” */
+  /* 一轮只评论一次：你回复后才能再次评论 */
+  if(m.himReplied)return;
   var mx=Math.max(1,parseInt(D.momCmtMax)||3);
-  var n=1+Math.floor(Math.random()*mx);
+  var n=Math.min(mx,1+Math.floor(Math.random()*mx));
   var last='';
+  var _isReply=(m._pendingReplyTo||'');
   for(var k=0;k<n;k++){
     var _txt=pickCard();
     if(!_txt)continue;
     last=_txt;
-    m.comments.push({from:'him',text:_txt});
+    m.comments.push({from:'him',text:_txt,replyTo:_isReply});
   }
+  m.himReplied=true;
+  try{ m.himRepliedAt=Date.now(); }catch(e){}
+  m._pendingReplyTo='';
   save();if($('#moments').classList.contains('active'))renderMoments();
   try{ scheduleHomeBadges(); }catch(e){}
   try{ yzTopNotice(yzChNick(m&&m.cid)+' 评论了你的动态',(last||'').slice(0,30),null,2600); }catch(e){}
 }
 function maybeMomInteract(){
-  const list=(D.moments||[]).filter(m=>m.from==='me');
+  const list=(D.moments||[]).filter(m=>m.from==='me'&&!m.himReplied);
   if(!list.length)return;
   const m=list[Math.floor(Math.random()*list.length)];
+  if(!m)return;
   var _lr=(D.momLikeRate===undefined?50:parseFloat(D.momLikeRate))||0;
   var _cr=(D.commentRate===undefined?50:parseFloat(D.commentRate))||0;
   var did=false;
