@@ -377,17 +377,26 @@ svg [fill="currentColor"]{stroke:none;}
 .mask{position:absolute;inset:0;background:rgba(10,12,25,.35);opacity:0;pointer-events:none;transition:.25s;z-index:15;}
 .mask.show{opacity:1;pointer-events:auto;}
 
-#call{position:absolute;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:space-between;padding:80px 0 70px;background:#0a0a0a;color:#fff;}
+#call{position:absolute;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:space-between;padding:80px 0 70px;background:var(--yz-call-bg,#0a0a0a);color:var(--yz-call-fg,#fff);}
 #call.show{display:flex;transform:translateZ(0);backface-visibility:hidden;}
-#call .cav{width:110px;height:110px;border-radius:38px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:700;background:#1c1c1e;box-shadow:0 10px 24px rgba(0,0,0,.35);}
+/* 通话界面：跟随系统浅深色，无其他色彩 */
+:root{--yz-call-bg:#0a0a0a;--yz-call-fg:#ffffff;--yz-call-av:#1c1c1e;--yz-call-btn:#ffffff;--yz-call-btn-fg:#000000;}
+[data-theme="light"]{--yz-call-bg:#ffffff;--yz-call-fg:#000000;--yz-call-av:#f0f0f3;--yz-call-btn:#000000;--yz-call-btn-fg:#ffffff;}
+[data-theme="dark"]{--yz-call-bg:#000000;--yz-call-fg:#ffffff;--yz-call-av:#1c1c1e;--yz-call-btn:#ffffff;--yz-call-btn-fg:#000000;}
+#call{background:var(--yz-call-bg,#0a0a0a)!important;color:var(--yz-call-fg,#fff)!important;}
+#call .cname,#call .cstat,#call .cend,#call .cbtn{color:var(--yz-call-fg,#fff)!important;}
+#call .cbtn.no,#call .cbtn.yes{background:var(--yz-call-btn,#fff)!important;box-shadow:none!important;}
+#call .cbtn svg{stroke:var(--yz-call-btn-fg,#000)!important;}
+#call .cav{background:var(--yz-call-av,#1c1c1e)!important;box-shadow:none!important;}
+#call .cav{width:110px;height:110px;border-radius:38px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:700;background:var(--yz-call-av,#1c1c1e);box-shadow:0 10px 24px rgba(0,0,0,.35);}
 #call .cav img{width:100%;height:100%;object-fit:cover;}
 #call .cname{margin-top:22px;font-size:24px;font-weight:700;}
 #call .cstat{margin-top:10px;font-size:14px;opacity:.7;letter-spacing:1px;}
 #call .cbtns{display:flex;gap:70px;}
 .cbtn{position:relative;width:66px;height:66px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;color:#fff;transform:translateZ(0);}
-.cbtn.no{background:#ff5a6e;box-shadow:0 8px 24px rgba(255,90,110,.5);}
-.cbtn.yes{background:#3ddc84;animation:pu-yes 1.2s ease-in-out infinite;}
-.cbtn.yes::after{content:'';position:absolute;left:-6px;right:-6px;top:-6px;bottom:-6px;border-radius:50%;box-shadow:0 8px 24px rgba(61,220,132,.5);z-index:-1;pointer-events:none;}
+.cbtn.no{background:var(--yz-call-btn,#ff5a6e);box-shadow:none;}
+.cbtn.yes{background:var(--yz-call-btn,#3ddc84);animation:pu-yes 1.2s ease-in-out infinite;}
+.cbtn.yes::after{content:none;}
 @keyframes pu-yes{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 @keyframes pu{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 
@@ -464,15 +473,15 @@ svg [fill="currentColor"]{stroke:none;}
 #callbar .cend{width:28px;height:28px;border-radius:50%;background:#ff5a6e;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;flex:0 0 28px;}
 
 /* 全屏来电（仅呼入） */
-#call{position:absolute;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:space-between;padding:80px 0 70px;background:#0a0a0a;color:#fff;}
+#call{position:absolute;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:space-between;padding:80px 0 70px;background:var(--yz-call-bg,#0a0a0a);color:var(--yz-call-fg,#fff);}
 #call.show{display:flex;transform:translateZ(0);backface-visibility:hidden;}
-#call .cav{width:110px;height:110px;border-radius:38px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:700;background:#1c1c1e;box-shadow:0 10px 24px rgba(0,0,0,.35);}
+#call .cav{width:110px;height:110px;border-radius:38px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:700;background:var(--yz-call-av,#1c1c1e);box-shadow:0 10px 24px rgba(0,0,0,.35);}
 #call .cav img{width:100%;height:100%;object-fit:cover;}
 #call .cname{margin-top:22px;font-size:24px;font-weight:700;}
 #call .cstat{margin-top:10px;font-size:14px;opacity:.7;letter-spacing:1px;}
 #call .cbtns{display:flex;gap:50px;justify-content:center;align-items:center;}
 .cbtn{position:relative;width:66px;height:66px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;color:#fff;transform:translateZ(0);}
-.cbtn.no{background:#ff5a6e;box-shadow:0 8px 24px rgba(255,90,110,.5);}
+.cbtn.no{background:var(--yz-call-btn,#ff5a6e);box-shadow:none;}
 .cbtn.mini{background:#2c2c30;font-size:20px;font-weight:700;}
 
 /* 电话条（小胶囊·可拖动） */
@@ -1759,9 +1768,9 @@ svg [fill="currentColor"]{stroke:none;}
          </div>
          <div class="row"><div class="lab">主字卡回复概率（%）</div><input type="number" id="setMainRate" onchange="yzSaveMainRate()" onblur="yzSaveMainRate()" style="max-width:80px"></div><div class="row"><div class="lab">emoji混入主字卡</div><select id="setEmojiMix" onchange="saveProfile()" style="max-width:100px"><option value="0">关</option><option value="1">开</option></select></div><div class="row"><div class="lab">emoji混入概率（%）</div><input type="number" id="setEmojiMixRate" oninput="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">emoji单独成一条</div><select id="setEmojiAlone" onchange="saveProfile()" style="max-width:100px"><option value="0">关</option><option value="1">开</option></select></div><div class="row"><div class="lab">emoji单独发送概率（%）</div><input type="number" id="setEmojiAloneRate" oninput="saveProfile()" style="max-width:80px"></div><div class="row"><div class="lab">发表情包概率（%）（通用）</div><input type="number" id="setPackRate" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">梦角发语音概率（%）</div><input type="number" id="setVoiceRate" oninput="saveProfile()" style="max-width:80px"></div>
-         <div class="row"><div class="lab">主动来电间隔（分钟）</div><input type="number" id="setCallGap" min="1" max="1440" oninput="saveProfile()" style="max-width:80px"></div>
-         <div class="row"><div class="lab">累计时长</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;flex:1"><span id="yzCallAccMsg" style="font-size:11.5px;color:var(--sub)"></span><div class="chip" onclick="yzCallResetAcc()">清零</div></div></div>
          <div class="row"><div class="lab">主动来电概率（%）</div><input type="number" id="setCall" oninput="saveProfile()" style="max-width:80px"></div>
+         <div class="row"><div class="lab">主动来电间隔（分钟）</div><input type="number" id="setCallGap" min="1" max="1440" oninput="saveProfile()" style="max-width:80px"></div>
+         <div class="row"><div class="lab">梦角挂电话概率（%）</div><input type="number" id="setCallHangRate" min="0" max="100" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">开启消息通知</div><div class="chip" onclick="yzAskNotify()">开启 / 检查</div></div>
         <div class="row"><div class="lab">测试通知</div><div class="chip" onclick="yzTestNotify()">发一条试试</div></div>
         <div class="row"><div class="lab">后台保活（音频）</div><div class="chip" id="keepAliveBtn" onclick="yzToggleKeepAlive()">关闭</div></div>
@@ -2167,7 +2176,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-30-v76";
+window.__YZ_BUILD="2026-10-30-v77";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -2800,7 +2809,7 @@ if(o.tranGap===undefined)o.tranGap=30;
     pageBg:'',chatBg:'',momBg:'',lockBg:'',lockFg:'',fontColor:'',himFontColor:'',meFontColor:'',bubble:'',bubbleHim:'',bubbleMe:'',heroImg:'',himLetterBg:'',meLetterBg:'',
     readOn:true,typingOn:true,
     lockName:'Yu·Zhou',slogan:'',pass:'',
-    delay:1.2,double:35,tran:50,tranTo:10,packRate:25,mainRate:100,emojiMix:0,emojiMixRate:30,emojiAlone:0,emojiAloneRate:15,callRate:12,callGap:30,callAcc:0,patRate:15,voiceRate:0,momGap:1,momLikeRate:50,momCmtRate:30,commentRate:50,momCmtMax:3,momCmtMax:3,
+    delay:1.2,double:35,tran:50,tranTo:10,packRate:25,mainRate:100,emojiMix:0,emojiMixRate:30,emojiAlone:0,emojiAloneRate:15,callRate:12,callGap:30,callAcc:0,callHangRate:20,patRate:15,voiceRate:0,momGap:1,momLikeRate:50,momCmtRate:30,commentRate:50,momCmtMax:3,momCmtMax:3,
     noteMe:'',noteHim:'',
     sendMin:1,sendMax:2,
     comboRate:20,comboMin:2,comboMax:3,quoteRate:30,askDelay:15,
@@ -4003,7 +4012,7 @@ var YZ_SET_MAP={
   'setEmojiMix':'回复设置','setEmojiMixRate':'回复设置','setEmojiAlone':'回复设置','setEmojiAloneRate':'回复设置','setPackRate':'回复设置','setVoiceRate':'回复设置',
   'setFavMsg':'回复设置','setRereadMsg':'回复设置','setRereadMsgFav':'回复设置',
   'readToggle':'聊天显示','typingToggle':'聊天显示',
-  'setCall':'通话',
+  'setCall':'通话','setCallGap':'通话','setCallHangRate':'通话',
   'setTran':'转账','setTranTo':'转账','setTranGap':'转账','setTranAmts':'转账','setTranNotes':'转账',
   'setDaifuRate':'代付','setDaifuGap':'代付','setDaifuDelay':'代付',
   'setGiftRate':'送东西','setGiftAcceptRate':'送东西','setGiftRejectRate':'送东西','setGiftGap':'送东西','setGiftDelay':'送东西',
@@ -10033,7 +10042,35 @@ function startOutgoing(){
   $('#answerBtn').style.display='none';
   $('#miniBtn').style.display='none';
   $('#call').classList.add('show');
-  $('#call').dataset.to=setTimeout(()=>{if($('#call').classList.contains('show'))callConnected();},1800+Math.random()*1800);
+  /* 梦角挂电话概率：掷中则不应答，提示忙碌 */
+  var _hr=parseFloat(D.callHangRate);
+  if(isNaN(_hr))_hr=20;
+  var _hang=(Math.random()*100<_hr);
+  $('#call').dataset.to=setTimeout(()=>{
+    if(!$('#call').classList.contains('show'))return;
+    if(_hang){ try{ yzCallHangUpBusy(); }catch(e){} return; }
+    callConnected();
+  },1800+Math.random()*1800);
+}
+/* 梦角未接：关闭通话页 + 聊天提示 */
+function yzCallHangUpBusy(){
+  try{
+    clearTimeout($('#call').dataset.to);
+    $('#call').classList.remove('show');
+    callSec=0; stopCallTimer&&0;
+    try{ yzCallSysMsg('对方正在忙碌中，请稍后再拨',1); }catch(e){}
+  }catch(e){}
+}
+/* 向聊天流插入一条系统提示 */
+function yzCallSysMsg(text,isMine){
+  try{
+    var cv=yzCurConv(); if(!cv)return;
+    if(!cv.msgs)cv.msgs=[];
+    cv.msgs.push({type:'sys',from:'sys',text:text,_dms:Date.now()});
+    try{ save(); }catch(e){}
+    try{ if(document.getElementById('chat')&&document.getElementById('chat').classList.contains('active'))renderChat(); }catch(e){}
+    try{ renderChatList&&renderChatList(); }catch(e){}
+  }catch(e){}
 }
 /* ===== 在线时长累计 + 到点掷骰子打电话 ===== */
 function yzCallTick(){
@@ -10042,59 +10079,29 @@ function yzCallTick(){
     if(document.visibilityState!=='visible')return;
     /* 手机锁屏/未解锁不计时 */
     try{ if(typeof yzLocked==='function'&&yzLocked())return; }catch(e){}
-    /* 通话中不再计时 */
-    try{ if($('#call')&&$('#call').classList.contains('show'))return; }catch(e){}
+    /* 通话中不计时，挂断后从零重跑 */
+    try{ if($('#call')&&$('#call').classList.contains('show')){ window.__yzCallAccLast=Date.now(); D.callAcc=0; return; } }catch(e){}
+    try{ if($('#callbar')&&$('#callbar').classList.contains('show')){ window.__yzCallAccLast=Date.now(); D.callAcc=0; return; } }catch(e){}
     var gapMin=parseFloat(D.callGap);
     if(isNaN(gapMin)||gapMin<=0)gapMin=30;
     var now=Date.now();
     var last=window.__yzCallAccLast||now;
     var dt=now-last;
-    if(dt<0||dt>10000)dt=1000;   /* 异常跳变不计 */
+    if(dt<0||dt>10000)dt=1000;
     window.__yzCallAccLast=now;
     D.callAcc=(D.callAcc||0)+dt;
-    /* 设置页可见时刷新累计显示 */
-    try{ if(document.getElementById('yzCallAccMsg')&&document.getElementById('setCallGap')){ var _e=document.getElementById('yzCallAccMsg'); _e.textContent='已累计 '+Math.floor(D.callAcc/60000)+' 分钟 / 每 '+gapMin+' 分钟掷一次'; } }catch(_e3){}
-    /* 每 30 秒落盘一次，避免每秒写存储 */
-    if(!window.__yzCallSaveAt||now-window.__yzCallSaveAt>30000){ window.__yzCallSaveAt=now; try{ save(); }catch(e){} }
     var need=gapMin*60*1000;
     if(D.callAcc<need)return;
-    /* 到点：清零重新计，然后掷骰 */
+    /* 到点：清零重跑，掷骰子 */
     D.callAcc=0;
     try{ save(); }catch(e){}
     var rate=parseFloat(D.callRate);
     if(isNaN(rate))rate=12;
-    if(Math.random()*100>=rate)return;   /* 没中，不打 */
-    try{ if($('#callbar')&&$('#callbar').classList.contains('show'))return; }catch(e){}
+    if(Math.random()*100>=rate)return;   /* 没中，不打，重新等下一轮 */
     try{ var _cc=yzCurConv(); if(_cc&&_cc.type==='group')return; }catch(e){}
     window.__yzLastCallAt=Date.now();
     callType='in';showIncoming();
   }catch(e){}
-}
-function yzCallResetAcc(){
-  try{
-    D.callAcc=0; window.__yzCallAccLast=Date.now();
-    save();
-    var e=document.getElementById('yzCallAccMsg');
-    if(e){ e.textContent='已清零'; setTimeout(function(){ e.textContent=''; },1500); }
-  }catch(e){}
-}
-function yzCallAccRender(){
-  try{
-    var e=document.getElementById('yzCallAccMsg');
-    if(!e)return;
-    var m=Math.floor((D.callAcc||0)/60000);
-    var gap=parseFloat(D.callGap); if(isNaN(gap)||gap<=0)gap=30;
-    e.textContent='已累计 '+m+' 分钟 / 每 '+gap+' 分钟掷一次';
-  }catch(e){}
-}
-function maybeCall(){
-  try{ var _cc=yzCurConv(); if(_cc&&_cc.type==='group')return; }catch(e){}
-  /* 冷却：距上次触发不足 5 分钟不再掷骰，避免一轮回复里反复触发 */
-  try{ var _ln=window.__yzLastCallAt||0; if(Date.now()-_ln < 5*60*1000)return; }catch(e){}
-  if(Math.random()*100>=(D.callRate||12))return;
-  if($('#call').classList.contains('show')||$('#callbar').classList.contains('show'))return;
-  try{ window.__yzLastCallAt=Date.now(); }catch(e){}
-  callType='in';showIncoming();
 }
 /* 一次性修正：历史版本存错的拍一拍概率（超出 0~100 或异常偏大）清回 15 */
 function yzAskDelayFix(){
@@ -10215,8 +10222,8 @@ function hangCall(wasIncoming){
   try{ requestAnimationFrame(function(){ setTimeout(function(){ try{if(!($('#callbar')&&$('#callbar').classList.contains('show')))yzPerfOff();}catch(e){} }, 60); }); }catch(e){}
 
   if(wasIncoming===true&&callType==='in'){
-    sys('未接来电 · '+(D.nick||'他'));
-    push({from:'him',text:pickCard(),type:'text'});
+    /* 你主动拒接梦角来电 */
+    sys('已拒绝“'+(D.nick||'他')+'”的来电');
   }else if(was>0){
     sys('通话结束 · 时长 '+pad(Math.floor(was/60))+':'+pad(was%60));
     push({from:'him',text:pickCard(),type:'text'});
@@ -10934,7 +10941,7 @@ function fillSettings(){
   try{if(yzSafeEl('themeAutoChip'))yzSafeEl('themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}
   if(yzSafeEl('setDelay'))yzSafeEl('setDelay').value=D.delay;
   if(yzSafeEl('setSendGap'))yzSafeEl('setSendGap').value=(D.sendGap!==undefined?D.sendGap:D.delay);
-  yzSafeEl('setTran').value=D.tran;yzSafeEl('setCall').value=D.callRate;try{if(yzSafeEl('setCallGap'))yzSafeEl('setCallGap').value=(D.callGap!==undefined?D.callGap:30);}catch(e){}try{yzCallAccRender();}catch(e){}try{if(yzSafeEl('setPatRate')){var _prv=D.patRate;try{if(typeof yzCfg==='function'){var _x=yzCfg(yzCtxCharId(),'patRate',undefined);if(_x!==undefined&&_x!==null&&_x!=='')_prv=parseFloat(_x);}}catch(e2){}yzSafeEl('setPatRate').value=(_prv!==undefined?_prv:15);}}catch(e){}try{if(yzSafeEl('setVoiceRate'))yzSafeEl('setVoiceRate').value=(D.voiceRate!==undefined?D.voiceRate:0);}catch(e){}
+  yzSafeEl('setTran').value=D.tran;yzSafeEl('setCall').value=D.callRate;try{if(yzSafeEl('setCallGap'))yzSafeEl('setCallGap').value=(D.callGap!==undefined?D.callGap:30);}catch(e){}try{if(yzSafeEl('setCallHangRate'))yzSafeEl('setCallHangRate').value=(D.callHangRate!==undefined?D.callHangRate:20);}catch(e){}try{if(yzSafeEl('setPatRate')){var _prv=D.patRate;try{if(typeof yzCfg==='function'){var _x=yzCfg(yzCtxCharId(),'patRate',undefined);if(_x!==undefined&&_x!==null&&_x!=='')_prv=parseFloat(_x);}}catch(e2){}yzSafeEl('setPatRate').value=(_prv!==undefined?_prv:15);}}catch(e){}try{if(yzSafeEl('setVoiceRate'))yzSafeEl('setVoiceRate').value=(D.voiceRate!==undefined?D.voiceRate:0);}catch(e){}
   if(yzSafeEl('setTranTo'))yzSafeEl('setTranTo').value=D.tranTo;
   if(yzSafeEl('setTranGap'))yzSafeEl('setTranGap').value=(D.tranGap===undefined?30:D.tranGap);
   if(yzSafeEl('setPackRate'))yzSafeEl('setPackRate').value=(D.packRate===undefined?25:D.packRate);
@@ -11352,6 +11359,7 @@ function saveProfile(){
   try{ if($('#setTran')){var _tv=parseFloat($('#setTran').value); if(!isNaN(_tv))D.tran=Math.max(0,Math.min(100,_tv));} }catch(e){}
   try{ if($('#setCall')){var _cv=parseFloat($('#setCall').value); if(!isNaN(_cv))D.callRate=Math.max(0,Math.min(100,_cv));} }catch(e){}
   try{ if($('#setCallGap')){var _cg=parseFloat($('#setCallGap').value); if(!isNaN(_cg))D.callGap=Math.max(1,Math.min(1440,_cg));} }catch(e){}
+  try{ if($('#setCallHangRate')){var _chr=parseFloat($('#setCallHangRate').value); if(!isNaN(_chr))D.callHangRate=Math.max(0,Math.min(100,_chr));} }catch(e){}
   if($('#setVoiceRate')&&String($('#setVoiceRate').value).trim()!=='')D.voiceRate=Math.max(0,Math.min(100,parseFloat($('#setVoiceRate').value)||0));
   if($('#setTranTo'))D.tranTo=parseFloat($('#setTranTo').value)||0;
   if($('#setTranGap'))D.tranGap=Math.max(1,parseFloat($('#setTranGap').value)||30);
