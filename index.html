@@ -2179,7 +2179,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-30-v79";
+window.__YZ_BUILD="2026-10-30-v80";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -8013,7 +8013,7 @@ function momentCmtSend(id){
     /* 你发了评论 → 解锁，允许梦角再评一次；若是回复他的评论，则带上回复对象 */
     mm.himReplied=false;
     /* 梦角回复你时显示「梦角昵称 回复 我的昵称」；主动评论则不带回复 */
-    mm._pendingReplyTo=replyTo?(D.myNick||'我'):'';
+    mm._pendingReplyTo=(D.myNick||'我');
     window['__moReply_'+id]='';
     inp.value='';
     save();
@@ -8069,7 +8069,7 @@ function momReply(m,skipRate){
   m._pendingReplyTo='';
   save();if($('#moments').classList.contains('active'))renderMoments();
   try{ scheduleHomeBadges(); }catch(e){}
-  try{ yzTopNotice(yzChNick(m&&m.cid)+' 评论了你的动态',(last||'').slice(0,30),null,2600); }catch(e){}
+  try{ yzTopNotice(_isReply?(yzChNick(m&&m.cid)+' 回复了你的评论'):(yzChNick(m&&m.cid)+' 评论了你的动态'),(last||'').slice(0,30),null,2600); }catch(e){}
 }
 function maybeMomInteract(){
   const list=(D.moments||[]).filter(m=>m.from==='me'&&!m.himReplied);
@@ -8081,7 +8081,7 @@ function maybeMomInteract(){
   var did=false;
   if(Math.random()*100<_lr){
     m.likedBy=m.likedBy||[];
-    if(!m.likedBy.includes('him')){ m.likedBy.push('him'); try{ yzTopNotice(yzChNick(m&&m.cid)+' 赞了你的动态','',null,2400); }catch(e){} }
+    if(!m.likedBy.includes('him')){ m.likedBy.push('him'); try{ yzTopNotice(yzChNick(m&&m.cid)+' 赞了你的动态','',function(){ try{ openMoment(m.id); }catch(e){} },2400,yzChAvatar(m&&m.cid)||''); }catch(e){} }
     save(); did=true;
   }
   if(Math.random()*100<_cr){
