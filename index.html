@@ -198,8 +198,7 @@ svg [fill="currentColor"]{stroke:none;}
 #chat.yz-bub-default.yz-bub-round .msg .bubble{border-radius:18px !important;}
 #chat.yz-bub-default.yz-bub-round .msg .bubble .yz-tail{display:none !important;}
 /* 填了自定义气泡CSS：形状设置完全不生效，尖角元素彻底隐藏 */
-#chat.yz-ios-layout:not(.yz-bub-default) .msg .bubble::before,
-#chat.yz-ios-layout:not(.yz-bub-default) .msg .bubble::after{content:none !important;display:none !important;background:none !important;border:0 !important;}
+/* 填了自定义CSS：不再干预伪元素，交给用户CSS完全接管 */
 #chat.yz-ios-layout:not(.yz-bub-default) .bubble .yz-tail{display:none !important;}
 /* ===== 预览框：与实机完全同一套，仅默认模式生效 ===== */
 #bubblePreview.yz-bub-default .msg .bubble{border-radius:12px !important;}
@@ -2179,7 +2178,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-30-v80";
+window.__YZ_BUILD="2026-10-30-v81";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4147,9 +4146,9 @@ var YZ_BEAUTY_SUBS=[
           <textarea id="setBubble" placeholder="如：border-radius:24px; font-weight:600;" oninput="saveBeauty();yzChatBubMode();yzPreviewBubbleDebounced();"></textarea>
           <div style="margin-top:10px;display:flex;gap:8px;align-items:center"><div class="chip" onclick="yzForceLockCss()">强制写入并核对</div><div class="chip" onclick="yzDiagBubble()">查气泡状态</div><div id="yzLockMsg" style="font-size:12px;color:#e05252"></div></div>
           <div class="lab" style="margin-top:12px;margin-bottom:6px">预览</div>
-          <div id="bubblePreview" class="yz-ios-layout yz-bub-default" style="background:var(--card);border:1px solid var(--sub);border-radius:14px;padding:14px 12px 14px 22px;display:flex;flex-direction:column;gap:10px;position:relative;isolation:isolate">
-            <div class="msg him" style="display:flex"><div class="bubble" style="position:relative">梦角消息示例</div></div>
-            <div class="msg me" style="display:flex;justify-content:flex-end"><div class="bubble" style="position:relative">我的消息示例</div></div>
+          <div id="bubblePreview" class="yz-ios-layout yz-bub-default" style="background:var(--card);border:1px solid var(--sub);border-radius:14px;padding:14px 12px 14px 22px;position:relative;isolation:isolate;overflow:visible">
+            <div class="msg him" style="display:block"><div class="bubble">梦角消息示例</div></div>
+            <div class="msg me" style="display:block;text-align:right"><div class="bubble" style="display:inline-block">我的消息示例</div></div>
           </div>
         </div><div class="row"><div class="lab">气泡大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setBubbleSize" min="80" max="140" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="bubbleSizeVal" style="min-width:38px;text-align:right">100%</span></div></div><div class="row"><div class="lab">聊天字体大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setChatFontSize" min="11" max="22" step="1" value="14" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="chatFontSizeVal" style="min-width:38px;text-align:right">14px</span></div></div><div class="row"><div class="lab">转账卡片大小</div><div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex:1"><input type="range" id="setTranSize" min="80" max="150" step="5" value="100" oninput="saveBeauty()" style="flex:1;max-width:150px"><span class="val" id="tranSizeVal" style="min-width:38px;text-align:right">100%</span></div></div><div class="row"><div class="lab">转账卡片色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><input type="color" id="setTranColor" oninput="setColor('tranColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('tranColor','')">清</div></div></div><div class="row"><div class="lab">梦角消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('himFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('himFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setHimFontColorColor" oninput="setColor('himFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('himFontColor','')">清</div></div></div><div class="row"><div class="lab">我的消息字色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('meFontColor','#000000')" style="background:#000;color:#fff;border:1px solid var(--sub)">黑</div><div class="chip" onclick="setColor('meFontColor','#ffffff')" style="background:#fff;color:#000;border:1px solid var(--sub)">白</div><input type="color" id="setMeFontColorColor" oninput="setColor('meFontColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('meFontColor','')">清</div></div></div><div class="row"><div class="lab">头像显示</div><div style="display:flex;gap:6px;align-items:center"><div class="chip" id="yzAvModeEach" onclick="yzSetAvMode('each')">逐条显示</div><div class="chip" id="yzAvModeFirst" onclick="yzSetAvMode('first')">只在第一条</div></div></div><div class="row"><div class="lab">主动消息标记颜色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('autoDotColor','#859ecb')" style="background:#859ecb;color:#fff;border:1px solid var(--sub)">默认</div><input type="color" id="setAutoDotColorColor" oninput="setColor('autoDotColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('autoDotColor','')">清</div></div></div><div class="row"><div class="lab">主页心电图颜色</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" onclick="setColor('ecgColor','#e0567a')" style="background:#e0567a;color:#fff;border:1px solid var(--sub)">默认</div><input type="color" id="setEcgColorColor" oninput="setColor('ecgColor',this.value)" style="width:36px;height:30px;padding:0;border:1px solid var(--sub);background:var(--card);cursor:pointer"><div class="chip" onclick="setColor('ecgColor','')">清</div></div></div>`},
 
@@ -11883,7 +11882,7 @@ function yzPreviewBubble(){
       try{ yzBubShapeApply(box); }catch(e){}
       /* 若尖角元素被移除过，重建预览内容 */
       if(!box.querySelector('.bubble')){
-        box.innerHTML='<div class="msg him" style="display:flex"><div class="bubble" style="position:relative">梦角消息示例</div></div><div class="msg me" style="display:flex;justify-content:flex-end"><div class="bubble" style="position:relative">我的消息示例</div></div>';
+        box.innerHTML='<div class="msg him" style="display:block"><div class="bubble">梦角消息示例</div></div><div class="msg me" style="display:block;text-align:right"><div class="bubble" style="display:inline-block">我的消息示例</div></div>';
       }
     }
     var sh=yzPreviewGetSheet();
@@ -11907,14 +11906,14 @@ function yzPreviewBubble(){
     box.classList.add('bubblePreviewScope');
 
     var text='';
-    if(hasBlock){ text=forceImportant(mapped); }
+    if(hasBlock){ text=mapped; }
     else{
       var decls=mapped.split(/[;\n]+/).map(function(t){t=t.trim();return t.replace(/!important/ig,'').trim();}).filter(function(t){return t&&t.indexOf(':')>=0;});
-      if(decls.length)text='.bubblePreviewScope .msg.him .bubble,.bubblePreviewScope .msg.me .bubble{'+decls.map(function(x){return x+' !important';}).join(';')+';}';
+      if(decls.length)text='.bubblePreviewScope .msg.him .bubble,.bubblePreviewScope .msg.me .bubble{'+decls.join(';')+';}';
     }
     if(!text)return;
     if(text.length>60000)text=text.slice(0,60000);
-    text=text.replace(/z-index\s*:\s*(\d+)\s*!important/gi,function(mm,nn){var v=parseInt(nn,10);return 'z-index:'+(isNaN(v)?2:Math.min(v,5))+' !important';});
+    /* z-index 不再被强行压低，用户写多少就是多少 */
 
     var i=0,len=text.length;
     while(i<len){
