@@ -2207,7 +2207,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-31-v91";
+window.__YZ_BUILD="2026-10-31-v92";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -11944,6 +11944,15 @@ function yzPreviewBubble(){
   try{
     var box=document.getElementById('bubblePreview');
     if(!box)return;
+    /* 每次都把当前颜色写进预览变量，避免重建后被重置成默认色 */
+    try{
+      var _bhv=String((D&&D.bubbleHim)||'').trim();
+      var _bmev=String((D&&D.bubbleMe)||'').trim();
+      box.style.setProperty('--yz-snout-him', _bhv);
+      box.style.setProperty('--yz-snout-me', _bmev);
+      box.style.setProperty('--yz-bub-him', _bhv);
+      box.style.setProperty('--yz-bub-me', _bmev);
+    }catch(_cv){}
     var raw=String((D&&D.bubble)||'').trim().replace(/：/g,':');
     /* 关键：有自定义CSS时预览必须去掉默认外观类，否则默认规则会盖住用户CSS */
     if(raw){
