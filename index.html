@@ -2207,7 +2207,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-31-v92";
+window.__YZ_BUILD="2026-10-31-v93";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3005,7 +3005,7 @@ function go(id){
   if(id==='cards'){try{yzBindCards();renderCardTabs();}catch(e){}renderCards();}
   if(id==='together')renderTiles();
   if(id==='setSub'){ try{yzBuildSetGroups();}catch(e){} try{fillSettings();}catch(e){} }
-  if(id==='settings'){try{yzSetRenderTabs();}catch(e){} try{yzBuildSetGroups();}catch(e){} fillSettings();try{yzPhCondRows();}catch(e){}try{yzBeautyRender();}catch(e){}try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}try{if(!window.__yzMarkSetDone){window.__yzMarkSetDone=true;yzMarkSetStatus();}}catch(e){}}
+  if(id==='settings'){try{yzSetRenderTabs();}catch(e){} try{yzBuildSetGroups();}catch(e){} fillSettings();try{yzPhCondRows();}catch(e){}try{yzBeautyRender();}catch(e){}try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}try{ yzMarkSetStatus(); }catch(e){}}
   if(id==='moments'){ try{(D.moments||[]).forEach(function(m){ if(m.from==='him')m.read=true; }); save();}catch(e){} try{yzChSyncBtns();}catch(e){} renderMoments(); try{renderHome();}catch(e){} }
   if(id==='listen'){ D._yzLisEnterMs=Date.now(); try{window.__yzStampArmedLis=true;}catch(e){} hideLisFloat(); if(!D.lisBound){ try{ lisOpenPick(); }catch(e){} } else { try{ lisShowPlayer(); }catch(e){} } try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
   if(id!=='listen'){ try{ setTimeout(yzMaybeShowFloat,60); }catch(e){} }
@@ -4230,6 +4230,8 @@ function yzOpenBeautySub(name){
     try{ yzPhCondRows(); }catch(e){}
     try{ yzAvModeRender(); }catch(e){}
     try{ yzBubShapeRender(); }catch(e){}
+    /* 子页重建后补上「已选择 / 已上传」标记 */
+    try{ yzMarkSetStatus(); }catch(e){}
   }catch(e){}
 }
 function yzPhCondRows(){
@@ -4281,6 +4283,8 @@ function yzOpenSetSub(name){
     all2.forEach(function(g){ g.style.display='none'; });
     var hit2=all2.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;})[0];
     if(hit2)hit2.style.display='';
+    /* 子页打开后补上「已选择 / 已上传」标记 */
+    try{ yzMarkSetStatus(); }catch(e){}
   }catch(e){}
 }
 function renderPlus(){
