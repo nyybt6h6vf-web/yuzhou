@@ -1240,8 +1240,11 @@ svg [fill="currentColor"]{stroke:none;}
 #yzPhWarn{position:fixed;left:50%;top:14%;transform:translate(-50%,-20px);background:rgba(30,30,34,.94);color:#fff;padding:12px 20px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:9999;max-width:84%;text-align:center;}
 #yzPhWarn.show{opacity:1;transform:translate(-50%,0);}
 
-#homeP2{padding-bottom:26px;flex:1;min-height:0;background-size:cover !important;background-position:center !important;background-repeat:no-repeat !important;}
+#homeP2{padding-bottom:26px;flex:1;min-height:0;position:relative;overflow:visible !important;}
 #homeP2 .grid{padding-top:34px;flex:1;min-height:0;overflow-y:auto;}
+/* 第二页背景：用伪元素铺满整屏（含状态栏区域），不再被容器高度限制 */
+#homeP2::before{content:'';position:absolute;left:0;right:0;top:-200px;bottom:0;pointer-events:none;z-index:0;background-size:cover;background-position:center top;background-repeat:no-repeat;}
+#homeP2>*{position:relative;z-index:1;}
 
 /* 照片墙 */
 .photowall{position:relative;height:196px;margin:20px 16px 0;flex:0 0 auto;border:1px solid rgba(127,127,127,.22);border-radius:18px;padding:14px 8px;}
@@ -2207,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-31-v94";
+window.__YZ_BUILD="2026-10-31-v95";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3981,8 +3984,16 @@ function yzClearAppIcon(act){
 function renderHomeBg2(){
   const pg=$('#homeP2');if(!pg)return;
   const b=(D.page2Bg||'').trim();
-  if(b){pg.style.background=`linear-gradient(rgba(0,0,0,.02),rgba(0,0,0,.02)),url('${b}') center/cover no-repeat`;}
-  else{pg.style.background='';}
+  /* 背景写在伪元素上，铺满整屏（含状态栏区域）；容器本体保持透明 */
+  pg.style.background='';
+  pg.style.setProperty('--yz-p2bg', b?('url("'+b+'")'):'none');
+  var st=document.getElementById('yzP2BgStyle');
+  if(!st){ st=document.createElement('style'); st.id='yzP2BgStyle'; document.head.appendChild(st); }
+  if(b){
+    st.textContent='#homeP2::before{background-image:linear-gradient(rgba(0,0,0,.02),rgba(0,0,0,.02)),var(--yz-p2bg) !important;}';
+  }else{
+    st.textContent='#homeP2::before{background-image:none !important;}';
+  }
 }
 /* 留言条 */
 function syncNoteAvatars(){
