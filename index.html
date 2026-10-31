@@ -1377,12 +1377,12 @@ svg [fill="currentColor"]{stroke:none;}
           <div class="pcard pc1" id="pCard1" onclick="pickPhotoCard(1)">
             <div class="ptape"></div>
             <div class="pimg" id="pImg1"></div>
-            <div class="pcap" id="pCap1" onclick="editPhotoCap(1)">我们的照片</div>
+            <div class="pcap" id="pCap1" onclick="event.stopPropagation();editPhotoCap(1)">我们的照片</div>
           </div>
           <div class="pcard pc2" id="pCard2" onclick="pickPhotoCard(2)">
             <div class="ptape"></div>
             <div class="pimg" id="pImg2"></div>
-            <div class="pcap" id="pCap2" onclick="editPhotoCap(2)">想留住的瞬间</div>
+            <div class="pcap" id="pCap2" onclick="event.stopPropagation();editPhotoCap(2)">想留住的瞬间</div>
           </div>
         </div>
         <div class="notewrap">
@@ -1747,7 +1747,7 @@ svg [fill="currentColor"]{stroke:none;}
       <div class="group">
         <div class="row" onclick="yzOpenBeautySub('设置各功能背景')"><div class="lab">设置各功能背景</div><div class="chip">›</div></div>
         <div class="row" onclick="yzOpenBeautySub('锁屏')"><div class="lab">锁屏</div><div class="chip">›</div></div>
-        <div class="row" onclick="yzOpenBeautySub('各美化设置')"><div class="lab">各美化设置</div><div class="chip">›</div></div><div class="row"><div class="lab">头像形状</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" id="avShapeRound" onclick="setAvatarShape('round')">圆角</div><div class="chip" id="avShapeSquare" onclick="setAvatarShape('square')">方形</div></div></div><div class="row"><div class="lab">主题模式</div>
+        <div class="row" onclick="yzOpenBeautySub('各美化设置')"><div class="lab">各美化设置</div><div class="chip">›</div></div><div class="row" onclick="yzOpenIconMenu()"><div class="lab">图标样式</div><div class="chip">›</div></div><div class="row"><div class="lab">头像形状</div><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><div class="chip" id="avShapeRound" onclick="setAvatarShape('round')">圆角</div><div class="chip" id="avShapeSquare" onclick="setAvatarShape('square')">方形</div></div></div><div class="row"><div class="lab">主题模式</div>
           <div class="seg">
             <div class="chip" id="thLight" onclick="setTheme('light')">浅色</div>
             <div class="chip" id="thDark" onclick="setTheme('dark')">深色</div>
@@ -3915,7 +3915,15 @@ function _renderHomeNow(){
   const dock=$('#homeDock'),g=$('#homeGrid');
   const dk=HOME_APPS.filter(a=>DOCK_ACTS.indexOf(a.act)>=0);
   const rest=HOME_APPS.filter(a=>DOCK_ACTS.indexOf(a.act)<0);
-  function yzIconHtml(a){var cu=(D.appIcons||{})[a.act];var base;if(cu){base='<img src="'+cu+'" style="width:100%;height:100%;object-fit:cover;border-radius:19px">';}else{base=ICONS[a.ic]||'';}return base+yzBadgeHtml(yzUnreadFor(a.act));}
+function yzIconHtml(a){
+  var cu=(D.appIcons||{})[a.act];
+  var cc=(D.appIconColors||{})[a.act]||'';
+  var mark=ICONS[a.ic]||'';
+  var lay='';
+  if(cu){lay='<span style="position:absolute;inset:0;border-radius:19px;overflow:hidden;z-index:0"><img src="'+cu+'" style="width:100%;height:100%;object-fit:cover;display:block"></span>';}
+  else if(cc){lay='<span style="position:absolute;inset:0;border-radius:19px;background:'+cc+';z-index:0"></span>';}
+  return lay+'<span style="position:relative;z-index:1;display:flex;align-items:center;justify-content:center;width:100%;height:100%">'+mark+'</span>'+yzBadgeHtml(yzUnreadFor(a.act));
+}
   if(dock){dock.innerHTML='';dk.forEach(a=>{
     dock.insertAdjacentHTML('beforeend',`<div class="app" data-act="${a.act}" onclick="go('${a.act}')" ontouchstart="yzAppPress('${a.act}',event)" oncontextmenu="return yzAppLong('${a.act}',event)"><div class="icon">${yzIconHtml(a)}</div><span>${a.name}</span></div>`);
   });}
@@ -3966,17 +3974,11 @@ function yzAppLong(act,ev){if(ev)ev.preventDefault();yzAppMenu(act);return false
 document.addEventListener('touchend',function(){if(_yzPressTimer){clearTimeout(_yzPressTimer);_yzPressTimer=null;}},true);
 document.addEventListener('touchmove',function(){if(_yzPressTimer){clearTimeout(_yzPressTimer);_yzPressTimer=null;}},true);
 function yzAppMenu(act){
-  try{
-    if(typeof askInput!=='function'){}
-    var nm=act;
-    (HOME_APPS||[]).forEach(function(a){if(a.act===act)nm=a.name;});
-    if(!confirm('「'+nm+'」图标：要点确定选图片，取消则更多')){
-      if(confirm('要恢复默认图标吗？（确定=恢复默认）')){yzClearAppIcon(act);}
-      return;
-    }
-    _yzAppIconAct=act;pickTarget='appicon';var f=document.getElementById('filePick');if(f)f.click();
-  }catch(e){}
+  try{ toast('改图标去 设置 › 图标样式'); }catch(e){}
 }
+function yzSetAppIconColor(act,v){try{D.appIconColors=D.appIconColors||{};if(v){D.appIconColors[act]=v;if(D.appIcons)delete D.appIcons[act];}else{delete D.appIconColors[act];}save();renderHome();try{yzMarkSetStatus();}catch(e){}toast(v?'图标背景已更新':'已恢复默认');}catch(e){}}
+function yzSetAppIconImg(act){try{_yzAppIconAct=act;pickTarget='appicon';var f=document.getElementById('filePick');if(f)f.click();}catch(e){}}
+function yzClearAppIconBg(act){try{if(D.appIconColors)delete D.appIconColors[act];if(D.appIcons)delete D.appIcons[act];save();renderHome();try{yzMarkSetStatus();}catch(e){}toast('已恢复默认');}catch(e){}}
 var _yzAppIconAct='';
 function yzClearAppIcon(act){
   try{D.appIcons=D.appIcons||{};delete D.appIcons[act];save();renderHome();toast('已恢复默认图标');}catch(e){}
@@ -4221,6 +4223,38 @@ var YZ_BEAUTY_SUBS=[
 function yzBeautySubOf(name){
   for(var i=0;i<YZ_BEAUTY_SUBS.length;i++){ if(YZ_BEAUTY_SUBS[i].name===name)return YZ_BEAUTY_SUBS[i]; }
   return null;
+}
+function yzOpenIconMenu(){
+  try{
+    var sub=document.getElementById('setSub');
+    var body=document.getElementById('setSubBody');
+    if(!sub||!body)return;
+    var all=document.querySelectorAll('.screen');
+    for(var k=0;k<all.length;k++)all[k].classList.remove('active');
+    sub.classList.add('active');
+    var h='';
+    var arr=window.HOME_APPS||[];
+    arr.forEach(function(a){
+      if(a.folder)return;
+      var col=(D.appIconColors||{})[a.act]||'#E9E9EB';
+      var hasImg=!!(D.appIcons||{})[a.act];
+      var hasCol=!!(D.appIconColors||{})[a.act];
+      var stat=(hasImg||hasCol)?'<span class=setstat>已设置</span>':'';
+      h+='<div class=row style=flex-wrap:wrap;gap:10px><div class=lab>'+a.name+stat+'</div>';
+      h+='<input type=color data-act='+a.act+' value='+col+' class=yzicol style=width:34px;height:28px;padding:0;border:1px solid #ccc;background:#fff>';
+      h+='<div class=chip data-img='+a.act+'>上传图片</div>';
+      h+='<div class=chip data-clear='+a.act+'>恢复</div>';
+      h+='</div>';
+    });
+    body.innerHTML='<div class=group><h4>图标样式</h4>'+h+'</div>';
+    var t=document.getElementById('setSubTitle'); if(t)t.textContent='图标样式';
+    var is=body.querySelectorAll('.yzicol');
+    for(var i=0;i<is.length;i++){(function(el){el.onchange=function(){yzSetAppIconColor(el.getAttribute('data-act'),el.value);};})(is[i]);}
+    var imgs=body.querySelectorAll('[data-img]');
+    for(var j=0;j<imgs.length;j++){(function(el){el.onclick=function(){yzSetAppIconImg(el.getAttribute('data-img'));};})(imgs[j]);}
+    var cls=body.querySelectorAll('[data-clear]');
+    for(var m=0;m<cls.length;m++){(function(el){el.onclick=function(){yzClearAppIconBg(el.getAttribute('data-clear'));yzOpenIconMenu();};})(cls[m]);}
+  }catch(e){}
 }
 function yzOpenBeautySub(name){
   try{
@@ -7839,7 +7873,7 @@ $('#filePick').addEventListener('change',function(){
       else if(target==='photocard'){D['photo'+(_photoN||1)]=res;save();renderPhotoWall();done();toast('照片已放上');}
       else if(target==='diarybg'){D.diaryBg=res;save();renderDiaryProfile();done();toast('背景已更新');}
       else if(target==='diaryav'){D.diaryAv=res;save();renderDiaryProfile();done();toast('头像已更新');}
-      else if(target==='appicon'){D.appIcons=D.appIcons||{};D.appIcons[_yzAppIconAct]=res;save();renderHome();done();toast('图标已更换');}
+      else if(target==='appicon'){D.appIcons=D.appIcons||{};D.appIcons[_yzAppIconAct]=res;if(D.appIconColors)delete D.appIconColors[_yzAppIconAct];save();renderHome();done();toast('图标已更换');try{yzMarkSetStatus();}catch(e){}}
       else if(target==='favicon'){yzSquareFavicon(res,function(sq){D.favicon=sq;save();applyFavicon(sq);});done();toast('图标已更新，重新添加到桌面会生效');}
       else if(target==='charaav'){var _ch=(D.charas||[]).find(function(c){return c.id===_yzAvatarFor;});if(_ch){_ch.avatar=res;if(yzCurConv()&&yzCurConv().type!=='group'){D.avatarHim=res;}save();renderCharaDial(_ch);renderChatList();}done();toast('头像已更新');}
       else if(target==='himbg'){var _cb=D.phHimId||((D.charas||[])[0]||{}).id||'';var _cc=(D.charas||[]).find(function(x){return x.id===_cb;});if(_cc)_cc.diaryBg=res;else D.himBg=res;save();renderHimProfile();done();toast('背景已更新');}
