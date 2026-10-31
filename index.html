@@ -2200,7 +2200,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-31-v87";
+window.__YZ_BUILD="2026-10-31-v88";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4088,7 +4088,7 @@ function yzRowGroupKey(r){
 function yzBuildSetGroups(){
   try{
     var _chk=document.getElementById('setSubBody');
-    var _has=_chk&&_chk.querySelectorAll('.group').length>0;
+    var _has=!!(_chk&&_chk.querySelectorAll('.group').length>0);
     if(_yzSetMoved&&_has)return;
 
     var wrap=document.querySelector('#settings .list'); if(!wrap)return;
@@ -4244,7 +4244,12 @@ function yzOpenSetSub(name){
     try{ yzBuildSetGroups(); }catch(e){}
     var subs=document.getElementById('setSubBody'); if(!subs)return;
     var all=[].slice.call(subs.querySelectorAll('.group'));
-    if(!all.length){ try{ yzBuildSetGroups(); }catch(e){} all=[].slice.call(subs.querySelectorAll('.group')); }
+    /* 找不到目标组 → 强制重建一次，根绝“点了进去空白” */
+    var _ok=all.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;}).length>0;
+    if(!_ok){
+      try{ _yzSetMoved=false; yzBuildSetGroups(); }catch(e){}
+      all=[].slice.call(subs.querySelectorAll('.group'));
+    }
     /* 先隐藏全部，再只显示命中的那一组 */
     all.forEach(function(g){ g.style.display='none'; });
     var hit=all.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;})[0];
@@ -4513,14 +4518,14 @@ function renderChat(){
   /* typing 指示器由 setTyping() 单独增删，不在这里重建 */
   try{ if(D.typingOn!==false && D._typing && $('#chat').classList.contains('active')){ if(!b.querySelector('.typing-ind')){ b.insertAdjacentHTML('beforeend','<div class="typing-ind"><span>对方正在输入中</span><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div>'); } } }catch(e){}
   bindTranTaps();
-  /* 方框模式：给每个气泡补上侧边小尖角（已存在的不重复加） */
+  /* 方框模式：给每个气泡补上侧边小尖角（显隐由 CSS 控制） */
   try{
-    var _cm=document.getElementById('chat');
-    if(_cm&&_cm.classList.contains('yz-bub-default')&&!_cm.classList.contains('yz-bub-round')){
-      b.querySelectorAll('.msg .bubble').forEach(function(bu){
-        if(!bu.querySelector('.yz-snout')){ bu.appendChild(document.createElement('i')).className='yz-snout'; }
-      });
-    }
+    b.querySelectorAll('.msg .bubble').forEach(function(bu){
+      if(bu.classList.contains('packimg')||bu.classList.contains('transfer')||bu.classList.contains('voice'))return;
+      if(!bu.querySelector('.yz-snout')){
+        var _sn=document.createElement('i'); _sn.className='yz-snout'; bu.appendChild(_sn);
+      }
+    });
   }catch(_se){}
   window.__applyBubbleInline&&window.__applyBubbleInline();
   try{ var _hb=document.getElementById('holdBtn'); if(_hb)_hb.classList.toggle('on',!!D.sendHold); }catch(e){}
@@ -11692,8 +11697,9 @@ function applyCustom(){
   const bme=(D.bubbleMe||'').trim();
   const __hasCss=!!String(D.bubble||'').trim();
   /* 气泡换色：你设了就用你的，覆盖默认外观色 */
-  if(bh&&!__hasCss){css+=`#chat .msg.him .bubble,#chatBody .msg.him .bubble{background:${bh} !important;}#chat .msg.him .bubble .yz-snout,#chatBody .msg.him .bubble .yz-snout{border-right-color:${bh} !important;}`;}
-  if(bme&&!__hasCss){css+=`#chat .msg.me .bubble,#chatBody .msg.me .bubble{background:${bme} !important;}#chat .msg.me .bubble .yz-snout,#chatBody .msg.me .bubble .yz-snout{border-left-color:${bme} !important;}`;}
+  /* 提高特异度到与默认规则同级以上，否则默认色会赢 */
+  if(bh&&!__hasCss){css+=`#chat.yz-bub-default .msg.him .bubble,#chat.yz-ios-layout .msg.him .bubble{background:${bh} !important;}#chat.yz-bub-default .msg.him .bubble .yz-snout,#chat.yz-ios-layout .msg.him .bubble .yz-snout{border-right-color:${bh} !important;}#chat.yz-bub-default .msg.him .bubble::before,#chat.yz-ios-layout .msg.him .bubble::before{border-right-color:${bh} !important;}`;}
+  if(bme&&!__hasCss){css+=`#chat.yz-bub-default .msg.me .bubble,#chat.yz-ios-layout .msg.me .bubble{background:${bme} !important;}#chat.yz-bub-default .msg.me .bubble .yz-snout,#chat.yz-ios-layout .msg.me .bubble .yz-snout{border-left-color:${bme} !important;}#chat.yz-bub-default .msg.me .bubble::before,#chat.yz-ios-layout .msg.me .bubble::before{border-left-color:${bme} !important;}`;}
   /* 自定义气泡CSS：原样注入，不再硬拆，避免“只生效一半” */
   var rawBubble=String(D.bubble||'').trim().replace(/：/g,':');
   if(rawBubble){
@@ -11922,13 +11928,13 @@ function yzPreviewBubble(){
     else{
       box.classList.add('yz-bub-default');
       try{ yzBubShapeApply(box); }catch(e){}
-      /* 预览：方框模式补小尖角 */
+      /* 预览：补小尖角（显隐交给 CSS） */
       try{
-        if(!box.classList.contains('yz-bub-round')){
-          box.querySelectorAll('.msg .bubble').forEach(function(bu){
-            if(!bu.querySelector('.yz-snout')){ bu.appendChild(document.createElement('i')).className='yz-snout'; }
-          });
-        }
+        box.querySelectorAll('.msg .bubble').forEach(function(bu){
+          if(!bu.querySelector('.yz-snout')){
+            var _pn=document.createElement('i'); _pn.className='yz-snout'; bu.appendChild(_pn);
+          }
+        });
       }catch(_pe){}
       /* 若尖角元素被移除过，重建预览内容 */
       if(!box.querySelector('.bubble')){
