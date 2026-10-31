@@ -198,6 +198,21 @@ svg [fill="currentColor"]{stroke:none;}
 #chat.yz-bub-default.yz-bub-round .msg .bubble{border-radius:18px !important;}
 #chat.yz-bub-default.yz-bub-round .msg .bubble .yz-tail{display:none !important;}
 /* 填了自定义气泡CSS：形状设置完全不生效，尖角元素彻底隐藏 */
+/* ===== 方框模式小尖角：贴在气泡边缘垂直居中 ===== */
+#chat.yz-bub-default:not(.yz-bub-round) .msg .bubble{overflow:visible !important;}
+#chat.yz-bub-default:not(.yz-bub-round) .msg .bubble .yz-snout{display:block !important;position:absolute !important;top:50% !important;width:0 !important;height:0 !important;margin-top:-5px !important;border-top:5px solid transparent !important;border-bottom:5px solid transparent !important;pointer-events:none !important;z-index:1 !important;}
+#chat.yz-bub-default:not(.yz-bub-round) .msg.him .bubble .yz-snout{left:-7px !important;right:auto !important;border-right:7px solid #E9E9EB !important;border-left:0 !important;}
+#chat.yz-bub-default:not(.yz-bub-round) .msg.me .bubble .yz-snout{right:-7px !important;left:auto !important;border-left:7px solid #0A84FF !important;border-right:0 !important;}
+[data-theme="dark"] #chat.yz-bub-default:not(.yz-bub-round) .msg.him .bubble .yz-snout{border-right-color:#26252A !important;}
+/* 圆角模式 / 填了CAS：小尖角彻底关掉 */
+#chat.yz-bub-default.yz-bub-round .msg .bubble .yz-snout{display:none !important;}
+#chat.yz-ios-layout:not(.yz-bub-default) .bubble .yz-snout{display:none !important;}
+/* ---- 预览区同尺寸 ---- */
+#bubblePreview.yz-bub-default:not(.yz-bub-round) .msg .bubble{overflow:visible !important;}
+#bubblePreview.yz-bub-default:not(.yz-bub-round) .msg .bubble .yz-snout{display:block !important;position:absolute !important;top:50% !important;width:0 !important;height:0 !important;margin-top:-5px !important;border-top:5px solid transparent !important;border-bottom:5px solid transparent !important;pointer-events:none !important;}
+#bubblePreview.yz-bub-default:not(.yz-bub-round) .msg.him .bubble .yz-snout{left:-7px !important;right:auto !important;border-right:7px solid #E9E9EB !important;border-left:0 !important;}
+#bubblePreview.yz-bub-default:not(.yz-bub-round) .msg.me .bubble .yz-snout{right:-7px !important;left:auto !important;border-left:7px solid #0A84FF !important;border-right:0 !important;}
+#bubblePreview.yz-bub-default.yz-bub-round .msg .bubble .yz-snout{display:none !important;}
 /* 填了自定义CSS：不再干预伪元素，交给用户CSS完全接管 */
 #chat.yz-ios-layout:not(.yz-bub-default) .bubble .yz-tail{display:none !important;}
 /* ===== 预览框：与实机完全同一套，仅默认模式生效 ===== */
@@ -2185,7 +2200,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-31-v86";
+window.__YZ_BUILD="2026-10-31-v87";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4498,6 +4513,15 @@ function renderChat(){
   /* typing 指示器由 setTyping() 单独增删，不在这里重建 */
   try{ if(D.typingOn!==false && D._typing && $('#chat').classList.contains('active')){ if(!b.querySelector('.typing-ind')){ b.insertAdjacentHTML('beforeend','<div class="typing-ind"><span>对方正在输入中</span><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div>'); } } }catch(e){}
   bindTranTaps();
+  /* 方框模式：给每个气泡补上侧边小尖角（已存在的不重复加） */
+  try{
+    var _cm=document.getElementById('chat');
+    if(_cm&&_cm.classList.contains('yz-bub-default')&&!_cm.classList.contains('yz-bub-round')){
+      b.querySelectorAll('.msg .bubble').forEach(function(bu){
+        if(!bu.querySelector('.yz-snout')){ bu.appendChild(document.createElement('i')).className='yz-snout'; }
+      });
+    }
+  }catch(_se){}
   window.__applyBubbleInline&&window.__applyBubbleInline();
   try{ var _hb=document.getElementById('holdBtn'); if(_hb)_hb.classList.toggle('on',!!D.sendHold); }catch(e){}
 }
@@ -11667,11 +11691,9 @@ function applyCustom(){
   const bh=(D.bubbleHim||'').trim();
   const bme=(D.bubbleMe||'').trim();
   const __hasCss=!!String(D.bubble||'').trim();
-  /* 简讯页走 iOS 默认外观时，气泡色交给 iOS 那套，这里不再注入，避免把 iOS 背景盖掉 */
-  var __iosSkin=false;
-  try{ __iosSkin=!(String(D.bubble||'').trim()); }catch(e){}
-  if(bh&&!__hasCss&&!__iosSkin){css+=`.msg.him .bubble,.msg.him .bubble.voice,.msg.him .bubble.patb,.bubble.patb{background:${bh} !important;}`;}
-  if(bme&&!__hasCss&&!__iosSkin){css+=`.msg.me .bubble,.msg.me .bubble.voice{background:${bme} !important;}`;}
+  /* 气泡换色：你设了就用你的，覆盖默认外观色 */
+  if(bh&&!__hasCss){css+=`#chat .msg.him .bubble,#chatBody .msg.him .bubble{background:${bh} !important;}#chat .msg.him .bubble .yz-snout,#chatBody .msg.him .bubble .yz-snout{border-right-color:${bh} !important;}`;}
+  if(bme&&!__hasCss){css+=`#chat .msg.me .bubble,#chatBody .msg.me .bubble{background:${bme} !important;}#chat .msg.me .bubble .yz-snout,#chatBody .msg.me .bubble .yz-snout{border-left-color:${bme} !important;}`;}
   /* 自定义气泡CSS：原样注入，不再硬拆，避免“只生效一半” */
   var rawBubble=String(D.bubble||'').trim().replace(/：/g,':');
   if(rawBubble){
@@ -11900,6 +11922,14 @@ function yzPreviewBubble(){
     else{
       box.classList.add('yz-bub-default');
       try{ yzBubShapeApply(box); }catch(e){}
+      /* 预览：方框模式补小尖角 */
+      try{
+        if(!box.classList.contains('yz-bub-round')){
+          box.querySelectorAll('.msg .bubble').forEach(function(bu){
+            if(!bu.querySelector('.yz-snout')){ bu.appendChild(document.createElement('i')).className='yz-snout'; }
+          });
+        }
+      }catch(_pe){}
       /* 若尖角元素被移除过，重建预览内容 */
       if(!box.querySelector('.bubble')){
         box.innerHTML='<div class="msg him" style="display:block"><div class="bubble" style="display:inline-block;max-width:76%">梦角消息示例</div></div><div class="msg me" style="display:block;text-align:right"><div class="bubble" style="display:inline-block">我的消息示例</div></div>';
