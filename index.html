@@ -2177,7 +2177,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-30-v83";
+window.__YZ_BUILD="2026-10-31-v84";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3579,7 +3579,7 @@ function yzMyFavOpenCat(t){
           hh+='<div class="favtxt">'+(f.src?('<img src="'+f.src+'" style="max-width:90px;max-height:90px;border-radius:10px;">'):'[表情包]')+'</div>';
         } else {
           /* 长内容 → 小卡片，点一下看完整 */
-          hh+='<div class="favcard" data-favfull="'+realIdx+'" onclick="yzFavShowFull(\''+t+'\','+realIdx+')">';
+          hh+='<div class="favcard" data-favfull="'+realIdx+'" onclick="yzFavShowFull(\''+t+'\','+realIdx+',\''+yzFavSafe(JSON.stringify(f))+'\')">';
           hh+='<div class="favcard-t">'+esc(String(_full).slice(0,60).replace(/\n/g,' '))+'…</div>';
           hh+='<div class="favcard-h">点击查看完整内容 ›</div>';
           hh+='</div>';
@@ -3593,10 +3593,13 @@ function yzMyFavOpenCat(t){
   }
   el.classList.add('show');
 }
-function yzFavShowFull(t,i){
+function yzFavShowFull(t,i,jstr){
   try{
     yzMyFavInit();
-    var f=(D.myFavs[t]||[])[i]; if(!f)return;
+    var f=null;
+    if(jstr){ f=yzFavUnsafe(jstr); }
+    if(!f) f=(D.myFavs[t]||[])[i];
+    if(!f)return;
     var _full=yzFavFullOf(t,f);
     var el=document.getElementById('favDetail');
     if(!el){ el=document.createElement('div'); el.id='favDetail';
@@ -3615,7 +3618,7 @@ function yzFavFullOf(t,f){
     if(!f)return '';
     var _txt=String(f.text||'');
     if(t==='letter'){
-      var lt=(D.letters||[]).find(function(x){return String(x.id)===String(f.k);});
+      var lt=(f.k?((D.letters||[]).find(function(x){return x&&x.id!==undefined&&String(x.id)===String(f.k);})):null);
       if(lt){
         var _f=String(lt.text||'').replace(/^[\s\S]*?To[\uFF1A:][^\n]*\n+/,'').trim();
         if(!_f)_f=String(lt.text||'').trim();
@@ -3624,12 +3627,12 @@ function yzFavFullOf(t,f){
       return _txt;
     }
     if(t==='diary'){
-      var d=(D.diaries||[]).find(function(x){return String(x.id)===String(f.k);});
+      var d=(f.k?((D.diaries||[]).find(function(x){return x&&x.id!==undefined&&String(x.id)===String(f.k);})):null);
       if(d && String(d.text||'').length>_txt.length) _txt=String(d.text||'');
       return (f.title?('\u{1F4D6} '+f.title+'\n\n'):'')+_txt;
     }
     if(t==='moment'){
-      var m=(D.moments||[]).find(function(x){return String(x.id)===String(f.k);});
+      var m=(f.k?((D.moments||[]).find(function(x){return x&&x.id!==undefined&&String(x.id)===String(f.k);})):null);
       if(m && String(m.text||'').length>_txt.length) _txt=String(m.text||'');
       return (f.msgType==='voice')?('\u{1F3A4} '+(f.sec||'')+'\u2033 '+_txt):_txt;
     }
@@ -3640,6 +3643,14 @@ function yzFavFullOf(t,f){
     if(t==='music') return '\u{1F3B5} '+(f.title||'')+(f.by?' \u00b7 '+f.by:'');
     return _txt;
   }catch(e){ return String((f&&f.text)||''); }
+}
+function yzFavSafe(str){
+  try{
+    return encodeURIComponent(String(str)).replace(/'/g,'%27');
+  }catch(e){ return ''; }
+}
+function yzFavUnsafe(str){
+  try{ return JSON.parse(decodeURIComponent(String(str))); }catch(e){ return null; }
 }
 function yzFavDetailClose(){ try{ var el=document.getElementById('favDetail'); if(el)el.classList.remove('show'); }catch(e){} }
 function yzMyFavDel(t,i){ try{ yzMyFavInit(); D.myFavs[t].splice(i,1); save(); yzMyFavOpenCat(t); }catch(e){} }
@@ -3692,7 +3703,7 @@ function yzFavOpenCat(t){
         if(f.msgType==='img' && (t==='msg'||t==='moment')){
           hh+='<div class="favtxt">'+(f.src?('<img src="'+f.src+'" style="max-width:90px;max-height:90px;border-radius:10px;">'):'[表情包]')+'</div>';
         } else {
-          hh+='<div class="favcard" onclick="yzFavShowFull2(\''+t+'\','+realIdx+')">';
+          hh+='<div class="favcard" onclick="yzFavShowFull2(\''+t+'\','+realIdx+',\''+yzFavSafe(JSON.stringify(f))+'\')">';
           hh+='<div class="favcard-t">'+esc(String(_full).slice(0,60).replace(/\n/g,' '))+'…</div>';
           hh+='<div class="favcard-h">点击查看完整内容 ›</div>';
           hh+='</div>';
@@ -3707,10 +3718,13 @@ function yzFavOpenCat(t){
   }
   el.classList.add('show');
 }
-function yzFavShowFull2(t,i){
+function yzFavShowFull2(t,i,jstr){
   try{
     yzFavInit();
-    var f=(D.favs[t]||[])[i]; if(!f)return;
+    var f=null;
+    if(jstr){ f=yzFavUnsafe(jstr); }
+    if(!f) f=(D.favs[t]||[])[i];
+    if(!f)return;
     var _full='';
     if(t==='msg'||t==='moment'){ _full=(f.msgType==='voice')?('\u{1F3A4} '+(f.sec||'')+'\u2033 '+(f.text||'')):(f.text||''); }
     if(t==='music') _full='\u{1F3B5} '+(f.title||'')+(f.by?' \u00b7 '+f.by:'');
