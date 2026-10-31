@@ -181,15 +181,15 @@ svg [fill="currentColor"]{stroke:none;}
 #chat.yz-ios-layout .msg .avatarbox.yz-av-hide{visibility:hidden !important;}
 
 /* ---- iOS 默认气泡外观 ---- */
-#chat.yz-bub-default .msg .bubble{position:relative !important;box-shadow:none !important;border-radius:18px !important;line-height:1.3 !important;}
+#chat.yz-bub-default .msg .bubble{position:relative !important;box-shadow:none !important;line-height:1.3 !important;}
 #chat.yz-bub-default .msg.him .bubble{background:#E9E9EB !important;color:#000 !important;}
 #chat.yz-bub-default .msg.me .bubble{background:#0A84FF !important;color:#fff !important;}
 [data-theme="dark"] #chat.yz-bub-default .msg.him .bubble{background:#26252A !important;color:#fff !important;}
 /* ===== 气泡形状：方框 / 圆角（仅未填气泡CSS时生效） ===== */
 /* 方框：微信那种四角不对称圆角 */
-#chat.yz-bub-default .msg .bubble{border-radius:12px !important;}
-#chat.yz-bub-default .msg.him .bubble{border-top-left-radius:3px !important;border-bottom-right-radius:3px !important;}
-#chat.yz-bub-default .msg.me .bubble{border-top-right-radius:3px !important;border-bottom-left-radius:3px !important;}
+#chat.yz-bub-default .msg .bubble{border-radius:8px !important;}
+#chat.yz-bub-default .msg.him .bubble{border-radius:8px !important;}
+#chat.yz-bub-default .msg.me .bubble{border-radius:8px !important;}
 /* 方框模式下隐藏所有尖角元素与伪元素 */
 #chat.yz-bub-default:not(.yz-bub-round) .msg .bubble .yz-tail{display:none !important;}
 #chat.yz-bub-default .msg .bubble::before,
@@ -201,9 +201,9 @@ svg [fill="currentColor"]{stroke:none;}
 /* 填了自定义CSS：不再干预伪元素，交给用户CSS完全接管 */
 #chat.yz-ios-layout:not(.yz-bub-default) .bubble .yz-tail{display:none !important;}
 /* ===== 预览框：与实机完全同一套，仅默认模式生效 ===== */
-#bubblePreview.yz-bub-default .msg .bubble{border-radius:12px !important;}
-#bubblePreview.yz-bub-default .msg.him .bubble{border-top-left-radius:3px !important;border-bottom-right-radius:3px !important;}
-#bubblePreview.yz-bub-default .msg.me .bubble{border-top-right-radius:3px !important;border-bottom-left-radius:3px !important;}
+#bubblePreview.yz-bub-default .msg .bubble{border-radius:8px !important;}
+#bubblePreview.yz-bub-default .msg.him .bubble{border-radius:8px !important;}
+#bubblePreview.yz-bub-default .msg.me .bubble{border-radius:8px !important;}
 #bubblePreview.yz-bub-default .msg .bubble::before,
 #bubblePreview.yz-bub-default .msg .bubble::after{display:none !important;content:none !important;border:0 !important;background:none !important;}
 #bubblePreview.yz-bub-default.yz-bub-round .msg .bubble{border-radius:18px !important;}
@@ -219,11 +219,10 @@ svg [fill="currentColor"]{stroke:none;}
 #chat.yz-ios-layout .msg.him .readtag{text-align:left !important;margin:2px 0 0 8px !important;}
 
 /* ---- 预览区：同样的 iOS 外观 ---- */
-#bubblePreview.yz-bub-default .bubble{position:relative !important;box-shadow:none !important;border-radius:18px !important;line-height:1.3 !important;}
+#bubblePreview.yz-bub-default .bubble{position:relative !important;box-shadow:none !important;line-height:1.3 !important;}
 #bubblePreview.yz-bub-default .msg.him .bubble{background:#E9E9EB !important;color:#000 !important;}
 #bubblePreview.yz-bub-default .msg.me .bubble{background:#0A84FF !important;color:#fff !important;}
-#bubblePreview.yz-bub-default .msg.him .bubble{border-bottom-left-radius:9px !important;}
-#bubblePreview.yz-bub-default .msg.me .bubble{border-bottom-right-radius:9px !important;}
+/* 方框模式：四角统一，不再单独收角 */
 
 /* ---- 主动消息小圆点：气泡右下角 ---- */
 #chat.yz-ios-layout .yz-bubpos{position:relative !important;display:inline-block !important;max-width:100% !important;}
@@ -2186,7 +2185,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-31-v85";
+window.__YZ_BUILD="2026-10-31-v86";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
