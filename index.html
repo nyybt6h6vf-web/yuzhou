@@ -2210,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-31-v96";
+window.__YZ_BUILD="2026-10-31-v97";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4233,7 +4233,7 @@ function yzOpenIconMenu(){
     for(var k=0;k<all.length;k++)all[k].classList.remove('active');
     sub.classList.add('active');
     var h='';
-    var arr=window.HOME_APPS||[];
+    var arr=(typeof HOME_APPS!=="undefined")?HOME_APPS:[];
     arr.forEach(function(a){
       if(a.folder)return;
       var col=(D.appIconColors||{})[a.act]||'#E9E9EB';
@@ -5897,6 +5897,7 @@ function yzCheckVerManual(){
       }).catch(function(){ if(r)r.textContent='检查失败'; if(b)b.textContent='检查'; });
   }catch(e){ if(b)b.textContent='检查'; }
 }
+function yzAutoVerCheck(){  try{    if(sessionStorage.getItem('yzAutoVerChecked')==='1')return;    sessionStorage.setItem('yzAutoVerChecked','1');    fetch('https://nyybt6h6vf-web.github.io/yuzhou/version.txt?t='+Date.now(),{cache:'no-store'})      .then(function(x){return x.text();})      .then(function(t){        var v=(t||'').trim();        var local=window.__YZ_BUILD||'';        if(v&&local&&!yzVerSame(v,local)){          try{ if(localStorage.getItem('yzAutoVerJump')!==v){ localStorage.setItem('yzAutoVerJump',v); yzForceUpdate(); } }catch(e){}        }      }).catch(function(){});  }catch(e){}}setTimeout(function(){ try{ yzAutoVerCheck(); }catch(e){} },1200);
 function yzVerRender(){
   try{
     var a=document.getElementById('verLocalTxt');
