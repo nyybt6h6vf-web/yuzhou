@@ -140,7 +140,10 @@ svg [fill="currentColor"]{stroke:none;}
 .avatarbox .avatar{width:38px;height:38px;}
 .avfb{position:absolute;right:-6px;bottom:-6px;max-width:52px;padding:1px 5px;font-size:9px;line-height:1.5;font-weight:600;color:#fff;background:#e0567a;border-radius:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 6px rgba(224,86,122,.5);pointer-events:none;}
 .msg.me .avatarbox{flex-direction:row-reverse;}
-.bubwrap{display:flex;flex-direction:column;max-width:72%;}
+.bubwrap{display:flex;flex-direction:column;max-width:72%;align-items:flex-start;}
+.msg.me .bubwrap{align-items:flex-end;}
+.bubwrap>.bubble{align-self:flex-start;max-width:100%;}
+.msg.me .bubwrap>.bubble{align-self:flex-end;}
 .msgname{font-size:11px;color:var(--sub);margin:2px 0 3px 2px;display:flex;align-items:flex-end;gap:4px;}
 .msgname .ttl{font-weight:600;color:var(--text);font-size:12px;}
 .msgname .feel{font-size:10px;color:var(--sub);opacity:.9;}
@@ -187,9 +190,9 @@ svg [fill="currentColor"]{stroke:none;}
 [data-theme="dark"] #chat.yz-bub-default .msg.him .bubble{background:#26252A !important;color:#fff !important;}
 /* ===== 气泡形状：方框 / 圆角（仅未填气泡CSS时生效） ===== */
 /* 方框：微信那种四角不对称圆角 */
-#chat.yz-bub-default .msg .bubble{border-radius:8px !important;}
-#chat.yz-bub-default .msg.him .bubble{border-radius:8px !important;}
-#chat.yz-bub-default .msg.me .bubble{border-radius:8px !important;}
+#chat.yz-bub-default .msg .bubble{border-radius:5px !important;}
+#chat.yz-bub-default .msg.him .bubble{border-radius:5px !important;}
+#chat.yz-bub-default .msg.me .bubble{border-radius:5px !important;}
 /* 方框模式下隐藏所有尖角元素与伪元素 */
 #chat.yz-bub-default:not(.yz-bub-round) .msg .bubble .yz-tail{display:none !important;}
 #chat.yz-bub-default .msg .bubble::before,
@@ -219,9 +222,9 @@ svg [fill="currentColor"]{stroke:none;}
 /* 填了自定义CSS：不再干预伪元素，交给用户CSS完全接管 */
 #chat.yz-ios-layout:not(.yz-bub-default) .bubble .yz-tail{display:none !important;}
 /* ===== 预览框：与实机完全同一套，仅默认模式生效 ===== */
-#bubblePreview.yz-bub-default .msg .bubble{border-radius:8px !important;}
-#bubblePreview.yz-bub-default .msg.him .bubble{border-radius:8px !important;}
-#bubblePreview.yz-bub-default .msg.me .bubble{border-radius:8px !important;}
+#bubblePreview.yz-bub-default .msg .bubble{border-radius:5px !important;}
+#bubblePreview.yz-bub-default .msg.him .bubble{border-radius:5px !important;}
+#bubblePreview.yz-bub-default .msg.me .bubble{border-radius:5px !important;}
 #bubblePreview.yz-bub-default .msg .bubble::before,
 #bubblePreview.yz-bub-default .msg .bubble::after{display:none !important;content:none !important;border:0 !important;background:none !important;}
 #bubblePreview.yz-bub-default.yz-bub-round .msg .bubble{border-radius:18px !important;}
@@ -1800,8 +1803,7 @@ svg [fill="currentColor"]{stroke:none;}
          <div class="row"><div class="lab">主动来电间隔（分钟）</div><input type="number" id="setCallGap" min="1" max="1440" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">梦角挂电话概率（%）</div><input type="number" id="setCallHangRate" min="0" max="100" oninput="saveProfile()" style="max-width:80px"></div>
          <div class="row"><div class="lab">开启消息通知</div><div class="chip" onclick="yzAskNotify()">开启 / 检查</div></div>
-         <div class="row"><div class="lab">测试通知</div><div class="chip" onclick="yzTestNotify()">发一条试试</div></div>
-         <div class="row"><div class="lab">检查尖角</div><div class="chip" onclick="yzSnoutDiag()">点我</div></div>
+
         <div class="row"><div class="lab">后台保活（音频）</div><div class="chip" id="keepAliveBtn" onclick="yzToggleKeepAlive()">关闭</div></div>
         <div class="row"><div class="lab">主动发消息间隔（分钟）</div><input type="number" id="setProactiveGap" oninput="saveProfile()" onchange="saveProfile()" onblur="saveProfile()" style="max-width:80px"></div>
         <div class="row"><div class="lab">主动找我（开关）</div><div class="chip" onclick="toggleProactive()" id="proactiveBtn">关闭</div></div>
@@ -2204,7 +2206,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-31-v89";
+window.__YZ_BUILD="2026-10-31-v90";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3690,31 +3692,6 @@ function yzSnoutApply(){
       }
     });
   }catch(e){}
-}
-function yzSnoutDiag(){
-  try{
-    var out=[];
-    var el=document.getElementById('chat');
-    out.push('chat类名: '+(el?el.className:'无'));
-    out.push('bubbleHim: '+(D.bubbleHim||'空')+' / bubbleMe: '+(D.bubbleMe||'空'));
-    out.push('bubbleCSS: '+((D.bubble||'').trim()?'有':'无'));
-    var sn=document.querySelectorAll('#chatBody .msg .bubble .yz-snout');
-    out.push('尖角数量: '+sn.length);
-    var bs=document.querySelectorAll('#chatBody .msg .bubble');
-    out.push('气泡数量: '+bs.length);
-    for(var i=0;i<Math.min(2,bs.length);i++){
-      var bb=bs[i];
-      var nn=bb.querySelector('.yz-snout');
-      var cs=window.getComputedStyle(bb);
-      out.push('--- 气泡'+i+' 类='+(bb.className||'无'));
-      out.push('背景='+cs.backgroundColor);
-      if(nn){
-        var ns=window.getComputedStyle(nn);
-        out.push('尖角display='+ns.display+' 右边框='+ns.borderRightColor+' 左边框='+ns.borderLeftColor+' w='+ns.borderRightWidth);
-      }else{ out.push('尖角: 不存在'); }
-    }
-    alert(out.join('\n'));
-  }catch(e){ alert('出错 '+e.message); }
 }
 function yzFavDetailClose(){ try{ var el=document.getElementById('favDetail'); if(el)el.classList.remove('show'); }catch(e){} }
 function yzMyFavDel(t,i){ try{ yzMyFavInit(); D.myFavs[t].splice(i,1); save(); yzMyFavOpenCat(t); }catch(e){} }
