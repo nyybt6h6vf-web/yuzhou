@@ -62,7 +62,8 @@ body{
   padding-bottom:env(safe-area-inset-bottom, 0px);
   box-sizing:border-box;
 }
-#phone{position:relative;width:100%;height:100%;max-width:430px;overflow:hidden;overscroll-behavior:none;background:var(--page-bg);box-sizing:border-box;}
+#phone{position:relative;width:100%;height:100dvh;min-height:100dvh;max-width:430px;overflow:hidden;overscroll-behavior:none;background:var(--page-bg);box-sizing:border-box;}
+@supports not (height:100dvh){#phone{height:100vh;min-height:100vh;}}
 @media(min-width:520px){
   #phone{height:900px;max-height:96vh;border-radius:46px;box-shadow:0 30px 80px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.08);}
 }
@@ -2215,7 +2216,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-09-v99";
+window.__YZ_BUILD="2026-11-09-v100";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -12185,6 +12186,19 @@ window.__yzInfo=function(){
   return {build:'1300',msgs:(D.msgs||[]).length,tranActs:typeof tranAct,hasSheet:!!document.getElementById('tranSheet')};
 };
 function init(){
+  /* 先绑定锁屏点击：保证任何后续初始化报错都不会导致进不去 */
+  try{
+    var _lk=document.getElementById('lock');
+    if(_lk && !_lk.__yzBound){
+      _lk.__yzBound=true;
+      _lk.addEventListener('click',function(ev){
+        try{ ev.stopPropagation(); }catch(e){}
+        window.__yzUnlocked=true;
+        try{ if(yzLocked()){ openPass(); } else { go('home'); } }catch(e){ try{ go('home'); }catch(_){} }
+        try{ setTimeout(function(){ checkPeriodRemind(); },600); }catch(e){}
+      });
+    }
+  }catch(e){}
   try{_yzBindMsgs(D);}catch(e){}
   try{yzPhInit();}catch(e){}
   try{yzFavInit();}catch(e){}
@@ -12196,7 +12210,7 @@ function init(){
   try{renderHome();}catch(e){}
   try{renderPlus();}catch(e){}
   try{applyCustom();}catch(e){}
-  $('#lock').addEventListener('click',()=>{ window.__yzUnlocked=true; if(yzLocked()){ openPass(); } else { go('home'); } try{setTimeout(function(){checkPeriodRemind();},600);}catch(e){} });
+  /* 锁屏点击已在 init 开头绑定 */
 document.addEventListener('click',function(e){var t=e.target;while(t&&t!==document){if(t.classList&&t.classList.contains('back')){try{if(t.closest&&t.closest('#settings')){['passSheet','packSheet','moSend','plusSheet'].forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove('show');});var mk=document.getElementById('mask');if(mk)mk.classList.remove('show');}}catch(err){}return;}t=t.parentNode;}},true);
   renderChat();
   try{document.addEventListener('visibilitychange',function(){if(!document.hidden){try{var ll=document.querySelector('.duo .linkline');if(ll){ll.style.animation='none';void ll.offsetWidth;ll.style.animation='';}}catch(e){}try{yzPassGate();}catch(e){}}});}catch(e){}
@@ -12245,6 +12259,28 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
 
 
 
+/* 锁屏兜底：无论初始化是否报错，点屏幕任意处都能进入 */
+document.addEventListener("click",function(e){
+  try{
+    var lk=document.getElementById("lock");
+    if(!lk || !lk.classList.contains("active"))return;
+    var ps=document.getElementById("passSheet");
+    if(ps && ps.classList.contains("show"))return;
+    window.__yzUnlocked=true;
+    if(yzLocked()){ openPass(); } else { go("home"); }
+  }catch(err){ try{ go("home"); }catch(_){} }
+},true);
+/* 锁屏兜底：无论初始化是否报错，点屏幕任意处都能进入 */
+document.addEventListener("click",function(e){
+  try{
+    var lk=document.getElementById("lock");
+    if(!lk || !lk.classList.contains("active"))return;
+    var ps=document.getElementById("passSheet");
+    if(ps && ps.classList.contains("show"))return;
+    window.__yzUnlocked=true;
+    if(yzLocked()){ openPass(); } else { go("home"); }
+  }catch(err){ try{ go("home"); }catch(_){} }
+},true);
 console.log("YZ build 04cb0cbf");
 init();
 </script>
