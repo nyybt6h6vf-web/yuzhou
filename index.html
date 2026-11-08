@@ -2210,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-31-v97";
+window.__YZ_BUILD="2026-11-09-v97a";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -11810,9 +11810,13 @@ function applyCustom(){
   }
   /* 消息字色：放在气泡CSS 之后，确保最终胜出 */
   var hfc=(D.himFontColor||'').trim();
-  if(hfc){css+='.msg.him .bubble,.msg.him .bubble *,.msg.him .bubble .quotebar,.msg.him .bubble.voice,.msg.him .bubble.patb{color:'+hfc+' !important;}';}
+  if(hfc){
+    css+='#chat .msg.him .bubble,#chat .msg.him .bubble *,#bubblePreview .msg.him .bubble,#bubblePreview .msg.him .bubble *{color:'+hfc+' !important;}';
+  }
   var mfc=(D.meFontColor||'').trim();
-  if(mfc){css+='.msg.me .bubble,.msg.me .bubble *,.msg.me .bubble .quotebar,.msg.me .bubble.voice{color:'+mfc+' !important;}';}
+  if(mfc){
+    css+='#chat .msg.me .bubble,#chat .msg.me .bubble *,#bubblePreview .msg.me .bubble,#bubblePreview .msg.me .bubble *{color:'+mfc+' !important;}';
+  }
   /* 转账字色：最后一个，!important 压过转账底色 */
   var tfc=(D.fontColor||'').trim();
   if(tfc){css+='.bubble.transfer,.bubble.transfer .tt,.bubble.transfer .tamt,.bubble.transfer .td,.bubble.transfer .tstmt,.bubble.transfer .tact span,.bubble.transfer .tic{color:'+tfc+' !important;}';}
