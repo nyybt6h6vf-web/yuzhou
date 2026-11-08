@@ -2210,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-09-v97d";
+window.__YZ_BUILD="2026-11-09-v97e";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3007,7 +3007,7 @@ function go(id){
   if(id==='chat'){try{yzChatBubMode();}catch(e){} D._yzChatEnterMs=Date.now(); try{window.__yzPatRolled=false;}catch(e){} try{window.__yzStampArmed=true;}catch(e){} renderChat();$('#chat').style.background=getChatBg();try{yzChatBubMode();}catch(e){} setTimeout(scrollBottom,30); try{var _cv=yzCurConv(); if(_cv){var _nl=(_cv.msgs||[]).length; if(_cv._readLen!==_nl){ _cv._readLen=_nl; save(); }}}catch(e){} try{renderHome();}catch(e){}}
   if(id==='cards'){try{yzBindCards();renderCardTabs();}catch(e){}renderCards();}
   if(id==='together')renderTiles();
-  if(id==='setSub'){ try{yzBuildSetGroups();}catch(e){} try{fillSettings();}catch(e){} }
+if(id==='setSub'){ try{yzBuildSetGroups();}catch(e){} try{fillSettings();}catch(e){} try{yzSetSubRestore();}catch(e){} setTimeout(function(){ try{yzSetSubRestore();}catch(e){} },80); }
   if(id==='settings'){try{yzSetRenderTabs();}catch(e){} try{yzBuildSetGroups();}catch(e){} fillSettings();try{yzPhCondRows();}catch(e){}try{yzBeautyRender();}catch(e){}try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}try{ yzMarkSetStatus(); }catch(e){}}
   if(id==='moments'){ try{(D.moments||[]).forEach(function(m){ if(m.from==='him')m.read=true; }); save();}catch(e){} try{yzChSyncBtns();}catch(e){} renderMoments(); try{renderHome();}catch(e){} }
   if(id==='listen'){ D._yzLisEnterMs=Date.now(); try{window.__yzStampArmedLis=true;}catch(e){} hideLisFloat(); if(!D.lisBound){ try{ lisOpenPick(); }catch(e){} } else { try{ lisShowPlayer(); }catch(e){} } try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
@@ -4289,22 +4289,75 @@ function yzPhCondRows(){
     var bm=document.getElementById('phMyAutoBtn'); if(bm)bm.textContent=ma?'开启':'关闭';
   }catch(e){}
 }
-function yzOpenSetHub(hub){
+function yzSetSubRestore(){
   try{
-    var subs=document.getElementById('setSubBody'); if(!subs)return;
-    var all=[].slice.call(subs.querySelectorAll('.group'));
-    all.forEach(function(g){ g.style.display='none'; });
-    /* 只显示属于这个入口的小组，每个小组自带标题 */
-    all.forEach(function(g){
-      if(g.getAttribute('data-hub')===hub)g.style.display='';
+    var hub=window.__yzSubHub||''; var name=window.__yzSubName||'';
+    if(!hub && !name)return;
+    var s=document.getElementById('setSubBody'); if(!s)return;
+    var gs=[].slice.call(s.querySelectorAll('.group'));
+    if(!gs.length)return;
+    gs.forEach(function(g){ g.style.display="none"; });
+    var n=0;
+    gs.forEach(function(g){
+      if(hub && g.getAttribute('data-hub')===hub){ g.style.display=''; n++; return; }
+      if(name){ var h=g.querySelector('h4'); if(h && h.textContent.trim()===name){ g.style.display=''; n++; } }
     });
-    var t=document.getElementById('setSubTitle');
-    if(t)t.textContent=hub;
+    if(!n){ gs.forEach(function(g){ g.style.display=""; }); }
+    try{ yzMarkSetStatus(); }catch(e){}
+  }catch(e){}
+}
+function yzSetSubRestore(){
+  try{
+    var hub=window.__yzSubHub||''; var name=window.__yzSubName||'';
+    if(!hub && !name)return;
+    var s=document.getElementById('setSubBody'); if(!s)return;
+    var gs=[].slice.call(s.querySelectorAll('.group'));
+    if(!gs.length)return;
+    gs.forEach(function(g){ g.style.display="none"; });
+    var n=0;
+    gs.forEach(function(g){
+      if(hub && g.getAttribute('data-hub')===hub){ g.style.display=''; n++; return; }
+      if(name){ var h=g.querySelector('h4'); if(h && h.textContent.trim()===name){ g.style.display=''; n++; } }
+    });
+    if(!n){ gs.forEach(function(g){ g.style.display=""; }); }
+    try{ yzMarkSetStatus(); }catch(e){}
+  }catch(e){}
+}
+function yzOpenSetHub(hub){
+  try{ window.__yzSubHub=hub; window.__yzSubName=""; }catch(e){}
+  try{ window.__yzSubHub=hub; window.__yzSubName=""; }catch(e){}
+  try{
+    /* 先构建：设置页重绘会把子页清空，必须重建 */
+    try{ yzBuildSetGroups(); }catch(e){}
+    var subs=document.getElementById("setSubBody"); if(!subs)return;
+    var all=[].slice.call(subs.querySelectorAll(".group"));
+    var hit=all.filter(function(g){return g.getAttribute("data-hub")===hub;}).length;
+    if(!hit){
+      try{ _yzSetMoved=false; yzBuildSetGroups(); }catch(e){}
+      all=[].slice.call(subs.querySelectorAll(".group"));
+    }
+    var t=document.getElementById("setSubTitle"); if(t)t.textContent=hub;
     try{ yzPhCondRows(); }catch(e){}
-    go('setSub');
+    go("setSub");
+    /* 显示：只显示属于这个入口的小组 */
+    var show=function(){
+      try{
+        var s=document.getElementById("setSubBody"); if(!s)return;
+        var gs=[].slice.call(s.querySelectorAll(".group"));
+        gs.forEach(function(g){ g.style.display="none"; });
+        var n=0;
+        gs.forEach(function(g){ if(g.getAttribute("data-hub")===hub){ g.style.display=""; n++; } });
+        if(!n){ gs.forEach(function(g){ g.style.display=""; }); }
+        try{ yzMarkSetStatus(); }catch(e){}
+      }catch(e){}
+    };
+    show();
+    setTimeout(show,80);
   }catch(e){}
 }
 function yzOpenSetSub(name){
+  try{ window.__yzSubName=name; window.__yzSubHub=""; }catch(e){}
+  try{ window.__yzSubName=name; window.__yzSubHub=""; }catch(e){}
   try{ var _sbx=document.getElementById("setSubBody"); var _hasx=!!(_sbx&&_sbx.querySelectorAll(".group").length>0); if(!_hasx)_yzSetMoved=false; }catch(e){ _yzSetMoved=false; }
   try{
     /* 先把分组建出来：新组只有建过之后才存在，否则下面什么都找不到 */
