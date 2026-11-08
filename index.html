@@ -2210,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-09-v97b";
+window.__YZ_BUILD="2026-11-09-v97c";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4507,6 +4507,7 @@ function yzRenderChatSoon(){
   }catch(e){ renderChat(); }
 }
 function renderChat(){
+  try{ var _cb0=document.getElementById('chatBody'); window.__yzWasAtBottom = _cb0 ? (_cb0.scrollHeight - _cb0.scrollTop - _cb0.clientHeight < 60) : true; }catch(e){ window.__yzWasAtBottom=true; }
   try{ var _cc=yzCurConv(); if(_cc&&_cc.msgs&&D.msgs!==_cc.msgs){ if(!D.msgs||!D.msgs.length||D.msgs.length<_cc.msgs.length){ D.msgs=_cc.msgs; } } }catch(e){}
   try{ if($('#call')&&$('#call').classList.contains('show')){ window.__yzLastRk=''; return; } }catch(e){}
   try{ var _rk=(D.curConv||'')+'|'+((D.msgs||[]).length)+'|'+(D._typing?1:0); if(window.__yzLastRk===_rk && document.getElementById('chatBody') && document.getElementById('chatBody').children.length){ return; } window.__yzLastRk=_rk; }catch(e){}
@@ -4591,6 +4592,7 @@ function renderChat(){
   window.__applyBubbleInline&&window.__applyBubbleInline();
   try{ yzApplyMsgFontColor(); }catch(e){}
   try{ var _hb=document.getElementById('holdBtn'); if(_hb)_hb.classList.toggle('on',!!D.sendHold); }catch(e){}
+  try{ if(window.__yzWasAtBottom){ var _cb1=document.getElementById('chatBody'); if(_cb1){ _cb1.scrollTop=_cb1.scrollHeight; requestAnimationFrame(function(){ try{ _cb1.scrollTop=_cb1.scrollHeight; }catch(e){} }); } } }catch(e){}
 }
 function yzSetAvMode(m){
   try{
