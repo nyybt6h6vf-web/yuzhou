@@ -2215,7 +2215,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-08-v98";
+window.__YZ_BUILD="2026-11-09-v99";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4125,8 +4125,8 @@ function yzRowGroupKey(r){
 function yzBuildSetGroups(){
   try{
     var _chk=document.getElementById('setSubBody');
-    var _has=!!(_chk&&_chk.querySelectorAll('.group').length>0);
-    if(_yzSetMoved&&_has)return;
+    /* 无条件重建：设置页重渲染会清空子页，标记不可信 */
+    try{ var _sb=document.getElementById("setSubBody"); if(_sb)_sb.innerHTML=""; }catch(e){}
 
     var wrap=document.querySelector('#settings .list'); if(!wrap)return;
     var subs=document.getElementById('setSubBody'); if(!subs)return;
@@ -4330,7 +4330,6 @@ function yzOpenSetSub(name){
     try{ yzSetSubReapply(); }catch(e){}
     try{ yzMarkSetStatus(); }catch(e){}
   }catch(e){}
-}
 }
 function renderPlus(){
   const g=$('#plusGrid');if(!g)return;g.innerHTML='';
@@ -8122,6 +8121,7 @@ function yzMomRefreshOne(id){
   }else if(lk){ lk.parentNode.removeChild(lk); }
   return true;
 }
+}
 function momentCmtToggle(id){
   try{
     var box=document.getElementById('moInline_'+id);
@@ -11811,6 +11811,9 @@ function applyCustom(){
       var decls=rawBubble.split(/[;\n]+/).map(function(t){t=t.trim();return t.replace(/!important/ig,'').trim();}).filter(function(t){return t&&t.indexOf(':')>=0;});
       if(decls.length){var _imp=decls.map(function(x){return x+' !important';}).join(';');css+='.msg.him .bubble,.msg.me .bubble{'+_imp+';}';}
     }
+  }else{
+    /* 气泡CSS已清空：强制把可能残留的自定义外观拉回默认 */
+    css+='#chat .msg .bubble,#bubblePreview .msg .bubble{transform:none !important;opacity:1 !important;filter:none !important;box-shadow:0 4px 12px rgba(120,130,200,.14) !important;}'+String.fromCharCode(10);
   }
   /* 转账卡片：先给基础底色保护（不让 .bubble 背景串进来），再用用户色覆盖 */
   const tc2=(D.tranColor||'').trim();
@@ -11828,9 +11831,9 @@ function applyCustom(){
   }
   /* 消息字色：放在气泡CSS 之后，确保最终胜出 */
   var hfc=(D.himFontColor||'').trim();
-  if(hfc){css+='#chat .msg.him .bubble,#chat .msg.him .bubble *,#bubblePreview .msg.him .bubble,#bubblePreview .msg.him .bubble *{color:'+hfc+' !important;}'+chr(10);}
+  if(hfc){css+='#chat .msg.him .bubble,#chat .msg.him .bubble *,#bubblePreview .msg.him .bubble,#bubblePreview .msg.him .bubble *{color:'+hfc+' !important;}'+String.fromCharCode(10);}
   var mfc=(D.meFontColor||'').trim();
-  if(mfc){css+='#chat .msg.me .bubble,#chat .msg.me .bubble *,#bubblePreview .msg.me .bubble,#bubblePreview .msg.me .bubble *{color:'+mfc+' !important;}'+chr(10);}
+  if(mfc){css+='#chat .msg.me .bubble,#chat .msg.me .bubble *,#bubblePreview .msg.me .bubble,#bubblePreview .msg.me .bubble *{color:'+mfc+' !important;}'+String.fromCharCode(10);}
   /* 转账字色：最后一个，!important 压过转账底色 */
   var tfc=(D.fontColor||'').trim();
   if(tfc){css+='.bubble.transfer,.bubble.transfer .tt,.bubble.transfer .tamt,.bubble.transfer .td,.bubble.transfer .tstmt,.bubble.transfer .tact span,.bubble.transfer .tic{color:'+tfc+' !important;}';}
@@ -12150,6 +12153,7 @@ function startGiftLoop(){
 }
 function yzTranTick(dt){
   try{
+    if(!window.__yzUnlocked && !document.hidden)window.__yzUnlocked=true; /* 在网站里就算已进入，不要卡死主动事件 */
     if(!window.__yzUnlocked)return;
     if(document.hidden)return;
     if(dt<0)dt=0; if(dt>300000)dt=300000;
