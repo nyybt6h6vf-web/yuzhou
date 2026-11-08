@@ -342,6 +342,11 @@ svg [fill="currentColor"]{stroke:none;}
 .cdial-close{position:absolute;top:-12px;right:-8px;width:30px;height:30px;border-radius:50%;background:var(--card);color:var(--text);display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.18);cursor:pointer;}
 .chatid{font-size:10px;color:var(--sub);margin:1px 0 0 2px;}
 #charaSheet{align-items:center;}
+.cdial .gitem{display:flex;align-items:center;gap:10px;padding:11px 8px;font-size:14px;color:var(--text);border-radius:10px;cursor:pointer;}
+.cdial .gitem:active{background:rgba(127,127,127,.1);}
+.cdial .gitem input{width:18px;height:18px;}
+.cdial .gb{text-align:center;padding:12px 0;border-radius:14px;font-size:14.5px;font-weight:600;background:var(--bubble-me);color:var(--bubble-me-text);cursor:pointer;margin-top:8px;}
+.cdial .gb.cancel{background:transparent;color:var(--sub);border:1px solid var(--line);}
 .cdial{width:86%;max-width:360px;background:var(--panel);border-radius:22px;padding:24px 20px;text-align:center;}
 .cdial .cbigav{width:76px;height:76px;border-radius:24px;margin:0 auto 14px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;background:var(--icon-bg);color:var(--icon-fg);cursor:pointer;}
 .cdial .cbigav img{width:100%;height:100%;object-fit:cover;}
@@ -2210,7 +2215,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-10-31-v97";
+window.__YZ_BUILD="2026-11-08-v98";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3007,7 +3012,7 @@ function go(id){
   if(id==='chat'){try{yzChatBubMode();}catch(e){} D._yzChatEnterMs=Date.now(); try{window.__yzPatRolled=false;}catch(e){} try{window.__yzStampArmed=true;}catch(e){} renderChat();$('#chat').style.background=getChatBg();try{yzChatBubMode();}catch(e){} setTimeout(scrollBottom,30); try{var _cv=yzCurConv(); if(_cv){var _nl=(_cv.msgs||[]).length; if(_cv._readLen!==_nl){ _cv._readLen=_nl; save(); }}}catch(e){} try{renderHome();}catch(e){}}
   if(id==='cards'){try{yzBindCards();renderCardTabs();}catch(e){}renderCards();}
   if(id==='together')renderTiles();
-  if(id==='setSub'){ try{yzBuildSetGroups();}catch(e){} try{fillSettings();}catch(e){} }
+  if(id==='setSub'){ try{yzBuildSetGroups();}catch(e){} try{fillSettings();}catch(e){} try{yzSetSubReapply();}catch(e){} }
   if(id==='settings'){try{yzSetRenderTabs();}catch(e){} try{yzBuildSetGroups();}catch(e){} fillSettings();try{yzPhCondRows();}catch(e){}try{yzBeautyRender();}catch(e){}try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}try{ yzMarkSetStatus(); }catch(e){}}
   if(id==='moments'){ try{(D.moments||[]).forEach(function(m){ if(m.from==='him')m.read=true; }); save();}catch(e){} try{yzChSyncBtns();}catch(e){} renderMoments(); try{renderHome();}catch(e){} }
   if(id==='listen'){ D._yzLisEnterMs=Date.now(); try{window.__yzStampArmedLis=true;}catch(e){} hideLisFloat(); if(!D.lisBound){ try{ lisOpenPick(); }catch(e){} } else { try{ lisShowPlayer(); }catch(e){} } try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
@@ -4288,49 +4293,44 @@ function yzPhCondRows(){
     var bh=document.getElementById('phHimAutoBtn'); if(bh)bh.textContent=ha?'开启':'关闭';
     var bm=document.getElementById('phMyAutoBtn'); if(bm)bm.textContent=ma?'开启':'关闭';
   }catch(e){}
-}
-function yzOpenSetHub(hub){
+function yzSetSubReapply(){
   try{
+    var mode=window.__yzSubMode||'';
+    var val=window.__yzSubVal||'';
+    if(!mode)return;
     var subs=document.getElementById('setSubBody'); if(!subs)return;
     var all=[].slice.call(subs.querySelectorAll('.group'));
     all.forEach(function(g){ g.style.display='none'; });
-    /* 只显示属于这个入口的小组，每个小组自带标题 */
+    var shown=0;
     all.forEach(function(g){
-      if(g.getAttribute('data-hub')===hub)g.style.display='';
+      var h=g.querySelector('h4'); var nm=h?h.textContent.trim():'';
+      if(mode==='sub'&&nm===val){ g.style.display=''; shown++; }
+      else if(mode==='hub'&&g.getAttribute('data-hub')===val){ g.style.display=''; shown++; }
     });
-    var t=document.getElementById('setSubTitle');
-    if(t)t.textContent=hub;
-    try{ yzPhCondRows(); }catch(e){}
+    if(!shown){ all.forEach(function(g){ g.style.display=''; }); }
+  }catch(e){}
+}
+function yzOpenSetHub(hub){
+  try{
+    window.__yzSubMode='hub'; window.__yzSubVal=hub;
+    try{ yzBuildSetGroups(); }catch(e){}
+    var t=document.getElementById('setSubTitle'); if(t)t.textContent=hub;
+    try{ yzSetSubReapply(); }catch(e){}
     go('setSub');
+    try{ yzSetSubReapply(); }catch(e){}
   }catch(e){}
 }
 function yzOpenSetSub(name){
   try{
-    /* 先把分组建出来：新组只有建过之后才存在，否则下面什么都找不到 */
+    window.__yzSubMode='sub'; window.__yzSubVal=name;
     try{ yzBuildSetGroups(); }catch(e){}
-    var subs=document.getElementById('setSubBody'); if(!subs)return;
-    var all=[].slice.call(subs.querySelectorAll('.group'));
-    /* 找不到目标组 → 强制重建一次，根绝“点了进去空白” */
-    var _ok=all.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;}).length>0;
-    if(!_ok){
-      try{ _yzSetMoved=false; yzBuildSetGroups(); }catch(e){}
-      all=[].slice.call(subs.querySelectorAll('.group'));
-    }
-    /* 先隐藏全部，再只显示命中的那一组 */
-    all.forEach(function(g){ g.style.display='none'; });
-    var hit=all.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;})[0];
-    if(hit)hit.style.display='';
     var t=document.getElementById('setSubTitle'); if(t)t.textContent=name;
-    try{ yzPhCondRows(); }catch(e){}
+    try{ yzSetSubReapply(); }catch(e){}
     go('setSub');
-    /* go() 之后可能重建过，再兜一次，确保只有命中那组显示 */
-    var all2=[].slice.call(subs.querySelectorAll('.group'));
-    all2.forEach(function(g){ g.style.display='none'; });
-    var hit2=all2.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;})[0];
-    if(hit2)hit2.style.display='';
-    /* 子页打开后补上「已选择 / 已上传」标记 */
+    try{ yzSetSubReapply(); }catch(e){}
     try{ yzMarkSetStatus(); }catch(e){}
   }catch(e){}
+}
 }
 function renderPlus(){
   const g=$('#plusGrid');if(!g)return;g.innerHTML='';
@@ -8103,7 +8103,24 @@ function toggleLike(id){
   m.likedBy=m.likedBy||[];
   const i=m.likedBy.indexOf('me');
   if(i>=0)m.likedBy.splice(i,1);else m.likedBy.push('me');
-  save();renderMoments();
+  save();
+  try{ yzMomRefreshOne(id); }catch(e){ renderMoments(); }
+}
+function yzMomRefreshOne(id){
+  var box=document.querySelector('.mo[data-moid="'+id+'"]');
+  if(!box)return false;
+  var m=(D.moments||[]).find(function(x){return x.id===id;});
+  if(!m)return false;
+  var liked=(m.likedBy||[]).indexOf('me')>=0;
+  var btn=box.querySelector('.moact>div');
+  if(btn){ btn.className=liked?'on':''; btn.textContent='\u2661 '+((m.likedBy||[]).length); }
+  var lk=box.querySelector('.molike');
+  var names=(m.likedBy||[]).map(function(w){return w==='me'?(D.myNick||'我'):yzChNick(m.cid);});
+  if(names.length){
+    if(!lk){ lk=document.createElement('div'); lk.className='molike'; var ins=box.querySelector('.moinline'); box.insertBefore(lk,ins||null); }
+    lk.innerHTML='<span class="molk-heart">\u2661</span> <b>'+esc(names.join('\u3001'))+'</b>';
+  }else if(lk){ lk.parentNode.removeChild(lk); }
+  return true;
 }
 function momentCmtToggle(id){
   try{
@@ -11668,6 +11685,7 @@ function yzClearChatDo(){
   try{
     var ids=Object.keys(_yzClearSel||{});
     if(!ids.length){ toast('先选要清空的会话'); return; }
+    closeSheet2('yzClearSheet');
     askConfirm('清空选中的 '+ids.length+' 个会话的聊天记录？',function(){
       try{
         ids.forEach(function(cid){
@@ -11810,9 +11828,9 @@ function applyCustom(){
   }
   /* 消息字色：放在气泡CSS 之后，确保最终胜出 */
   var hfc=(D.himFontColor||'').trim();
-  if(hfc){css+='.msg.him .bubble,.msg.him .bubble *,.msg.him .bubble .quotebar,.msg.him .bubble.voice,.msg.him .bubble.patb{color:'+hfc+' !important;}';}
+  if(hfc){css+='#chat .msg.him .bubble,#chat .msg.him .bubble *,#bubblePreview .msg.him .bubble,#bubblePreview .msg.him .bubble *{color:'+hfc+' !important;}'+chr(10);}
   var mfc=(D.meFontColor||'').trim();
-  if(mfc){css+='.msg.me .bubble,.msg.me .bubble *,.msg.me .bubble .quotebar,.msg.me .bubble.voice{color:'+mfc+' !important;}';}
+  if(mfc){css+='#chat .msg.me .bubble,#chat .msg.me .bubble *,#bubblePreview .msg.me .bubble,#bubblePreview .msg.me .bubble *{color:'+mfc+' !important;}'+chr(10);}
   /* 转账字色：最后一个，!important 压过转账底色 */
   var tfc=(D.fontColor||'').trim();
   if(tfc){css+='.bubble.transfer,.bubble.transfer .tt,.bubble.transfer .tamt,.bubble.transfer .td,.bubble.transfer .tstmt,.bubble.transfer .tact span,.bubble.transfer .tic{color:'+tfc+' !important;}';}
