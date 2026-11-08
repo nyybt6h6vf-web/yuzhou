@@ -2210,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-09-v97c";
+window.__YZ_BUILD="2026-11-09-v97d";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4305,6 +4305,7 @@ function yzOpenSetHub(hub){
   }catch(e){}
 }
 function yzOpenSetSub(name){
+  try{ var _sbx=document.getElementById("setSubBody"); var _hasx=!!(_sbx&&_sbx.querySelectorAll(".group").length>0); if(!_hasx)_yzSetMoved=false; }catch(e){ _yzSetMoved=false; }
   try{
     /* 先把分组建出来：新组只有建过之后才存在，否则下面什么都找不到 */
     try{ yzBuildSetGroups(); }catch(e){}
@@ -4330,6 +4331,8 @@ function yzOpenSetSub(name){
     if(hit2)hit2.style.display='';
     /* 子页打开后补上「已选择 / 已上传」标记 */
     try{ yzMarkSetStatus(); }catch(e){}
+    /* 延迟再兜一次：设置页重绘是异步的，会晚一点把分组显示状态冲掉 */
+    setTimeout(function(){ try{ var _sx=document.getElementById("setSubBody"); if(!_sx)return; var _gs=[].slice.call(_sx.querySelectorAll(".group")); _gs.forEach(function(g){ g.style.display="none"; }); var _h=_gs.filter(function(g){var h=g.querySelector("h4");return h&&h.textContent.trim()===name;})[0]; if(_h)_h.style.display=""; }catch(e){} }, 80);
   }catch(e){}
 }
 function renderPlus(){
