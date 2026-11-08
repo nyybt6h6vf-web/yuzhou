@@ -2210,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-09-v97a";
+window.__YZ_BUILD="2026-11-09-v97b";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4589,6 +4589,7 @@ function renderChat(){
   /* 方框模式：给每个气泡补上侧边小尖角（显隐由 CSS 控制） */
   try{ yzSnoutApply(); }catch(_se){}
   window.__applyBubbleInline&&window.__applyBubbleInline();
+  try{ yzApplyMsgFontColor(); }catch(e){}
   try{ var _hb=document.getElementById('holdBtn'); if(_hb)_hb.classList.toggle('on',!!D.sendHold); }catch(e){}
 }
 function yzSetAvMode(m){
@@ -11810,13 +11811,9 @@ function applyCustom(){
   }
   /* 消息字色：放在气泡CSS 之后，确保最终胜出 */
   var hfc=(D.himFontColor||'').trim();
-  if(hfc){
-    css+='#chat .msg.him .bubble,#chat .msg.him .bubble *,#bubblePreview .msg.him .bubble,#bubblePreview .msg.him .bubble *{color:'+hfc+' !important;}';
-  }
+  if(hfc){css+='.msg.him .bubble,.msg.him .bubble *,.msg.him .bubble .quotebar,.msg.him .bubble.voice,.msg.him .bubble.patb{color:'+hfc+' !important;}';}
   var mfc=(D.meFontColor||'').trim();
-  if(mfc){
-    css+='#chat .msg.me .bubble,#chat .msg.me .bubble *,#bubblePreview .msg.me .bubble,#bubblePreview .msg.me .bubble *{color:'+mfc+' !important;}';
-  }
+  if(mfc){css+='.msg.me .bubble,.msg.me .bubble *,.msg.me .bubble .quotebar,.msg.me .bubble.voice{color:'+mfc+' !important;}';}
   /* 转账字色：最后一个，!important 压过转账底色 */
   var tfc=(D.fontColor||'').trim();
   if(tfc){css+='.bubble.transfer,.bubble.transfer .tt,.bubble.transfer .tamt,.bubble.transfer .td,.bubble.transfer .tstmt,.bubble.transfer .tact span,.bubble.transfer .tic{color:'+tfc+' !important;}';}
@@ -11825,9 +11822,24 @@ function applyCustom(){
   css+='#chatBody .msg .bubble.packimg img{width:74px !important;height:74px !important;object-fit:cover !important;border-radius:12px !important;display:block !important;max-width:74px !important;max-height:74px !important;}';
   try{ yzInjectCss(css); }catch(e){}
   window.__applyBubbleInline&&window.__applyBubbleInline();
+  try{ yzApplyMsgFontColor(); }catch(e){}
   }catch(e){ try{console.warn('applyCustom',e);}catch(_){} }
 }
 
+function yzApplyMsgFontColor(){
+  try{
+    var h=String(D.himFontColor||'').trim();
+    var m=String(D.meFontColor||'').trim();
+    var roots=[document.getElementById('chatBody'),document.getElementById('bubblePreview')];
+    for(var i=0;i<roots.length;i++){
+      var r=roots[i]; if(!r)continue;
+      var hs=r.querySelectorAll('.msg.him .bubble');
+      for(var a=0;a<hs.length;a++){ hs[a].style.setProperty("color",h||"","important"); }
+      var ms=r.querySelectorAll('.msg.me .bubble');
+      for(var b=0;b<ms.length;b++){ ms[b].style.setProperty("color",m||"","important"); }
+    }
+  }catch(e){}
+}
 window.__tranTap=function(i){try{tranAct(i);}catch(e){}};
 window.__bubbleDecls=null;
 window.__applyBubbleInline=function(){};
