@@ -2210,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-09-v97p";
+window.__YZ_BUILD="2026-11-09-v97q";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4551,31 +4551,6 @@ function bubbleHTML(m,i){
 }
 /* 群聊/连发时多条消息同时到达：合并 40ms 内的重绘，只画一次 */
 /* 加载更早的消息：多渲染 150 条 */
-/* 滑到聊天顶部自动加载更早的消息 */
-function yzBindChatScroll(){
-  try{
-    var _b=document.getElementById('chatBody');
-    if(_b && !_b.__yzScrollBound){
-      _b.__yzScrollBound=1;
-      var _loading=false;
-      _b.addEventListener('scroll',function(){
-        try{
-          if(_b.scrollTop<60){
-            var total=(D.msgs||[]).length;
-            var from=total-150-(window.__yzWinStart||0);
-            if(from>0 && !_loading){
-              _loading=true;
-              yzLoadMoreMsgs();
-              setTimeout(function(){ _loading=false; },300);
-            }
-          }
-        }catch(e){}
-      },{passive:true});
-    }
-  }catch(e){}
-}
-try{ yzBindChatScroll(); }catch(e){}
-try{ document.addEventListener('DOMContentLoaded',function(){ try{ yzBindChatScroll(); }catch(e){} }); }catch(e){}
 function yzLoadMoreMsgs(){
   try{
     var body=document.getElementById('chatBody');
@@ -4586,6 +4561,14 @@ function yzLoadMoreMsgs(){
     renderChat();
     /* 保持视觉位置，不跳到底 */
     if(body){ body.scrollTop=body.scrollHeight-h+top; }
+  }catch(e){}
+}
+function yzCollapseMsgs(){
+  try{
+    window.__yzWinStart=0;
+    window.__yzLastRk='';
+    renderChat();
+    try{ scrollBottom(); }catch(e){}
   }catch(e){}
 }
 function yzRenderChatSoon(){
@@ -4614,8 +4597,15 @@ function renderChat(){
   var _total=(D.msgs||[]).length;
   var _from=_total-_winN-_winStart;
   if(_from<0)_from=0;
+  var _ST='display:inline-block;padding:6px 14px;border-radius:12px;font-size:12.5px;cursor:pointer;background:rgba(130,150,190,.14);color:var(--accent,#859ecb);margin:0 4px';
   if(_from>0){
-    try{ b.insertAdjacentHTML('beforeend','<div class="yz-loadmore" onclick="yzLoadMoreMsgs()" style="text-align:center;padding:14px 0;font-size:12.5px;color:var(--accent,#859ecb);cursor:pointer">加载更早的消息（还有 '+_from+' 条）</div>'); }catch(e){}
+    var _bar='<div class="yz-loadmore" style="text-align:center;padding:12px 0;user-select:none;-webkit-user-select:none">';
+    _bar+='<span onclick="yzLoadMoreMsgs()" style="'+_ST+'">加载更早（还有 '+_from+' 条）</span>';
+    if(_winStart>0){ _bar+='<span onclick="yzCollapseMsgs()" style="'+_ST+'">收起已展开</span>'; }
+    _bar+='</div>';
+    try{ b.insertAdjacentHTML('beforeend',_bar); }catch(e){}
+  }else if(_winStart>0){
+    try{ b.insertAdjacentHTML('beforeend','<div class="yz-loadmore" style="text-align:center;padding:12px 0"><span onclick="yzCollapseMsgs()" style="'+_ST+'">收起已展开</span></div>'); }catch(e){}
   }
   D.msgs.slice(_from).forEach((m,_wi)=>{ var i=_from+_wi; try{
     /* 时间戳：已作为真实消息存在记录里，永久保留 */
