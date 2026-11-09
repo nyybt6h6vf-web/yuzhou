@@ -2210,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-09-v97m";
+window.__YZ_BUILD="2026-11-09-v97n";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -5918,11 +5918,27 @@ function yzCheckVersion(){
       .then(function(txt){
         var v=(txt||'').trim();
         if(!v)return;
-        var local=(function(){try{var _v=localStorage.getItem('yzAppVer');if(_v)return _v;}catch(e){}return D.appVer||'';})();
         window.__yzRemoteVer=v;
+        try{ var _rr=document.getElementById('verRemoteTxt'); if(_rr)_rr.textContent=v; }catch(e){}
+        var local=window.__YZ_BUILD||'';
         if(!local){D.appVer=v;try{localStorage.setItem('yzAppVer',v);}catch(e){}save();return;}
-        /* 不再自动弹窗：只记下线上版本，由你在设置里手动更新 */
-        if(!yzVerSame(v,local)){ D._verPending=v; }else{ D._verPending=''; }
+        if(!yzVerSame(v,local)){
+          D._verPending=v;
+          /* 不一致时再确认一次，避免刚部署瞬间拿到旧值 */
+          setTimeout(function(){
+            try{
+              fetch('https://raw.githubusercontent.com/nyybt6h6vf-web/yuzhou/main/version.txt?t='+Date.now(),{cache:'no-store'})
+                .then(function(r2){return r2.text();})
+                .then(function(t2){
+                  var v2=(t2||'').trim(); if(!v2)return;
+                  window.__yzRemoteVer=v2;
+                  try{ var _r2=document.getElementById('verRemoteTxt'); if(_r2)_r2.textContent=v2; }catch(e){}
+                  if(yzVerSame(v2,local)){ D._verPending=''; try{save();}catch(e){} }
+                  else { D._verPending=v2; }
+                }).catch(function(){});
+            }catch(e){}
+          },1500);
+        }else{ D._verPending=''; }
       }).catch(function(){});
   }catch(e){}
 }
@@ -5964,6 +5980,20 @@ function yzCheckVerManual(){
   }catch(e){ if(b)b.textContent='检查'; }
 }
 function yzAutoVerCheck(){  try{    if(sessionStorage.getItem('yzAutoVerChecked')==='1')return;    sessionStorage.setItem('yzAutoVerChecked','1');    fetch('https://raw.githubusercontent.com/nyybt6h6vf-web/yuzhou/main/version.txt?t='+Date.now(),{cache:'no-store'})      .then(function(x){return x.text();})      .then(function(t){        var v=(t||'').trim();        var local=window.__YZ_BUILD||'';        if(v&&local&&!yzVerSame(v,local)){          try{ if(localStorage.getItem('yzAutoVerJump')!==v){ localStorage.setItem('yzAutoVerJump',v); yzForceUpdate(); } }catch(e){}        }      }).catch(function(){});  }catch(e){}}setTimeout(function(){ try{ yzAutoVerCheck(); }catch(e){} },1200);
+function yzRefreshRemoteVer(){
+  try{
+    fetch('https://raw.githubusercontent.com/nyybt6h6vf-web/yuzhou/main/version.txt?t='+Date.now()+Math.random(),{cache:'no-store'})
+      .then(function(x){return x.text();})
+      .then(function(t){
+        var v=(t||'').trim(); if(!v||!/^v/i.test(v))return;
+        var old=window.__yzRemoteVer||'';
+        window.__yzRemoteVer=v;
+        try{ var c=document.getElementById('verRemoteTxt'); if(c)c.textContent=v; }catch(e){}
+        var local=window.__YZ_BUILD||'';
+        if(local&&yzVerSame(v,local)){ try{ D._verPending=''; save(); }catch(e){} }
+      }).catch(function(){});
+  }catch(e){}
+}
 function yzVerRender(){
   try{
     var a=document.getElementById('verLocalTxt');
@@ -12316,6 +12346,9 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
   try{ D.lastChatTs=Date.now(); D.proactiveAcc=0; D.tranAcc=0; D.daifuAcc=0; D.giftAcc=0; D.lisAskAcc=0; D.diaryAcc=0; D.momAcc=0; D.letterAcc=0; startProactiveLoop(); }catch(e){}
   try{ yzBuildSetGroups(); }catch(e){}
   try{setTimeout(yzCheckVersion,2500);}catch(e){}
+  /* 页面加载完成后再刷两次版本显示，避开自动更新瞬间的旧值 */
+  try{ setTimeout(function(){ try{ yzRefreshRemoteVer(); }catch(e){} },3000); }catch(e){}
+  try{ setTimeout(function(){ try{ yzRefreshRemoteVer(); }catch(e){} },7000); }catch(e){}
   try{ yzAutoUpdateWatch(); }catch(e){}
   try{ yzAutoUpdateWatch(); }catch(e){}
   try{ if(!window._yzLisMetaTimer){ window._yzLisMetaTimer=setInterval(function(){ try{ var l=document.getElementById('listen'); if(l&&l.classList.contains('active')){ yzLisTickMeta(); } }catch(e){} }, 1000); } }catch(e){}
