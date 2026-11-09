@@ -4149,7 +4149,25 @@ function yzBuildSetGroups(){
     }
 
     var wrap=document.querySelector('#settings .list'); if(!wrap)return;
-    try{ if(!window.__yzSetSrcHtml) window.__yzSetSrcHtml = wrap.innerHTML; }catch(e){}
+    try{
+      if(!window.__yzSetSrcHtml){
+        /* 抓快照之前先清一遍重复入口，避免把脏数据存成底稿 */
+        var _nm2=['回复设置','聊天小功能','互动小功能','主动消息与通知','设置各功能背景','锁屏','各美化设置'];
+        var _seen={};
+        [].slice.call(wrap.querySelectorAll('.group')).forEach(function(g0){
+          try{
+            if(g0.querySelector('h4')) return;
+            var rs=g0.querySelectorAll('.row'); if(rs.length!==1) return;
+            var lb=g0.querySelector('.lab'); if(!lb) return;
+            var tt=(lb.textContent||'').trim();
+            if(_nm2.indexOf(tt)<0) return;
+            if(_seen[tt]){ if(g0.parentNode)g0.parentNode.removeChild(g0); }
+            else _seen[tt]=1;
+          }catch(e){}
+        });
+        window.__yzSetSrcHtml = wrap.innerHTML;
+      }
+    }catch(e){}
     var subs=document.getElementById('setSubBody'); if(!subs)return;
     /* 重建前先清空：否则每次重建都会多插一份入口，越点越乱 */
     var all=[].slice.call(wrap.querySelectorAll(".group"));
@@ -4157,8 +4175,19 @@ function yzBuildSetGroups(){
     try{ subs.innerHTML=""; }catch(e){}
     /* 清掉历史上堆出来的动态入口，避免重复 */
     try{
-      var _olds = [].slice.call(wrap.querySelectorAll('.group[data-topentry="1"]'));
-      _olds.forEach(function(e3){ try{ if(e3.parentNode)e3.parentNode.removeChild(e3); }catch(e){} });
+      var _names=['回复设置','聊天小功能','互动小功能','主动消息与通知','设置各功能背景','锁屏','各美化设置'];
+      var _allg = [].slice.call(wrap.querySelectorAll('.group'));
+      _allg.forEach(function(e3){
+        try{
+          if(e3.querySelector('h4')) return;
+          var _rows=e3.querySelectorAll('.row');
+          if(_rows.length!==1) return;
+          var _lab=e3.querySelector('.lab');
+          if(!_lab) return;
+          var _t=(_lab.textContent||'').trim();
+          if(_names.indexOf(_t)>=0){ if(e3.parentNode)e3.parentNode.removeChild(e3); }
+        }catch(e){}
+      });
       var _pe = document.getElementById('yzSetProactiveEntry');
       if(_pe && _pe.parentNode) _pe.parentNode.removeChild(_pe);
     }catch(e){}
