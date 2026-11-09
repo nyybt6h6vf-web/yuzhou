@@ -2210,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-09-v97i";
+window.__YZ_BUILD="2026-11-09-v97j";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4121,12 +4121,17 @@ function yzBuildSetGroups(){
   try{
     var _chk=document.getElementById('setSubBody');
     var _has=!!(_chk&&_chk.querySelectorAll('.group').length>0);
-    if(_yzSetMoved&&_has)return;
+    if(_yzSetMoved&&_has){
+      var _w0=document.querySelector('#settings .list');
+      if(_w0 && _w0.querySelector('.row')) return;
+    }
 
     var wrap=document.querySelector('#settings .list'); if(!wrap)return;
+    try{ if(!window.__yzSetSrcHtml) window.__yzSetSrcHtml = wrap.innerHTML; }catch(e){}
     var subs=document.getElementById('setSubBody'); if(!subs)return;
     /* 重建前先清空：否则每次重建都会多插一份入口，越点越乱 */
     var all=[].slice.call(wrap.querySelectorAll(".group"));
+    try{ if(!wrap.querySelector('.row') && window.__yzSetSrcHtml){ wrap.innerHTML=window.__yzSetSrcHtml; all=[].slice.call(wrap.querySelectorAll('.group')); } }catch(e){}
     try{ subs.innerHTML=""; }catch(e){}
     var rowsAll=[];
     all.forEach(function(g){ [].slice.call(g.querySelectorAll('.row')).forEach(function(r){ rowsAll.push(r); }); });
