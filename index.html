@@ -2210,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-09-v97e";
+window.__YZ_BUILD="2026-11-09-v97f";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4298,94 +4298,45 @@ function yzSetSubRestore(){
     if(!gs.length)return;
     gs.forEach(function(g){ g.style.display="none"; });
     var n=0;
-    gs.forEach(function(g){
-      if(hub && g.getAttribute('data-hub')===hub){ g.style.display=''; n++; return; }
-      if(name){ var h=g.querySelector('h4'); if(h && h.textContent.trim()===name){ g.style.display=''; n++; } }
-    });
-    if(!n){ gs.forEach(function(g){ g.style.display=""; }); }
-    try{ yzMarkSetStatus(); }catch(e){}
-  }catch(e){}
-}
-function yzSetSubRestore(){
-  try{
-    var hub=window.__yzSubHub||''; var name=window.__yzSubName||'';
-    if(!hub && !name)return;
-    var s=document.getElementById('setSubBody'); if(!s)return;
-    var gs=[].slice.call(s.querySelectorAll('.group'));
-    if(!gs.length)return;
-    gs.forEach(function(g){ g.style.display="none"; });
-    var n=0;
-    gs.forEach(function(g){
-      if(hub && g.getAttribute('data-hub')===hub){ g.style.display=''; n++; return; }
-      if(name){ var h=g.querySelector('h4'); if(h && h.textContent.trim()===name){ g.style.display=''; n++; } }
-    });
+    if(name){
+      gs.forEach(function(g){
+        if(g.getAttribute('data-sub')===name){ g.style.display=''; n++; }
+      });
+    }
+    if(!n && hub){
+      var subsList=[];
+      try{ (YZ_SET_HUBS||[]).forEach(function(h){ if(h.name===hub) subsList=h.subs||[]; }); }catch(e){}
+      gs.forEach(function(g){
+        var sn=g.getAttribute('data-sub')||'';
+        if(subsList.indexOf(sn)>=0){ g.style.display=''; n++; }
+      });
+    }
     if(!n){ gs.forEach(function(g){ g.style.display=""; }); }
     try{ yzMarkSetStatus(); }catch(e){}
   }catch(e){}
 }
 function yzOpenSetHub(hub){
   try{ window.__yzSubHub=hub; window.__yzSubName=""; }catch(e){}
-  try{ window.__yzSubHub=hub; window.__yzSubName=""; }catch(e){}
   try{
-    /* 先构建：设置页重绘会把子页清空，必须重建 */
+    _yzSetMoved=false;
     try{ yzBuildSetGroups(); }catch(e){}
-    var subs=document.getElementById("setSubBody"); if(!subs)return;
-    var all=[].slice.call(subs.querySelectorAll(".group"));
-    var hit=all.filter(function(g){return g.getAttribute("data-hub")===hub;}).length;
-    if(!hit){
-      try{ _yzSetMoved=false; yzBuildSetGroups(); }catch(e){}
-      all=[].slice.call(subs.querySelectorAll(".group"));
-    }
     var t=document.getElementById("setSubTitle"); if(t)t.textContent=hub;
     try{ yzPhCondRows(); }catch(e){}
     go("setSub");
-    /* 显示：只显示属于这个入口的小组 */
-    var show=function(){
-      try{
-        var s=document.getElementById("setSubBody"); if(!s)return;
-        var gs=[].slice.call(s.querySelectorAll(".group"));
-        gs.forEach(function(g){ g.style.display="none"; });
-        var n=0;
-        gs.forEach(function(g){ if(g.getAttribute("data-hub")===hub){ g.style.display=""; n++; } });
-        if(!n){ gs.forEach(function(g){ g.style.display=""; }); }
-        try{ yzMarkSetStatus(); }catch(e){}
-      }catch(e){}
-    };
-    show();
-    setTimeout(show,80);
+    yzSetSubRestore();
+    setTimeout(function(){ try{ yzSetSubRestore(); }catch(e){} },90);
   }catch(e){}
 }
 function yzOpenSetSub(name){
   try{ window.__yzSubName=name; window.__yzSubHub=""; }catch(e){}
-  try{ window.__yzSubName=name; window.__yzSubHub=""; }catch(e){}
-  try{ var _sbx=document.getElementById("setSubBody"); var _hasx=!!(_sbx&&_sbx.querySelectorAll(".group").length>0); if(!_hasx)_yzSetMoved=false; }catch(e){ _yzSetMoved=false; }
   try{
-    /* 先把分组建出来：新组只有建过之后才存在，否则下面什么都找不到 */
+    _yzSetMoved=false;
     try{ yzBuildSetGroups(); }catch(e){}
-    var subs=document.getElementById('setSubBody'); if(!subs)return;
-    var all=[].slice.call(subs.querySelectorAll('.group'));
-    /* 找不到目标组 → 强制重建一次，根绝“点了进去空白” */
-    var _ok=all.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;}).length>0;
-    if(!_ok){
-      try{ _yzSetMoved=false; yzBuildSetGroups(); }catch(e){}
-      all=[].slice.call(subs.querySelectorAll('.group'));
-    }
-    /* 先隐藏全部，再只显示命中的那一组 */
-    all.forEach(function(g){ g.style.display='none'; });
-    var hit=all.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;})[0];
-    if(hit)hit.style.display='';
-    var t=document.getElementById('setSubTitle'); if(t)t.textContent=name;
+    var t=document.getElementById("setSubTitle"); if(t)t.textContent=name;
     try{ yzPhCondRows(); }catch(e){}
-    go('setSub');
-    /* go() 之后可能重建过，再兜一次，确保只有命中那组显示 */
-    var all2=[].slice.call(subs.querySelectorAll('.group'));
-    all2.forEach(function(g){ g.style.display='none'; });
-    var hit2=all2.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;})[0];
-    if(hit2)hit2.style.display='';
-    /* 子页打开后补上「已选择 / 已上传」标记 */
-    try{ yzMarkSetStatus(); }catch(e){}
-    /* 延迟再兜一次：设置页重绘是异步的，会晚一点把分组显示状态冲掉 */
-    setTimeout(function(){ try{ var _sx=document.getElementById("setSubBody"); if(!_sx)return; var _gs=[].slice.call(_sx.querySelectorAll(".group")); _gs.forEach(function(g){ g.style.display="none"; }); var _h=_gs.filter(function(g){var h=g.querySelector("h4");return h&&h.textContent.trim()===name;})[0]; if(_h)_h.style.display=""; }catch(e){} }, 80);
+    go("setSub");
+    yzSetSubRestore();
+    setTimeout(function(){ try{ yzSetSubRestore(); }catch(e){} },90);
   }catch(e){}
 }
 function renderPlus(){
