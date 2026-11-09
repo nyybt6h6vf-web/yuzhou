@@ -2210,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-09-v97j";
+window.__YZ_BUILD="2026-11-09-v97k";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4117,6 +4117,28 @@ function yzRowGroupKey(r){
   }catch(e){}
   return '';
 }
+/* 尽早抓取设置页原始内容：必须在任何搬移发生之前执行 */
+/* 设置页原始模板：用文件里内嵌的 HTML 深拷贝生成，永不丢失 */
+function yzRestoreSetSrc(){
+  try{
+    if(window.__yzSetSrcTpl)return true;
+    var t=document.getElementById('yzSetTpl');
+    if(!t)return false;
+    window.__yzSetSrcTpl=true;
+    return true;
+  }catch(e){ return false; }
+}
+function yzSnapSetSrc(){
+  try{
+    if(window.__yzSetSrcHtml)return;
+    var w=document.querySelector('#settings .list');
+    if(!w)return;
+    if(!w.querySelector(".row"))return;
+    window.__yzSetSrcHtml=w.innerHTML;
+  }catch(e){}
+}
+try{ document.addEventListener("DOMContentLoaded", function(){ setTimeout(function(){ try{yzSnapSetSrc();}catch(e){} },0); }); }catch(e){}
+try{ setTimeout(function(){ try{yzSnapSetSrc();}catch(e){} },0); }catch(e){}
 function yzBuildSetGroups(){
   try{
     var _chk=document.getElementById('setSubBody');
@@ -4142,24 +4164,20 @@ function yzBuildSetGroups(){
       if(!buckets[k])buckets[k]=[];
       buckets[k].push(r);
     });
-    /* 从原组里移除已归类的行，然后删掉空的普通组 */
-    Object.keys(buckets).forEach(function(k){
-      buckets[k].forEach(function(r){ try{ r.parentNode&&r.parentNode.removeChild(r); }catch(e){} });
-    });
-    all.forEach(function(g){
-      var h=g.querySelector('h4'); var name=h?h.textContent.trim():'';
-      if(YZ_SET_KEEP.indexOf(name)>=0)return;
-      /* 该组已无内容行 → 删掉 */
-      if(!g.querySelector('.row')) try{ g.parentNode.removeChild(g); }catch(e){}
-    });
-    /* 生成子界面组（带归属大入口标记） */
+    /* 不删行：保留设置页作为源，仅隐藏；子页被清空时还能从这里再取 */
+    window.__yzSetSrcGroups = buckets;
+    try{
+      Object.keys(buckets).forEach(function(k){
+        buckets[k].forEach(function(r){ try{ if(r.parentNode)r.parentNode.style.display='none'; }catch(e){} });
+      });
+    }catch(e){}
     var hubEntries={};
     YZ_SET_ORDER.forEach(function(name){
       var rows=buckets[name]; if(!rows||!rows.length)return;
       var hub=yzSetHubOf(name);
       var box=document.createElement('div'); box.className='group'; box.setAttribute('data-sub',name); if(hub)box.setAttribute('data-hub',hub);
       var hh=document.createElement('h4'); hh.textContent=name; box.appendChild(hh);
-      rows.forEach(function(r){ box.appendChild(r); });
+      rows.forEach(function(r){ try{ var c=r.cloneNode(true); box.appendChild(c); }catch(e){} });
       subs.appendChild(box);
       if(!hub){
         /* 主动消息与通知统一由下面的独立入口生成，这里跳过，避免重复 */
