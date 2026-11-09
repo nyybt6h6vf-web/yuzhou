@@ -1339,6 +1339,7 @@ svg [fill="currentColor"]{stroke:none;}
 .noteinput:focus{box-shadow:inset 0 0 0 1.5px rgba(160,140,220,.55);}
 [data-theme="dark"] .noteinput{background:#202024;color:#e6e6ea;}
 
+#yzClearSheet input[type=checkbox]:checked{background:var(--bubble-me);border-color:var(--bubble-me);}#yzClearSheet input[type=checkbox]:checked::after{content:'';position:absolute;left:6px;top:2px;width:5px;height:10px;border:solid var(--bubble-me-text);border-width:0 2px 2px 0;transform:rotate(45deg);}
 </style>
 </head>
 <body>
@@ -2210,7 +2211,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-09-v97n";
+window.__YZ_BUILD="2026-11-09-v97o";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -11728,12 +11729,13 @@ function openClearChatSheet(){
       el.onclick=function(e){ if(e.target===el)closeSheet2('yzClearSheet'); };
       document.body.appendChild(el);
     }
-    var h='<div class="cdial" style="max-height:70vh;overflow:auto">'
+    var _GB='display:block;width:100%;text-align:center;padding:13px 0;border-radius:14px;font-size:15px;font-weight:600;border:none;cursor:pointer;';
+    var h='<div class="cdial" style="max-height:70vh;overflow:auto;width:86%;max-width:360px;background:var(--panel);border-radius:22px;padding:22px 20px;text-align:center;box-sizing:border-box">'
       +'<div style="font-size:16px;font-weight:700;text-align:center;margin-bottom:4px">清空聊天记录</div>'
       +'<div style="font-size:12px;color:var(--sub);text-align:center;margin-bottom:12px">选择要清空的会话（可多选）</div>'
       +'<div id="yzClearList"></div>'
-      +'<div class="gb" onclick="yzClearChatDo()" style="margin-top:12px">删除所选</div>'
-      +'<div class="gb cancel" onclick="closeSheet2(\'yzClearSheet\')">取消</div>'
+      +'<div onclick="yzClearChatDo()" style="'+_GB+'margin-top:14px;background:var(--bubble-me);color:var(--bubble-me-text)">删除所选</div>'
+      +'<div onclick="closeSheet2(\'yzClearSheet\')" style="'+_GB+'margin-top:8px;background:transparent;color:var(--sub);font-weight:500">取消</div>'
       +'</div>';
     el.innerHTML=h;
     var list=(D.convs||[]).slice();
@@ -11744,8 +11746,8 @@ function openClearChatSheet(){
         var t=yzConvTitle(cv);
         var n=(cv.msgs||[]).length;
         box.insertAdjacentHTML('beforeend',
-          '<label class="gitem" style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)">'+
-          '<input type="checkbox" data-cid="'+cv.id+'" onchange="yzClearToggle(this)" style="width:18px;height:18px">'+
+          '<label style="display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid var(--line);cursor:pointer">'+
+          '<input type="checkbox" data-cid="'+cv.id+'" onchange="yzClearToggle(this)" style="width:20px;height:20px;flex:0 0 20px;margin:0;-webkit-appearance:none;appearance:none;border:2px solid var(--sub);border-radius:5px;background:transparent;position:relative">'+
           '<span style="flex:1;font-size:14px">'+esc(t)+'</span>'+
           '<span style="font-size:12px;color:var(--sub)">'+n+' 条</span>'+
           '</label>');
@@ -11764,6 +11766,7 @@ function yzClearChatDo(){
   try{
     var ids=Object.keys(_yzClearSel||{});
     if(!ids.length){ toast('先选要清空的会话'); return; }
+    try{ closeSheet2('yzClearSheet'); }catch(e){}
     askConfirm('清空选中的 '+ids.length+' 个会话的聊天记录？',function(){
       try{
         ids.forEach(function(cid){
