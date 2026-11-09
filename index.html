@@ -2210,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-09-v97k";
+window.__YZ_BUILD="2026-11-09-v97l";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4155,6 +4155,13 @@ function yzBuildSetGroups(){
     var all=[].slice.call(wrap.querySelectorAll(".group"));
     try{ if(!wrap.querySelector('.row') && window.__yzSetSrcHtml){ wrap.innerHTML=window.__yzSetSrcHtml; all=[].slice.call(wrap.querySelectorAll('.group')); } }catch(e){}
     try{ subs.innerHTML=""; }catch(e){}
+    /* 清掉历史上堆出来的动态入口，避免重复 */
+    try{
+      var _olds = [].slice.call(wrap.querySelectorAll('.group[data-topentry="1"]'));
+      _olds.forEach(function(e3){ try{ if(e3.parentNode)e3.parentNode.removeChild(e3); }catch(e){} });
+      var _pe = document.getElementById('yzSetProactiveEntry');
+      if(_pe && _pe.parentNode) _pe.parentNode.removeChild(_pe);
+    }catch(e){}
     var rowsAll=[];
     all.forEach(function(g){ [].slice.call(g.querySelectorAll('.row')).forEach(function(r){ rowsAll.push(r); }); });
     /* 按功能收集行 */
@@ -5917,6 +5924,13 @@ function yzCheckVerManual(){
       .then(function(x){return x.text();})
       .then(function(t){
         var v=(t||'').trim()||'读取失败';
+        /* 若线上版本号落后于本机实际运行的版本，说明拿到的是旧值，不采信 */
+        var _lv=(window.__YZ_BUILD||'');
+        if(v&&/^v/i.test(v)&&_lv&&!yzVerSame(v,_lv)){
+          var _kn=parseInt(String(yzVerKey(v)).replace(/[^0-9]/g,''))||0;
+          var _ln=parseInt(String(yzVerKey(_lv)).replace(/[^0-9]/g,''))||0;
+          if(_kn<_ln){ v=_lv; }
+        }
         window.__yzRemoteVer=v;
         if(r)r.textContent=v;
         if(b)b.textContent='检查';
