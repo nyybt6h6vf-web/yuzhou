@@ -1339,7 +1339,7 @@ svg [fill="currentColor"]{stroke:none;}
 .noteinput:focus{box-shadow:inset 0 0 0 1.5px rgba(160,140,220,.55);}
 [data-theme="dark"] .noteinput{background:#202024;color:#e6e6ea;}
 
-#yzClearSheet input[type=checkbox]:checked{background:var(--bubble-me);border-color:var(--bubble-me);}#yzClearSheet input[type=checkbox]:checked::after{content:'';position:absolute;left:6px;top:2px;width:5px;height:10px;border:solid var(--bubble-me-text);border-width:0 2px 2px 0;transform:rotate(45deg);}
+#yzClearSheet .yzcc-row{-webkit-user-select:none;user-select:none;}
 </style>
 </head>
 <body>
@@ -1885,7 +1885,6 @@ svg [fill="currentColor"]{stroke:none;}
       <div class="group">
         <h4>数据</h4>
         <div class="row"><div class="lab">清空聊天记录</div><div class="chip" onclick="clearChat()">清空</div></div>
-        <div class="row"><div class="lab">恢复默认字卡</div><div class="chip" onclick="resetCards()">恢复</div></div>
       </div>
       <div class="group">
         <h4>版本更新</h4>
@@ -2211,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-09-v97o";
+window.__YZ_BUILD="2026-11-09-v97p";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4552,6 +4551,31 @@ function bubbleHTML(m,i){
 }
 /* 群聊/连发时多条消息同时到达：合并 40ms 内的重绘，只画一次 */
 /* 加载更早的消息：多渲染 150 条 */
+/* 滑到聊天顶部自动加载更早的消息 */
+function yzBindChatScroll(){
+  try{
+    var _b=document.getElementById('chatBody');
+    if(_b && !_b.__yzScrollBound){
+      _b.__yzScrollBound=1;
+      var _loading=false;
+      _b.addEventListener('scroll',function(){
+        try{
+          if(_b.scrollTop<60){
+            var total=(D.msgs||[]).length;
+            var from=total-150-(window.__yzWinStart||0);
+            if(from>0 && !_loading){
+              _loading=true;
+              yzLoadMoreMsgs();
+              setTimeout(function(){ _loading=false; },300);
+            }
+          }
+        }catch(e){}
+      },{passive:true});
+    }
+  }catch(e){}
+}
+try{ yzBindChatScroll(); }catch(e){}
+try{ document.addEventListener('DOMContentLoaded',function(){ try{ yzBindChatScroll(); }catch(e){} }); }catch(e){}
 function yzLoadMoreMsgs(){
   try{
     var body=document.getElementById('chatBody');
@@ -11746,21 +11770,48 @@ function openClearChatSheet(){
         var t=yzConvTitle(cv);
         var n=(cv.msgs||[]).length;
         box.insertAdjacentHTML('beforeend',
-          '<label style="display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid var(--line);cursor:pointer">'+
-          '<input type="checkbox" data-cid="'+cv.id+'" onchange="yzClearToggle(this)" style="width:20px;height:20px;flex:0 0 20px;margin:0;-webkit-appearance:none;appearance:none;border:2px solid var(--sub);border-radius:5px;background:transparent;position:relative">'+
-          '<span style="flex:1;font-size:14px">'+esc(t)+'</span>'+
+          '<div class="yzcc-row" data-cid="'+cv.id+'" style="display:flex;align-items:center;gap:10px;padding:12px 2px;border-bottom:1px solid var(--line);cursor:pointer;-webkit-tap-highlight-color:transparent">'+
+          '<span class="yzcc-box" style="width:20px;height:20px;flex:0 0 20px;border:2px solid var(--sub);border-radius:5px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;color:var(--bubble-me-text)"></span>'+
+          '<span style="flex:1;font-size:14px;text-align:left">'+esc(t)+'</span>'+
           '<span style="font-size:12px;color:var(--sub)">'+n+' 条</span>'+
-          '</label>');
+          '</div>');
       });
     }
+    try{
+      var _lst=document.getElementById('yzClearList');
+      if(_lst && !_lst.__yzBound){
+        _lst.__yzBound=1;
+        var _tap=function(ev){
+          try{
+            var t=ev.target;
+            while(t && t!==_lst && !(t.classList&&t.classList.contains('yzcc-row'))) t=t.parentNode;
+            if(t && t!==_lst && t.classList && t.classList.contains('yzcc-row')){
+              ev.preventDefault(); ev.stopPropagation();
+              yzClearToggle(t);
+            }
+          }catch(e){}
+        };
+        _lst.addEventListener('click',_tap,true);
+        _lst.addEventListener('touchend',_tap,true);
+      }
+    }catch(e){}
     openSheet2('yzClearSheet');
   }catch(e){}
 }
-function yzClearToggle(cb){
+function yzClearToggle(row){
   try{
-    var cid=cb.getAttribute('data-cid');
-    if(cb.checked)_yzClearSel[cid]=1; else delete _yzClearSel[cid];
+    var cid=row.getAttribute('data-cid');
+    var on=_yzClearSel[cid]?false:true;
+    if(on)_yzClearSel[cid]=1; else delete _yzClearSel[cid];
+    var box=row.querySelector('.yzcc-box');
+    if(box){
+      if(on){ box.style.background=var_or('--bubble-me','#4a7cf5'); box.style.borderColor=var_or('--bubble-me','#4a7cf5'); box.textContent='\u2713'; }
+      else{ box.style.background='transparent'; box.style.borderColor=var_or('--sub','#999'); box.textContent=''; }
+    }
   }catch(e){}
+}
+function var_or(name,fb){
+  try{ var v=getComputedStyle(document.documentElement).getPropertyValue(name); return (v&&v.trim())?v.trim():fb; }catch(e){ return fb; }
 }
 function yzClearChatDo(){
   try{
