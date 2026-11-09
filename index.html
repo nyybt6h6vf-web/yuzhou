@@ -186,8 +186,8 @@ svg [fill="currentColor"]{stroke:none;}
 /* ---- iOS 默认气泡外观 ---- */
 #chat.yz-bub-default .msg .bubble{position:relative !important;box-shadow:none !important;line-height:1.3 !important;}
 #chat.yz-bub-default .msg.him .bubble{background:#E9E9EB !important;color:#000 !important;}
-#chat.yz-bub-default .msg.me .bubble{background:#0A84FF !important;color:#fff !important;}
-[data-theme="dark"] #chat.yz-bub-default .msg.him .bubble{background:#26252A !important;color:#fff !important;}
+#chat.yz-bub-default .msg.me .bubble{background:#0A84FF !important;}
+[data-theme="dark"] #chat.yz-bub-default .msg.him .bubble{background:#26252A !important;}
 /* ===== 气泡形状：方框 / 圆角（仅未填气泡CSS时生效） ===== */
 /* 方框：微信那种四角不对称圆角 */
 #chat.yz-bub-default .msg .bubble{border-radius:5px !important;}
@@ -241,8 +241,8 @@ svg [fill="currentColor"]{stroke:none;}
 
 /* ---- 预览区：同样的 iOS 外观 ---- */
 #bubblePreview.yz-bub-default .bubble{position:relative !important;box-shadow:none !important;line-height:1.3 !important;}
-#bubblePreview.yz-bub-default .msg.him .bubble{background:var(--yz-bub-him,#E9E9EB) !important;color:#000 !important;}
-#bubblePreview.yz-bub-default .msg.me .bubble{background:var(--yz-bub-me,#0A84FF) !important;color:#fff !important;}
+#bubblePreview.yz-bub-default .msg.him .bubble{background:var(--yz-bub-him,#E9E9EB) !important;}
+#bubblePreview.yz-bub-default .msg.me .bubble{background:var(--yz-bub-me,#0A84FF) !important;}
 /* 方框模式：四角统一，不再单独收角 */
 
 /* ---- 主动消息小圆点：气泡右下角 ---- */
@@ -2210,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-09-v97q";
+window.__YZ_BUILD="2026-11-09-v97r";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3009,7 +3009,7 @@ function go(id){
   if(id==='together')renderTiles();
   if(id==='setSub'){ try{yzBuildSetGroups();}catch(e){} try{fillSettings();}catch(e){} }
   if(id==='settings'){try{yzSetRenderTabs();}catch(e){} try{yzBuildSetGroups();}catch(e){} fillSettings();try{yzPhCondRows();}catch(e){}try{yzBeautyRender();}catch(e){}try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}try{ yzMarkSetStatus(); }catch(e){}}
-  if(id==='moments'){ try{(D.moments||[]).forEach(function(m){ if(m.from==='him')m.read=true; }); save();}catch(e){} try{yzChSyncBtns();}catch(e){} renderMoments(); try{renderHome();}catch(e){} }
+  if(id==='moments'){ try{ var _ch=0; (D.moments||[]).forEach(function(m){ if(m.from==='him'&&!m.read){ m.read=true; _ch=1; } }); if(_ch)save(); }catch(e){} try{yzChSyncBtns();}catch(e){} renderMoments(); try{renderHome();}catch(e){} }
   if(id==='listen'){ D._yzLisEnterMs=Date.now(); try{window.__yzStampArmedLis=true;}catch(e){} hideLisFloat(); if(!D.lisBound){ try{ lisOpenPick(); }catch(e){} } else { try{ lisShowPlayer(); }catch(e){} } try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
   if(id!=='listen'){ try{ setTimeout(yzMaybeShowFloat,60); }catch(e){} }
   if(id==='letters'){try{yzChSyncBtns();}catch(e){}renderLetters();}
@@ -8209,12 +8209,53 @@ function confirmMoment(){
   D.moments.push({id:'m'+Date.now(),from:'me',cid:yzChCur('viewMomentId'),text:t,img:img,time:nowStr(),likedBy:[],comments:[]});try{yzFavTry('moment',D.moments[D.moments.length-1],nowStr(),'favMomentRate');}catch(e){}
   save();renderMoments();
 }
+/* 只重画指定那一条动态，避免点个赞就全量重绘导致卡 */
+function yzMomRefreshOne(id){
+  try{
+    var el=document.querySelector('#momentsBody .mo[data-moid="'+id+'"]');
+    if(!el) return false;
+    el.innerHTML=yzMomItemHtml(id);
+    return true;
+  }catch(e){ return false; }
+}
+function yzMomItemHtml(id){
+  var m=(D.moments||[]).find(function(x){return x.id===id;});
+  if(!m) return '';
+  var out='';
+  var av=m.from==='me'?D.avatarMe:yzChAvatar(m&&m.cid);
+  var nm=m.from==='me'?(D.myNick||'我'):yzChNick(m&&m.cid);
+  var avatar=av?('<img src="'+av+'">'):esc(nm[0]||'');
+  var img='';
+  if(m.img) img='<img src="'+esc(m.img)+'">';
+  var liked=(m.likedBy||[]).indexOf('me')>=0;
+  var likeHtml='';
+  if((m.likedBy||[]).length){
+    var names=(m.likedBy||[]).map(function(w){return w==='me'?(D.myNick||'我'):yzChNick(m&&m.cid);});
+    likeHtml='<div class="molike"><span class="molk-heart">♡</span> <b>'+esc(names.join('、'))+'</b></div>';
+  }
+  var comments='';
+  (m.comments||[]).forEach(function(c,ci){
+    var cn=c.from==='me'?(D.myNick||'我'):yzChNick(m&&m.cid);
+    var rep=c.replyTo?(esc(cn)+'回复'+esc(c.replyTo)+'：'):(esc(cn)+'：');
+    comments+='<div class="mocm" onclick="commentMoment(\''+m.id+'\','+ci+')"><b>'+rep+'</b>'+esc(c.text)+'</div>';
+  });
+  out+='<div class="moh"><div class="moav">'+avatar+'</div><div class="monm">'+esc(nm)+'</div><div class="motm">'+esc(m.time||'')+'</div></div>';
+  out+='<div class="moc">'+esc(m.text)+img+'</div>';
+  out+='<div class="moact">';
+  out+='<div class="'+(liked?'on':'')+'" onclick="toggleLike(\''+m.id+'\')">♡ '+(m.likedBy||[]).length+'</div>';
+  out+='<div onclick="momentCmtToggle(\''+m.id+'\')">评论</div>';
+  out+='<div><span class="favbtn" data-favbtn="1" data-favtype="moment" data-favid="'+m.id+'">☆ 收藏</span></div>';
+  out+='<div onclick="delMoment(\''+m.id+'\')">删除</div>';
+  out+='</div>'+likeHtml+comments;
+  return out;
+}
 function toggleLike(id){
   const m=(D.moments||[]).find(x=>x.id===id);if(!m)return;
   m.likedBy=m.likedBy||[];
   const i=m.likedBy.indexOf('me');
   if(i>=0)m.likedBy.splice(i,1);else m.likedBy.push('me');
-  save();renderMoments();
+  save();
+  if(!yzMomRefreshOne(id)) renderMoments();
 }
 function momentCmtToggle(id){
   try{
@@ -8239,7 +8280,7 @@ function momentCmtSend(id){
     window['__moReply_'+id]='';
     inp.value='';
     save();
-    renderMoments();
+    if(!yzMomRefreshOne(id)) renderMoments();
     var box=document.getElementById('moInline_'+id); if(box)box.style.display='flex';
     var i2=document.getElementById('moInput_'+id); if(i2)i2.value='';
     setTimeout(function(){ momReply(mm); },Math.max(400,(D.delay||1.2)*1000));
@@ -11967,8 +12008,8 @@ function applyCustom(){
 
 function yzApplyMsgFontColor(){
   try{
-    var h=String(D.himFontColor||'').trim();
-    var m=String(D.meFontColor||'').trim();
+    var h=String(D.himFontColor||'').trim()||'#000000';
+    var m=String(D.meFontColor||'').trim()||'#ffffff';
     var roots=[document.getElementById('chatBody'),document.getElementById('bubblePreview')];
     for(var i=0;i<roots.length;i++){
       var r=roots[i]; if(!r)continue;
@@ -12280,6 +12321,26 @@ function yzPreviewBubble(){
     }
   }catch(e){}
 }
+/* 预览框画完后补一次字色，否则重进网站时会被默认颜色盖掉 */
+try{
+  var _pb=yzPreviewBubble;
+  yzPreviewBubble=function(){
+    var r=_pb.apply(this,arguments);
+    try{ yzApplyMsgFontColor(); }catch(e){}
+    try{ setTimeout(function(){ try{ yzApplyMsgFontColor(); }catch(e){} },0); }catch(e){}
+    return r;
+  };
+}catch(e){}
+/* 预览框画完后补一次字色，否则重进网站时会被默认颜色盖掉 */
+try{
+  var _pb=yzPreviewBubble;
+  yzPreviewBubble=function(){
+    var r=_pb.apply(this,arguments);
+    try{ yzApplyMsgFontColor(); }catch(e){}
+    try{ setTimeout(function(){ try{ yzApplyMsgFontColor(); }catch(e){} },0); }catch(e){}
+    return r;
+  };
+}catch(e){}
 window.yzPreviewBubble=yzPreviewBubble;
 
 var _passBuf=''; var _yzUnlock=false;
