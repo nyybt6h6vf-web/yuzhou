@@ -2210,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-09-v97g";
+window.__YZ_BUILD="2026-11-09-v97h";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4268,8 +4268,9 @@ function yzOpenBeautySub(name){
     var all=document.querySelectorAll('.screen');
     for(var k=0;k<all.length;k++)all[k].classList.remove('active');
     sub.classList.add('active');
-    /* 写入内容 */
+    /* 写入内容（会覆盖掉子页里原有的分组，必须让下次进入能重建） */
     body.innerHTML='<div class="group"><h4>'+name+'</h4>'+src.html+'</div>';
+    try{ _yzSetMoved=false; }catch(e){}
     var t=document.getElementById('setSubTitle'); if(t)t.textContent=name;
     /* 回填数值 */
     try{ fillSettings(); }catch(e){}
@@ -4293,6 +4294,7 @@ function yzPhCondRows(){
 }
 function yzOpenSetHub(hub){
   try{
+    try{ _yzSetMoved=false; yzBuildSetGroups(); }catch(e){}
     var subs=document.getElementById('setSubBody'); if(!subs)return;
     var all=[].slice.call(subs.querySelectorAll('.group'));
     all.forEach(function(g){ g.style.display='none'; });
@@ -4309,7 +4311,7 @@ function yzOpenSetHub(hub){
 function yzOpenSetSub(name){
   try{
     /* 先把分组建出来：新组只有建过之后才存在，否则下面什么都找不到 */
-    try{ yzBuildSetGroups(); }catch(e){}
+    try{ _yzSetMoved=false; yzBuildSetGroups(); }catch(e){}
     var subs=document.getElementById('setSubBody'); if(!subs)return;
     var all=[].slice.call(subs.querySelectorAll('.group'));
     /* 找不到目标组 → 强制重建一次，根绝“点了进去空白” */
