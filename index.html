@@ -2210,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-09-v97t";
+window.__YZ_BUILD="2026-11-09-v97u";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -12462,6 +12462,10 @@ function init(){
   $('#lock').addEventListener('click',()=>{ window.__yzUnlocked=true; if(yzLocked()){ openPass(); } else { go('home'); } try{setTimeout(function(){checkPeriodRemind();},600);}catch(e){} });
 document.addEventListener('click',function(e){var t=e.target;while(t&&t!==document){if(t.classList&&t.classList.contains('back')){try{if(t.closest&&t.closest('#settings')){['passSheet','packSheet','moSend','plusSheet'].forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove('show');});var mk=document.getElementById('mask');if(mk)mk.classList.remove('show');}}catch(err){}return;}t=t.parentNode;}},true);
   renderChat();
+  /* 渲染完聊天后再应用一次气泡颜色和字色，否则刚进页面气泡还没生成 */
+  try{ window.__yzApplyBubbleBg && window.__yzApplyBubbleBg(); }catch(e){}
+  try{ yzApplyMsgFontColor && yzApplyMsgFontColor(); }catch(e){}
+  try{ setTimeout(function(){ try{ window.__yzApplyBubbleBg && window.__yzApplyBubbleBg(); }catch(e){} try{ yzApplyMsgFontColor && yzApplyMsgFontColor(); }catch(e){} try{ yzPreviewBubble && yzPreviewBubble(); }catch(e){} }, 300); }catch(e){}
   try{document.addEventListener('visibilitychange',function(){if(!document.hidden){try{var ll=document.querySelector('.duo .linkline');if(ll){ll.style.animation='none';void ll.offsetWidth;ll.style.animation='';}}catch(e){}try{yzPassGate();}catch(e){}}});}catch(e){}
   if(!D.moments)D.moments=[];
   if(!D.letters)D.letters=[];
