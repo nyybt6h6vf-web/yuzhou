@@ -2228,7 +2228,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="105";
+window.__YZ_BUILD="106";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -2751,7 +2751,7 @@ function yzGroupSetting(cv){
   d.classList.add('show');
 }
 
-let D=load();try{var _mn=JSON.parse(localStorage.getItem(DKEY+'_min')||'{}');window.__yzTouched=window.__yzTouched||{};for(var _mk in _mn){if(_mn[_mk]!==undefined&&_mn[_mk]!==null){D[_mk]=_mn[_mk];window.__yzTouched[_mk]=1;}}}catch(e){}
+let D=load();
 try{ var _bg0=JSON.parse(localStorage.getItem(DKEY+'_big')||'{}'); for(var _bk0 in _bg0){ if(_bg0[_bk0]&&!D[_bk0])D[_bk0]=_bg0[_bk0]; } }catch(e){}
 function load(){
   try{console.log('[LOAD] raw=',(localStorage.getItem(DKEY)||'NULL').slice(0,120));const r=localStorage.getItem(DKEY)||localStorage.getItem('yuzhou_data_v3')||localStorage.getItem('yuzhou_data_v2');console.log('[LOAD] r取到=',r?('有'+r.length):'无');if(r){
@@ -2903,35 +2903,35 @@ var YZDB={db:null,ready:false,
     }catch(e){if(cb)cb(false);}
   }
 };
-/* 启动时打开 IDB，并把 localStorage 老数据迁移进去（仅首次） */
+/* 启动时打开 IDB。IDB 是权威源，localStorage 只是兜底 */
 YZDB.open(function(ok){
   if(!ok){ window.__yzBigReady=true; return; }
   YZDB.get(DKEY,function(existing){
+    var _applied=false;
     if(existing){
-      /* IDB 已有数据：以 IDB 为准，异步刷新内存与页面 */
       try{
         var o=JSON.parse(existing);
         if(o&&typeof o==='object'){
-          /* IDB 存的是完整数据（含图片），为权威源；localStorage 只是瘦身兜底 */
-          var _t=window.__yzTouched||{};
           for(var _k in o){
             if(o.hasOwnProperty(_k)===false)continue;
-            if(_t[_k])continue;
             D[_k]=o[_k];
           }
-          try{ var _bg=JSON.parse(localStorage.getItem(DKEY+'_big')||'{}'); for(var _bk in _bg){ if(_bg[_bk])D[_bk]=_bg[_bk]; } }catch(e){}
-          try{ if(D.themeAuto){ applyThemeAuto(true); yzBindThemeAuto(); } else { document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light'); } }catch(_){}
-          try{renderHome();applyCustom();}catch(_){}
-          window.__yzBigReady=true;
-          try{if(typeof yzBindAvatarKey==='function')yzBindAvatarKey();}catch(_){}
-          try{if(window.__YZ_AFTER_IDB)window.__YZ_AFTER_IDB();}catch(_){}
+          _applied=true;
         }
       }catch(e){}
+    }
+    if(_applied){
+      try{ var _bg=JSON.parse(localStorage.getItem(DKEY+'_big')||'{}'); for(var _bk in _bg){ if(_bg[_bk])D[_bk]=_bg[_bk]; } }catch(e){}
+      try{ if(D.themeAuto){ applyThemeAuto(true); yzBindThemeAuto(); } else { document.documentElement.setAttribute('data-theme',D.theme==='dark'?'dark':'light'); } }catch(_){}
+      try{ if(typeof yzBindMsgsIfNeed==='function')yzBindMsgsIfNeed(D); }catch(_){}
+      try{ renderHome(); applyCustom(); }catch(_){}
+      try{ if(typeof yzBindAvatarKey==='function')yzBindAvatarKey(); }catch(_){}
     }else{
       /* IDB 没数据：把 localStorage 现有数据迁移进去 */
-      try{var raw=localStorage.getItem(DKEY);if(raw){YZDB.set(DKEY,raw);}}catch(e){}
-      window.__yzBigReady=true;
+      try{ var raw=localStorage.getItem(DKEY); if(raw&&raw.length>60)YZDB.set(DKEY,raw); }catch(e){}
     }
+    window.__yzBigReady=true;
+    try{ if(window.__YZ_AFTER_IDB)window.__YZ_AFTER_IDB(); }catch(_){}
   });
 });
 var YZ_BIGKEYS=['packs','heroImg','avatarMe','avatarHim','himBg','himAv','diaryBg','diaryAv','photo1','photo2','photo3','photo4','pageBg','page2Bg','chatBg','momBg','lockBg','himLetterBg','meLetterBg'];
@@ -2949,7 +2949,7 @@ function save(){
 /* 立即落盘（关键操作如退出/切页时用） */
 function saveFlush(){ try{ if(_yzSaveTimer2){clearTimeout(_yzSaveTimer2);_yzSaveTimer2=null;} _yzSavePending=false; saveNow(); }catch(e){} }
 var _yzBigT=null,_yzBigSig='';function yzSaveBigs(){try{var o={},sig='';for(var i=0;i<YZ_BIGKEYS.length;i++){var k=YZ_BIGKEYS[i];if(D[k]){o[k]=D[k];sig+=k+':'+String(D[k]).length+';';}}if(sig===_yzBigSig)return; /* 没变不写 */ _yzBigSig=sig;if(_yzBigT)clearTimeout(_yzBigT);_yzBigT=setTimeout(function(){_yzBigT=null;try{localStorage.setItem(DKEY+'_big',JSON.stringify(o));}catch(e){}},2000);}catch(e){}}
-function saveNow(){ if(!window.__yzBigReady){ return; } var __j='';try{var _top=[];__j=JSON.stringify(D,function(k,v){ if(k&&YZ_BIGKEYS.indexOf(k)>=0&&_top.indexOf(k)<0&&this===D)return undefined; return v;});}catch(e){return;}try{yzSaveBigs();}catch(e){}try{YZDB.set(DKEY,__j);}catch(e){}try{if(D&&D.appVer)localStorage.setItem('yzAppVer',D.appVer);}catch(e){}window.__yzSaveErr=false;try{var _m={};_m.appVer=D.appVer;_m.bubble=D.bubble;_m.bubbleSize=D.bubbleSize;_m.bubbleHim=D.bubbleHim;_m.bubbleMe=D.bubbleMe;_m.chatFontSize=D.chatFontSize;_m.accentColor=D.accentColor;_m.fontColor=D.fontColor;_m.theme=D.theme;_m.setCurChar=D.setCurChar;_m.lockName=D.lockName;_m.slogan=D.slogan;_m.phHimDrop=D.phHimDrop;_m.phMyDrop=D.phMyDrop;_m.phHimChgRate=D.phHimChgRate;_m.phHimAutoAt=D.phHimAutoAt;_m.phMyAutoAt=D.phMyAutoAt;_m.phHimChgSpeed=D.phHimChgSpeed;_m.phMyChgSpeed=D.phMyChgSpeed;_m.phAutoHim=D.phAutoHim;_m.phAutoMy=D.phAutoMy;localStorage.setItem(DKEY+'_min',JSON.stringify(_m));}catch(e){window.__yzSaveErr=true;}}
+function saveNow(){ if(!window.__yzBigReady){ return; } var __j='';try{var _top=[];__j=JSON.stringify(D,function(k,v){ if(k&&YZ_BIGKEYS.indexOf(k)>=0&&_top.indexOf(k)<0&&this===D)return undefined; return v;});}catch(e){return;}try{yzSaveBigs();}catch(e){}try{YZDB.set(DKEY,__j);}catch(e){}try{ var _sl=yzSlender(); if(_sl)localStorage.setItem(DKEY,_sl); }catch(e){}try{if(D&&D.appVer)localStorage.setItem('yzAppVer',D.appVer);}catch(e){}window.__yzSaveErr=false;try{var _m={};_m.appVer=D.appVer;_m.bubble=D.bubble;_m.bubbleSize=D.bubbleSize;_m.bubbleHim=D.bubbleHim;_m.bubbleMe=D.bubbleMe;_m.chatFontSize=D.chatFontSize;_m.accentColor=D.accentColor;_m.fontColor=D.fontColor;_m.theme=D.theme;_m.setCurChar=D.setCurChar;_m.lockName=D.lockName;_m.slogan=D.slogan;_m.phHimDrop=D.phHimDrop;_m.phMyDrop=D.phMyDrop;_m.phHimChgRate=D.phHimChgRate;_m.phHimAutoAt=D.phHimAutoAt;_m.phMyAutoAt=D.phMyAutoAt;_m.phHimChgSpeed=D.phHimChgSpeed;_m.phMyChgSpeed=D.phMyChgSpeed;_m.phAutoHim=D.phAutoHim;_m.phAutoMy=D.phAutoMy;localStorage.setItem(DKEY+'_min',JSON.stringify(_m));}catch(e){window.__yzSaveErr=true;}}
 function $(s){return document.querySelector(s);}
 function pad(n){return n<10?'0'+n:''+n;}
 
