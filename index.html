@@ -2260,7 +2260,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-10-v98a";
+window.__YZ_BUILD="2026-11-10-v98b";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -6071,16 +6071,22 @@ function yzVerRender(){
   }catch(e){}
 }
 function yzForceUpdate(){
-  /* 清缓存 + 注销 SW + 带时间戳重拉最新代码（聊天记录不会丢） */
+  /* 彻底刷新：清 SW + 清缓存 + 带强制参数重新拉 */
   var u=location.href.split("#")[0].split("?")[0];
   var _fired=false;
-  var done=function(){ if(_fired)return; _fired=true; try{ location.replace(u+"?v="+Date.now()); }catch(e){ location.reload(); } };
-  /* 兜底：最多等 1.5 秒，避免清缓存卡住导致按钮像没反应 */
-  setTimeout(done,1500);
+  var done=function(){
+    if(_fired)return; _fired=true;
+    try{ location.replace(u+"?v="+Date.now()+"&r="+Math.random().toString(36).slice(2)); }
+    catch(e){ try{ location.reload(true); }catch(_){ location.reload(); } }
+  };
+  /* 兜底：最多等 2 秒，不让用户觉得没反应 */
+  setTimeout(done,2000);
   try{
     var jobs=[];
     if(window.caches&&caches.keys){ jobs.push(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); })); }
-    if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){ jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ try{ return r.unregister(); }catch(e){} })); })); }
+    if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){
+      jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ try{ return r.unregister(); }catch(e){ return null; } })); }));
+    }
     if(jobs.length){ Promise.all(jobs).then(done).catch(done); return; }
   }catch(e){}
   done();
