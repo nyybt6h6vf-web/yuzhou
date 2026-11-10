@@ -2228,7 +2228,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="100";
+window.__YZ_BUILD="101";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4131,6 +4131,15 @@ function yzRowGroupKey(r){
   try{
     var el=r.querySelector('input[id],select[id],textarea[id],.chip[id]');
     if(el&&el.id&&YZ_SET_MAP[el.id])return YZ_SET_MAP[el.id];
+    /* 兜底：仅“单独一行文字 + 右侧没有输入框”的真实设置行才算，入口行本身不归进来 */
+    try{
+      var _hasInput=r.querySelector('input,select,textarea');
+      if(!_hasInput){
+        var _lab=r.querySelector('.lab');
+        var _t=_lab?(_lab.textContent||'').trim():'';
+        if(_t==='主动消息与通知'||_t==='通知')return '';
+      }
+    }catch(e){}
     if(r.textContent.indexOf('通知')>=0)return '主动消息与通知';
   }catch(e){}
   return '';
@@ -4231,7 +4240,43 @@ function yzBuildSetGroups(){
       var hub=yzSetHubOf(name);
       var box=document.createElement('div'); box.className='group'; box.setAttribute('data-sub',name); if(hub)box.setAttribute('data-hub',hub);
       var hh=document.createElement('h4'); hh.textContent=name; box.appendChild(hh);
-      rows.forEach(function(r){ try{ var c=r.cloneNode(true); box.appendChild(c); }catch(e){} });
+      rows.forEach(function(r){ try{
+        var c=r.cloneNode(true);
+        /* 克隆体去掉 id，避免与原行重名导致 $() 取到隐藏的空值 */
+        /* 建立 克隆体元素 -> 原行元素 的映射，读写都走原行 */
+        var _srcEls=r.querySelectorAll('[id]');
+        var _clsEls=c.querySelectorAll('[id]');
+        var _pairs=[];
+        for(var _i=0;_i<_srcEls.length;_i++){
+          if(_clsEls[_i]){ _pairs.push([_clsEls[_i],_srcEls[_i]]); }
+        }
+        _pairs.forEach(function(pp){
+          var cEl=pp[0], sEl=pp[1];
+          var _id=sEl.getAttribute('id');
+          cEl.removeAttribute('id');
+          cEl.setAttribute('data-yzmirror',_id);
+          /* 初值同步 */
+          try{
+            if(cEl.tagName==='INPUT'||cEl.tagName==='TEXTAREA'||cEl.tagName==='SELECT'){ cEl.value=sEl.value; }
+            else if(cEl.tagName==='DIV'&&sEl.tagName==='DIV'){ cEl.textContent=sEl.textContent; }
+          }catch(e){}
+          /* 克隆体变更 -> 写回原行 */
+          var _ev=(cEl.tagName==='INPUT'||cEl.tagName==='TEXTAREA'||cEl.tagName==='SELECT')?'input':'click';
+          cEl.addEventListener(_ev,function(){
+            try{ sEl.value=cEl.value; }catch(e){}
+            try{ if(typeof saveProfile==='function')saveProfile(); }catch(e){}
+            try{ var _oc=sEl.getAttribute('oninput'); if(_oc){ /* 原行自带的 oninput 也跑一次 */ (new Function(_oc)).call(sEl); } }catch(e){}
+            try{ var _occ=sEl.getAttribute('onchange'); if(_occ){ (new Function(_occ)).call(sEl); } }catch(e){}
+          },true);
+          cEl.addEventListener('change',function(){
+            try{ sEl.value=cEl.value; }catch(e){}
+            try{ if(typeof saveProfile==='function')saveProfile(); }catch(e){}
+            try{ var _occ2=sEl.getAttribute('onchange'); if(_occ2){ (new Function(_occ2)).call(sEl); } }catch(e){}
+          },true);
+          /* 原行 oninput/onchange 里引用的就是原 id，同步后自然生效 */
+        });
+        box.appendChild(c);
+      }catch(e){} });
       subs.appendChild(box);
       if(!hub){
         /* 主动消息与通知统一由下面的独立入口生成，这里跳过，避免重复 */
@@ -9316,6 +9361,18 @@ function yzListenOpt(){
   var cid=(typeof yzCurKaoCharId==='function')?yzCurKaoCharId():'';
   return { push:function(m){ pushListenMsg(m.from||'him', m.text||'', m.type||'text', m.src||'', m.sec||0); },
            msgs:(D.listenMsgs||[]), cid:cid };
+}
+function sendListen(){
+  try{
+    var i=document.getElementById('lisInput');
+    if(!i)return;
+    var v=String(i.value||'').trim();
+    if(!v)return;
+    i.value='';
+    pushListenMsg('me',v,'text');
+    try{ if(D.sendHold) return; }catch(e){}
+    listenReply();
+  }catch(e){}
 }
 function listenMaybePat(){
   try{
