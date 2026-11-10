@@ -2210,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-09-v97u";
+window.__YZ_BUILD="2026-11-10-v97v";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -12027,6 +12027,19 @@ function yzApplyBubbleBg(){
   }catch(e){}
 }
 window.__yzApplyBubbleBg=yzApplyBubbleBg;
+/* 直接把已保存的气泡颜色变量写到预览框，不依赖设置页重建 */
+function yzPaintPreview(){
+  try{
+    var box=document.getElementById('bubblePreview');
+    if(!box) return;
+    var bh=String(D.bubbleHim||'').trim();
+    var bm=String(D.bubbleMe||'').trim();
+    try{ if(bh){ box.style.setProperty('--yz-snout-him',bh); box.style.setProperty('--yz-bub-him',bh); } else { box.style.removeProperty('--yz-snout-him'); box.style.removeProperty('--yz-bub-him'); } }catch(e){}
+    try{ if(bm){ box.style.setProperty('--yz-snout-me',bm); box.style.setProperty('--yz-bub-me',bm); } else { box.style.removeProperty('--yz-snout-me'); box.style.removeProperty('--yz-bub-me'); } }catch(e){}
+    if(bh||bm){ window.__yzApplyBubbleBg && window.__yzApplyBubbleBg(); }
+  }catch(e){}
+}
+window.__yzPaintPreview=yzPaintPreview;
 function yzApplyMsgFontColor(){
   try{
     var h=String(D.himFontColor||'').trim()||'#000000';
@@ -12466,6 +12479,14 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
   try{ window.__yzApplyBubbleBg && window.__yzApplyBubbleBg(); }catch(e){}
   try{ yzApplyMsgFontColor && yzApplyMsgFontColor(); }catch(e){}
   try{ setTimeout(function(){ try{ window.__yzApplyBubbleBg && window.__yzApplyBubbleBg(); }catch(e){} try{ yzApplyMsgFontColor && yzApplyMsgFontColor(); }catch(e){} try{ yzPreviewBubble && yzPreviewBubble(); }catch(e){} }, 300); }catch(e){}
+  /* 预览框：启动时就把颜色变量写进去，不等设置页触发 */
+  try{ window.__yzPaintPreview && window.__yzPaintPreview(); }catch(e){}
+  try{ setTimeout(function(){ try{ window.__yzPaintPreview && window.__yzPaintPreview(); }catch(e){} }, 60); }catch(e){}
+  try{ setTimeout(function(){ try{ window.__yzPaintPreview && window.__yzPaintPreview(); }catch(e){} }, 800); }catch(e){}
+  /* 预览框：启动时就把颜色变量写进去，不等设置页触发 */
+  try{ window.__yzPaintPreview && window.__yzPaintPreview(); }catch(e){}
+  try{ setTimeout(function(){ try{ window.__yzPaintPreview && window.__yzPaintPreview(); }catch(e){} }, 60); }catch(e){}
+  try{ setTimeout(function(){ try{ window.__yzPaintPreview && window.__yzPaintPreview(); }catch(e){} }, 800); }catch(e){}
   try{document.addEventListener('visibilitychange',function(){if(!document.hidden){try{var ll=document.querySelector('.duo .linkline');if(ll){ll.style.animation='none';void ll.offsetWidth;ll.style.animation='';}}catch(e){}try{yzPassGate();}catch(e){}}});}catch(e){}
   if(!D.moments)D.moments=[];
   if(!D.letters)D.letters=[];
