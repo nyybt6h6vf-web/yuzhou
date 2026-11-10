@@ -2260,7 +2260,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-10-v97z";
+window.__YZ_BUILD="2026-11-10-v98";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -12159,7 +12159,7 @@ function yzApplyMsgFontColor(){
     }
   }catch(e){}
 }
-/* 自动版本巡检：发现线上版本变了就静默刷新一次，无需手动点更新 */
+/* 自动版本巡检：发现线上版本变了就静默刷新一次（带防死循环保护） */
 function yzAutoUpdateWatch(){
   try{
     if(window.__yzAutoUpWatching)return; window.__yzAutoUpWatching=true;
@@ -12171,42 +12171,18 @@ function yzAutoUpdateWatch(){
           .then(function(t){
             var v=String(t||'').trim(); var local=window.__YZ_BUILD||'';
             if(!v||!local)return;
-            if(yzVerSame(v,local))return;
-            var key='yzAutoUpKey';
-            try{ if(localStorage.getItem(key)===v)return; localStorage.setItem(key,v); }catch(e){}
+            if(yzVerSame(v,local)) return;
+            /* 防死循环：同一个版本只自动刷一次，刷完仍不对就不再刷 */
+            var key='yzAutoUpTried';
+            try{ if(localStorage.getItem(key)===v) return; localStorage.setItem(key,v); }catch(e){}
             try{ toast('发现新版本，正在更新…'); }catch(e){}
             setTimeout(function(){ try{ yzForceUpdate(); }catch(e){} },600);
           }).catch(function(){});
       }catch(e){}
     };
     setTimeout(check,1500);
-    setInterval(check,60000);
-    document.addEventListener('visibilitychange',function(){ if(!document.hidden) setTimeout(check,800); });
-  }catch(e){}
-}
-/* 自动版本巡检：发现线上版本变了就静默刷新一次，无需手动点更新 */
-function yzAutoUpdateWatch(){
-  try{
-    if(window.__yzAutoUpWatching)return; window.__yzAutoUpWatching=true;
-    var check=function(){
-      try{
-        if(document.hidden)return;
-        fetch('https://raw.githubusercontent.com/nyybt6h6vf-web/yuzhou/main/version.txt?t='+Date.now(),{cache:'no-store'})
-          .then(function(x){return x.text();})
-          .then(function(t){
-            var v=String(t||'').trim(); var local=window.__YZ_BUILD||'';
-            if(!v||!local)return;
-            if(yzVerSame(v,local))return;
-            var key='yzAutoUpKey';
-            try{ if(localStorage.getItem(key)===v)return; localStorage.setItem(key,v); }catch(e){}
-            try{ toast('发现新版本，正在更新…'); }catch(e){}
-            setTimeout(function(){ try{ yzForceUpdate(); }catch(e){} },600);
-          }).catch(function(){});
-      }catch(e){}
-    };
-    setTimeout(check,1500);
-    setInterval(check,60000);
-    document.addEventListener('visibilitychange',function(){ if(!document.hidden) setTimeout(check,800); });
+    setInterval(check,120000);
+    document.addEventListener('visibilitychange',function(){ if(!document.hidden) setTimeout(check,3000); });
   }catch(e){}
 }
 window.__tranTap=function(i){try{tranAct(i);}catch(e){}};
@@ -12595,7 +12571,6 @@ document.addEventListener('click',function(e){var t=e.target;while(t&&t!==docume
   /* 页面加载完成后再刷两次版本显示，避开自动更新瞬间的旧值 */
   try{ setTimeout(function(){ try{ yzRefreshRemoteVer(); }catch(e){} },3000); }catch(e){}
   try{ setTimeout(function(){ try{ yzRefreshRemoteVer(); }catch(e){} },7000); }catch(e){}
-  try{ yzAutoUpdateWatch(); }catch(e){}
   try{ yzAutoUpdateWatch(); }catch(e){}
   try{ if(!window._yzLisMetaTimer){ window._yzLisMetaTimer=setInterval(function(){ try{ var l=document.getElementById('listen'); if(l&&l.classList.contains('active')){ yzLisTickMeta(); } }catch(e){} }, 1000); } }catch(e){}
   try{ if(!window._yzStampTimer){ window._yzStampTimer=setInterval(function(){ try{ var c=document.getElementById("chat"); if(c&&c.classList.contains("active")){ renderChat(); } }catch(e){} }, 1800000); } }catch(e){}
