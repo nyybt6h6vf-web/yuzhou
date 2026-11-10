@@ -2210,7 +2210,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-10-v97v";
+window.__YZ_BUILD="2026-11-10-v97w";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -8045,11 +8045,16 @@ function openCrop(who,src){
   const box=$('#cropBox'),img=$('#cropImg');
   img.src=src;
   img.onload=()=>{
-    img.style.width='100%';img.style.height='auto';
-    const bw=box.clientWidth,bh=box.clientHeight;
+    /* 不再先设百分比宽度（会让图片一瞬处于错位状态，残留黑边） */
+    const bw=box.clientWidth||220,bh=box.clientHeight||220;
+    /* 保证图片至少铺满整个裁剪框，不留空白 */
     const scale=Math.max(bw/img.naturalWidth,bh/img.naturalHeight);
-    cropBase={scale:scale,w:img.naturalWidth*scale,h:img.naturalHeight*scale};
-    cropPos={x:(bw-cropBase.w)/2,y:(bh-cropBase.h)/2};
+    cropBase={scale:scale,w:Math.ceil(img.naturalWidth*scale),h:Math.ceil(img.naturalHeight*scale)};
+    /* 居中，并强制限制不露边 */
+    var nx=Math.round((bw-cropBase.w)/2), ny=Math.round((bh-cropBase.h)/2);
+    nx=Math.min(0,Math.max(bw-cropBase.w,nx));
+    ny=Math.min(0,Math.max(bh-cropBase.h,ny));
+    cropPos={x:nx,y:ny};
     applyCropPos();
   };
   openSheet2('cropSheet');
@@ -8124,7 +8129,11 @@ function confirmCrop(){
   if(!cropBase){closeSheet2('cropSheet');return;}
   const _SZ=180;
   const out=document.createElement('canvas');out.width=_SZ;out.height=_SZ;
-  out.getContext('2d').drawImage(img,-cropPos.x*(_SZ/box.clientWidth),-cropPos.y*(_SZ/box.clientWidth),cropBase.w*(_SZ/box.clientWidth),cropBase.h*(_SZ/box.clientWidth));
+  var _bw=box.clientWidth||220, _bh=box.clientHeight||220;
+  var _k=_SZ/_bw;
+  /* 只取裁剪框那一块，并限定不超出图片，避免黑边 */
+  var _sx=Math.max(0, Math.round(-cropPos.x/_k*window.devicePixelRatio/1));
+  out.getContext('2d').drawImage(img,-cropPos.x*_k,-cropPos.y*_k,cropBase.w*_k,cropBase.h*_k);
   const url=out.toDataURL('image/jpeg',0.72);
   if(cropTarget==='him'){
     D.avatarHim=url;
@@ -12355,6 +12364,7 @@ function yzPreviewBubble(){
 }
 /* 预览框画完后补一次字色，否则重进网站时会被默认颜色盖掉 */
 try{
+  if(!window.__yzPrevWrapped){ window.__yzPrevWrapped=1;
   var _pb=yzPreviewBubble;
   yzPreviewBubble=function(){
     var r=_pb.apply(this,arguments);
@@ -12362,16 +12372,7 @@ try{
     try{ setTimeout(function(){ try{ yzApplyMsgFontColor(); }catch(e){} },0); }catch(e){}
     return r;
   };
-}catch(e){}
-/* 预览框画完后补一次字色，否则重进网站时会被默认颜色盖掉 */
-try{
-  var _pb=yzPreviewBubble;
-  yzPreviewBubble=function(){
-    var r=_pb.apply(this,arguments);
-    try{ yzApplyMsgFontColor(); }catch(e){}
-    try{ setTimeout(function(){ try{ yzApplyMsgFontColor(); }catch(e){} },0); }catch(e){}
-    return r;
-  };
+  }
 }catch(e){}
 window.yzPreviewBubble=yzPreviewBubble;
 
