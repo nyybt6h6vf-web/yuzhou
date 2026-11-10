@@ -1366,9 +1366,9 @@ svg [fill="currentColor"]{stroke:none;}
 .ln-now-playing{flex:0 0 auto;padding:6px 18px 2px;}
 #listen .listen-stage{margin-top:2px;}
 .ln-main{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;}
-.ln-lyr{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;text-align:center;padding:8px 28px;mask-image:linear-gradient(to bottom,transparent 0,#000 14%,#000 86%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14%,#000 86%,transparent 100%);}
-.ln-lyr .lyline{padding:9px 0;font-size:15px;color:var(--sub);opacity:.55;transition:all .32s cubic-bezier(.2,.8,.2,1);line-height:1.5;}
-.ln-lyr .lyline.on{color:var(--text);opacity:1;font-weight:600;font-size:17px;transform:scale(1.02);}
+.ln-lyr{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;text-align:center;position:relative;padding:45% 26px 50%;mask-image:linear-gradient(to bottom,transparent 0,#000 18%,#000 82%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 18%,#000 82%,transparent 100%);scrollbar-width:none;}
+.ln-lyr .lyline{padding:9px 0;font-size:15px;color:#5b5f68;opacity:.7;transition:all .34s cubic-bezier(.2,.8,.2,1);line-height:1.5;}
+.ln-lyr .lyline.cur,.ln-lyr .lyline.on{color:var(--accent,#7b93c4);opacity:1;font-weight:700;font-size:18px;transform:scale(1.06);text-shadow:0 0 0 transparent;}
 #listen .lis-progwrap{flex:0 0 auto;padding:0 18px;margin-top:4px;}
 #listen .lis-ctrl{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:34px;padding:8px 0 4px;}
 #listen .lis-modes{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 26px 14px;}
@@ -1583,7 +1583,7 @@ svg [fill="currentColor"]{stroke:none;}
     <div class="statusbar apple" id="lisChatBar"><span>9:41</span><span class="right">100%</span></div>
     <div class="navbar"><div class="back" onclick="go('listen')">‹</div><div class="title" id="lisChatTitle">一起听</div></div>
     <div class="ln-chatbg" id="lnChatBg">
-      <div class="ln-chat" id="listenChat"></div>
+      <div class="ln-chat listen-chat" id="listenChat"></div>
       <div class="ln-chatinput">
         <div class="upbtn" onclick="openPackPickerFor('listen')">表情</div>
         <input id="lisInput" type="text" placeholder="说点什么…" onkeydown="if(event.key==='Enter')sendListen()">
@@ -2260,7 +2260,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-10-v98";
+window.__YZ_BUILD="2026-11-10-v98a";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -8578,12 +8578,14 @@ function yzPaintLisBg(){
     var pg=document.getElementById('listen');
     if(pg){
       var c=yzLisBgCss(D.lisBg,0.12);
-      pg.style.backgroundImage = c || 'none';
+      if(c){ pg.style.setProperty('background','var(--chat-bg)','important'); pg.style.setProperty('background-image',c,'important'); pg.style.setProperty('background-size','cover','important'); pg.style.setProperty('background-position','center','important'); }
+      else { pg.style.removeProperty('background'); pg.style.removeProperty('background-image'); }
     }
     var cg=document.getElementById('lnChatBg');
     if(cg){
       var c2=yzLisBgCss(D.lisChatBg,0.62);
-      cg.style.backgroundImage = c2 || 'none';
+      if(c2){ cg.style.setProperty('background-image',c2,'important'); cg.style.setProperty('background-size','cover','important'); cg.style.setProperty('background-position','center','important'); }
+      else { cg.style.removeProperty('background-image'); }
     }
   }catch(e){}
 }
