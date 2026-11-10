@@ -14,22 +14,29 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
 :root{
-  --page-bg:#ffffff;
-  --chat-bg:#fafafa;
+  /* 浅色模式：背景带一点冷灰，卡片纯白，靠层次而不是影子撑着 */
+  --page-bg:#f2f3f5;
+  --chat-bg:#eef0f3;
   --panel:#ffffff;
-  --card:#f5f5f7;
-  --text:#1c1c1e;
-  --sub:#8e8e93;
-  --line:#e5e5ea;
-  --icon-bg:#f2f2f5;
-  --icon-fg:#1c1c1e;
-  --bubble-me:#1c1c1e;
+  --card:#ffffff;
+  --card-2:#f7f8fa;
+  --text:#1b1c1f;
+  --sub:#85868c;
+  --line:#e3e5ea;
+  --icon-bg:#f0f2f6;
+  --icon-fg:#1b1c1f;
+  --bubble-me:#1b1c1f;
   --bubble-me-text:#ffffff;
-  --bubble-him:#f0f0f3;
-  --bubble-him-text:#1c1c1e;
-  --status:#1c1c1e;
-  --accent:#859ecb;
-  --accent-soft:#7f9cc4;
+  --bubble-him:#ffffff;
+  --bubble-him-text:#1b1c1f;
+  --status:#1b1c1f;
+  --accent:#7b93c4;
+  --accent-soft:#6f88b8;
+  /* 新增：真实感的层次变量 */
+  --lift-1:0 1px 2px rgba(20,24,35,.05), 0 4px 10px rgba(20,24,35,.045);
+  --lift-2:0 2px 4px rgba(20,24,35,.055), 0 10px 24px rgba(20,24,35,.06);
+  --hair:rgba(20,24,35,.055);
+  --hair-strong:rgba(20,24,35,.09);
 }
 [data-theme="dark"]{
   --page-bg:#000000;
@@ -99,7 +106,7 @@ body.perf-lite .cbtn.yes,body.perf-lite .gmk-startbtn,body.perf-lite .ttt-startb
 .grid{flex:1;padding:26px 30px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:26px 12px;align-content:start;overflow-y:auto;}
 .app{display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:transform .16s cubic-bezier(.3,1.4,.5,1);}
 .app:active{transform:scale(.86);}
-.icon{width:56px;height:56px;border-radius:19px;display:flex;align-items:center;justify-content:center;background:var(--icon-bg);color:var(--icon-fg);box-shadow:0 6px 18px rgba(0,0,0,.10),inset 0 1px 1px rgba(255,255,255,.25);}
+.icon{width:56px;height:56px;border-radius:19px;display:flex;align-items:center;justify-content:center;background:var(--icon-bg);color:var(--icon-fg);border:1px solid var(--hair);box-shadow:0 6px 18px rgba(0,0,0,.10),inset 0 1px 1px rgba(255,255,255,.25);}
 .icon svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
 svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
 svg [fill="currentColor"]{stroke:none;}
@@ -117,8 +124,8 @@ svg [fill="currentColor"]{stroke:none;}
 
 #momTopBg{flex:0 0 120px;height:120px;width:100%;background-size:cover;background-position:center;background-repeat:no-repeat;}
 #moments{background:var(--page-bg);}
-.navbar{height:52px;flex:0 0 52px;display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid var(--line);background:var(--page-bg);backdrop-filter:none;-webkit-backdrop-filter:none;z-index:6;}
-.navbar .back{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px;background:var(--card);box-shadow:0 2px 8px rgba(120,130,200,.15);cursor:pointer;}
+.navbar{height:52px;flex:0 0 52px;display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid var(--hair);background:color-mix(in srgb, var(--page-bg) 82%, transparent);backdrop-filter:blur(16px) saturate(1.6);-webkit-backdrop-filter:blur(16px) saturate(1.6);z-index:6;}
+.navbar .back{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px;background:var(--card);box-shadow:0 2px 8px rgba(20,24,35,.07);cursor:pointer;}
 .navbar .title{font-size:16px;font-weight:700;flex:0 0 auto;margin-right:6px;}
 .navbar .chatid{display:inline-block;margin:0 10px 0 0;}
 .navbar .chatfeel{display:inline-block;margin:0;}
@@ -134,7 +141,7 @@ svg [fill="currentColor"]{stroke:none;}
 .chat-body::-webkit-scrollbar{width:0;}
 .msg{display:flex;gap:9px;max-width:100%;}
 .msg.me{flex-direction:row-reverse;}
-.avatar{width:38px;height:38px;border-radius:var(--yz-av-radius,14px);flex:0 0 38px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-weight:700;box-shadow:0 4px 10px rgba(120,130,200,.22);}
+.avatar{width:38px;height:38px;border-radius:var(--yz-av-radius,14px);flex:0 0 38px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-weight:700;box-shadow:0 4px 10px rgba(20,24,35,.11);}
 .avatar img{width:100%;height:100%;object-fit:cover;}
 .avatarbox{position:relative;flex:0 0 38px;}
 .avatarbox .avatar{width:38px;height:38px;}
@@ -160,7 +167,7 @@ svg [fill="currentColor"]{stroke:none;}
 .dot.d2{animation-delay:.15s !important;}
 .dot.d3{animation-delay:.3s !important;}
 .msg.me .msgname{justify-content:flex-end;margin:2px 2px 3px 0;}
-.bubble{padding:10px 14px;border-radius:20px;font-size:14.5px;line-height:1.5;word-break:break-word;white-space:pre-wrap;box-shadow:0 4px 12px rgba(120,130,200,.14);background:var(--bubble-him);color:var(--bubble-him-text);}
+.bubble{padding:10px 14px;border-radius:20px;font-size:14.5px;line-height:1.5;word-break:break-word;white-space:pre-wrap;box-shadow:0 1px 2px rgba(20,24,35,.06),0 2px 8px rgba(20,24,35,.04);background:var(--bubble-him);color:var(--bubble-him-text);}
 .msg.him .bubble{background:var(--bubble-him);color:var(--bubble-him-text);border-top-left-radius:6px;}
 .msg.me .bubble{background:var(--bubble-me);color:var(--bubble-me-text);border-top-right-radius:6px;}
 .sys{align-self:center;background:rgba(140,145,175,.16);color:var(--sub);font-size:11.5px;border-radius:12px;padding:5px 12px;text-align:center;max-width:80%;}
@@ -185,7 +192,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 /* ---- iOS 默认气泡外观 ---- */
 #chat.yz-bub-default .msg .bubble{position:relative !important;box-shadow:none !important;line-height:1.3 !important;}
-#chat.yz-bub-default .msg.him .bubble{background:#E9E9EB !important;color:#000 !important;}
+#chat.yz-bub-default .msg.him .bubble{background:#E9E9EB !important;box-shadow:inset 0 0 0 1px rgba(20,24,35,.055) !important;}
 #chat.yz-bub-default .msg.me .bubble{background:#0A84FF !important;}
 [data-theme="dark"] #chat.yz-bub-default .msg.him .bubble{background:#26252A !important;}
 /* ===== 气泡形状：方框 / 圆角（仅未填气泡CSS时生效） ===== */
@@ -241,7 +248,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 /* ---- 预览区：同样的 iOS 外观 ---- */
 #bubblePreview.yz-bub-default .bubble{position:relative !important;box-shadow:none !important;line-height:1.3 !important;}
-#bubblePreview.yz-bub-default .msg.him .bubble{background:var(--yz-bub-him,#E9E9EB) !important;}
+#bubblePreview.yz-bub-default .msg.him .bubble{background:var(--yz-bub-him,#E9E9EB) !important;box-shadow:inset 0 0 0 1px rgba(20,24,35,.055) !important;}
 #bubblePreview.yz-bub-default .msg.me .bubble{background:var(--yz-bub-me,#0A84FF) !important;}
 /* 方框模式：四角统一，不再单独收角 */
 
@@ -281,14 +288,14 @@ svg [fill="currentColor"]{stroke:none;}
 .bubble.packimg{padding:2px;max-width:74px;background:transparent;box-shadow:none;margin:4px 0;}
 .bubble.packimg img{width:74px;height:74px;object-fit:cover;border-radius:12px;display:block;}
 .card-msg{background:var(--card)!important;color:var(--text)!important;border:1px solid var(--line);}
-.bubble.patb{background:var(--card);color:var(--text);font-size:13px;border-radius:16px;box-shadow:0 2px 8px rgba(120,130,200,.12);}
+.bubble.patb{background:var(--card);color:var(--text);font-size:13px;border-radius:16px;box-shadow:0 2px 8px rgba(20,24,35,.06);}
 .patline{align-self:center;text-align:center;font-size:12px;color:#fff;background:rgba(140,145,175,.9);border-radius:14px;padding:6px 16px;max-width:82%;margin:0 auto;}
 .msg.patrow{justify-content:center;width:100%;}
 .inputbar{flex:0 0 auto;display:flex;align-items:center;gap:9px;padding:10px 12px 16px;background:var(--panel);backdrop-filter:blur(8px);border-top:1px solid var(--line);}
-.inputbar .ib{width:38px;height:38px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:19px;background:var(--card);box-shadow:0 2px 8px rgba(120,130,200,.15);cursor:pointer;flex:0 0 38px;}
+.inputbar .ib{width:38px;height:38px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:19px;background:var(--card);box-shadow:0 2px 8px rgba(20,24,35,.07);cursor:pointer;flex:0 0 38px;}
 .inputbar input,.inputbar textarea{flex:1;border:none;outline:none;background:var(--card);border-radius:16px;padding:11px 15px;font-size:14.5px;color:var(--text);font-family:inherit;box-shadow:inset 0 0 0 1px var(--line);}
 .inputbar textarea{resize:none;line-height:1.45;max-height:96px;overflow-y:auto;}
-.inputbar .holdbtn{font-size:16px;background:var(--card);color:var(--sub);opacity:.75;transition:.15s;position:relative;box-shadow:0 2px 8px rgba(120,130,200,.12);}
+.inputbar .holdbtn{font-size:16px;background:var(--card);color:var(--sub);opacity:.75;transition:.15s;position:relative;box-shadow:0 2px 8px rgba(20,24,35,.06);}
 .inputbar .holdbtn.on{background:var(--accent,#859ecb);color:#fff;opacity:1;box-shadow:0 4px 12px rgba(133,158,203,.5);}
 .inputbar .holdbtn.on::after{content:"连发";position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:9px;background:var(--accent,#859ecb);color:#fff;padding:1px 5px;border-radius:6px;white-space:nowrap;}
 .inputbar .send{padding:0 16px;height:38px;border-radius:14px;background:var(--bubble-me);color:#fff;font-weight:700;font-size:14px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(120,140,255,.35);font-family:inherit;}
@@ -397,7 +404,7 @@ svg [fill="currentColor"]{stroke:none;}
 .plusgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px 10px;}
 .plusitem{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:transform .14s;}
 .plusitem:active{transform:scale(.92);}
-.plusitem .pi{width:58px;height:58px;border-radius:20px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,var(--icon-bg),var(--card));color:var(--icon-fg);box-shadow:0 4px 14px rgba(120,130,200,.16);}
+.plusitem .pi{width:58px;height:58px;border-radius:20px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,var(--icon-bg),var(--card));color:var(--icon-fg);box-shadow:0 4px 14px rgba(20,24,35,.08);}
 .plusitem .pi svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
 /* 全局：所有内联图标 SVG 统一空心细线风（内联 fill/stroke 仍优先） */
 .moact svg,.moc svg,.drow svg,.mo svg,.letter-item svg,.diaryitem svg,.scIc svg,.auto-dot + svg,.ib svg,.cbtn svg,.phbtn svg,.phmini svg,.phbootlogo svg,.phchg svg{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;vertical-align:-0.12em;}
@@ -441,15 +448,15 @@ svg [fill="currentColor"]{stroke:none;}
 .list{flex:1;overflow-y:auto;padding:14px 16px 30px;overscroll-behavior:contain;-webkit-overflow-scrolling:auto;}
 .group{margin-bottom:20px;}
 .group h4{font-size:12px;color:var(--sub);margin:0 6px 8px;letter-spacing:1px;font-weight:600;}
-.row{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:16px;padding:14px 16px;margin-bottom:8px;box-shadow:0 3px 12px rgba(120,130,200,.10);}
+.row{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:18px;padding:14px 16px;margin-bottom:9px;box-shadow:var(--lift-1);border:1px solid var(--hair);transition:box-shadow .22s cubic-bezier(.2,.8,.2,1), transform .18s cubic-bezier(.2,.8,.2,1);}
 .setstat{margin-left:8px;font-size:11px;color:var(--sub);background:rgba(127,127,127,.12);padding:2px 7px;border-radius:8px;white-space:nowrap;}
 .row .lab{flex:1;font-size:14px;}
 .row input[type=text],.row input[type=number]{flex:1;border:none;outline:none;background:transparent;color:var(--text);font-size:14px;font-family:inherit;text-align:right;}
 .row textarea{width:100%;text-align:left;resize:vertical;min-height:70px;background:var(--card);border-radius:12px;padding:10px;box-shadow:inset 0 0 0 1px var(--line);border:none;outline:none;color:var(--text);font-family:inherit;font-size:13px;}
-.chip{padding:7px 14px;border-radius:14px;background:var(--card);font-size:13px;box-shadow:0 2px 8px rgba(120,130,200,.12);cursor:pointer;color:var(--sub);border:1px solid var(--line);}
+.chip{padding:7px 14px;border-radius:14px;background:var(--card);font-size:13px;box-shadow:0 2px 8px rgba(20,24,35,.06);cursor:pointer;color:var(--sub);border:1px solid var(--line);}
 .chip.on{background:var(--bubble-me);color:#fff;border-color:transparent;}
 .seg{display:flex;gap:8px;}
-.carditem{background:var(--card);border-radius:16px;padding:13px 15px;margin-bottom:9px;box-shadow:0 3px 12px rgba(120,130,200,.10);position:relative;}
+.carditem{background:var(--card);border-radius:16px;padding:13px 15px;margin-bottom:9px;box-shadow:var(--lift-1);border:1px solid var(--hair);position:relative;}
 .carditem .cct{font-size:13.5px;line-height:1.55;white-space:pre-wrap;padding-right:26px;}
 .carditem .del{position:absolute;top:10px;right:12px;color:var(--sub);font-size:15px;cursor:pointer;}
 .empty{text-align:center;color:var(--sub);font-size:13px;padding:40px 20px;}
@@ -462,7 +469,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 /* 在一起 方块 */
 .tilelist{flex:1;overflow-y:auto;padding:18px 16px 30px;display:grid;grid-template-columns:1fr;gap:16px;align-content:start;}
-.tile{background:var(--card);border-radius:24px;padding:56px 20px 48px;display:flex;flex-direction:column;align-items:center;gap:14px;cursor:pointer;position:relative;box-shadow:0 4px 16px rgba(120,130,200,.12);min-height:200px;justify-content:center;}
+.tile{background:var(--card);border-radius:24px;padding:56px 20px 48px;display:flex;flex-direction:column;align-items:center;gap:14px;cursor:pointer;position:relative;box-shadow:0 4px 16px rgba(20,24,35,.06);min-height:200px;justify-content:center;}
 .tile .ti{font-size:32px;font-weight:600;letter-spacing:1px;display:flex;align-items:center;gap:6px;color:var(--text);}
 .tile .ti.addtile{font-size:26px;font-weight:300;color:var(--sub);}
 .tile span{font-size:12px;color:var(--sub);}
@@ -812,7 +819,7 @@ svg [fill="currentColor"]{stroke:none;}
 /* 动态 */
 #moments{background:var(--chat-bg);}
 .moments-body{flex:1;overflow-y:auto;padding:16px 14px 30px;display:flex;flex-direction:column;gap:16px;}
-.mo{background:var(--panel);border-radius:18px;padding:14px;box-shadow:0 4px 14px rgba(120,130,200,.10);}
+.mo{background:var(--panel);border-radius:18px;padding:14px;box-shadow:0 4px 14px rgba(20,24,35,.055);}
 .mo .moh{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .mo .moav{width:38px;height:38px;border-radius:13px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;background:var(--icon-bg);color:var(--icon-fg);flex:0 0 38px;}
 .mo .moav img{width:100%;height:100%;object-fit:cover;}
@@ -1340,6 +1347,12 @@ svg [fill="currentColor"]{stroke:none;}
 [data-theme="dark"] .noteinput{background:#202024;color:#e6e6ea;}
 
 #yzClearSheet .yzcc-row{-webkit-user-select:none;user-select:none;}
+
+/* 真实感：设置行与卡片的轻微按压反馈 */
+.row:active{transform:scale(.985);box-shadow:0 1px 2px rgba(20,24,35,.05);}
+.carditem:active{transform:scale(.99);}
+.chip:active{transform:scale(.96);}
+.icon:active{transform:scale(.94);}
 </style>
 </head>
 <body>
@@ -2210,7 +2223,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-10-v97w";
+window.__YZ_BUILD="2026-11-10-v97x";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
