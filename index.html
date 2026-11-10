@@ -2228,7 +2228,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="102";
+window.__YZ_BUILD="103";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -4178,6 +4178,8 @@ function yzBuildSetGroups(){
     var wrap=document.querySelector('#settings .list'); if(!wrap)return;
     try{
       if(!window.__yzSetSrcHtml){
+        /* 抓底稿前先回填一次真实值，否则底稿里全是空框 */
+        try{ fillSettings(); }catch(e){}
         /* 抓快照之前先清一遍重复入口，避免把脏数据存成底稿 */
         var _nm2=['回复设置','聊天小功能','互动小功能','主动消息与通知','设置各功能背景','锁屏','各美化设置'];
         var _seen={};
@@ -4192,13 +4194,30 @@ function yzBuildSetGroups(){
             else _seen[tt]=1;
           }catch(e){}
         });
+        /* 抓底稿前把当前输入值写进 HTML 属性，保证还原后值不丢 */
+        try{
+          [].slice.call(wrap.querySelectorAll('input,textarea,select')).forEach(function(el){
+            if(!el.id)return;
+            var v=el.value;
+            if(v===undefined||v===null)return;
+            el.setAttribute('value',String(v));
+            if(el.tagName==='TEXTAREA'){ el.textContent=String(v); }
+          });
+        }catch(e){}
         window.__yzSetSrcHtml = wrap.innerHTML;
       }
     }catch(e){}
     var subs=document.getElementById('setSubBody'); if(!subs)return;
     /* 重建前先清空：否则每次重建都会多插一份入口，越点越乱 */
     var all=[].slice.call(wrap.querySelectorAll(".group"));
-    try{ if(!wrap.querySelector('.row') && window.__yzSetSrcHtml){ wrap.innerHTML=window.__yzSetSrcHtml; all=[].slice.call(wrap.querySelectorAll('.group')); } }catch(e){}
+    /* 每次重建都从底稿还原：因为行被搬走了，原位置是空的 */
+    try{
+      if(window.__yzSetSrcHtml){
+        wrap.innerHTML=window.__yzSetSrcHtml;
+        all=[].slice.call(wrap.querySelectorAll('.group'));
+        try{ fillSettings(); }catch(e){}
+      }
+    }catch(e){}
     try{ subs.innerHTML=""; }catch(e){}
     /* 清掉历史上堆出来的动态入口，避免重复 */
     try{
@@ -4241,51 +4260,7 @@ function yzBuildSetGroups(){
       var box=document.createElement('div'); box.className='group'; box.setAttribute('data-sub',name); if(hub)box.setAttribute('data-hub',hub);
       var hh=document.createElement('h4'); hh.textContent=name; box.appendChild(hh);
       rows.forEach(function(r){ try{
-        var c=r.cloneNode(true);
-        /* 克隆体去掉 id，避免与原行重名导致 $() 取到隐藏的空值 */
-        /* 建立 克隆体元素 -> 原行元素 的映射，读写都走原行 */
-        var _srcEls=r.querySelectorAll('[id]');
-        var _clsEls=c.querySelectorAll('[id]');
-        var _pairs=[];
-        for(var _i=0;_i<_srcEls.length;_i++){
-          if(_clsEls[_i]){ _pairs.push([_clsEls[_i],_srcEls[_i]]); }
-        }
-        _pairs.forEach(function(pp){
-          var cEl=pp[0], sEl=pp[1];
-          var _id=sEl.getAttribute('id');
-          cEl.removeAttribute('id');
-          cEl.setAttribute('data-yzmirror',_id);
-          /* 移除克隆体自带的内联事件，避免它在写回原值之前就调用保存 */
-          try{ cEl.removeAttribute('oninput'); cEl.removeAttribute('onchange'); cEl.removeAttribute('onblur'); }catch(e){}
-          /* 初值同步 */
-          try{
-            if(cEl.tagName==='INPUT'||cEl.tagName==='TEXTAREA'||cEl.tagName==='SELECT'){ cEl.value=sEl.value; }
-            else if(cEl.tagName==='DIV'&&sEl.tagName==='DIV'){ cEl.textContent=sEl.textContent; }
-          }catch(e){}
-          var _isInput=(cEl.tagName==='INPUT'||cEl.tagName==='TEXTAREA'||cEl.tagName==='SELECT');
-          if(_isInput){
-            /* 输入框：写完值再存 */
-            cEl.addEventListener('input',function(){
-              try{ sEl.value=cEl.value; }catch(e){}
-              try{ if(typeof saveProfile==='function')saveProfile(); }catch(e){}
-            },true);
-            cEl.addEventListener('change',function(){
-              try{ sEl.value=cEl.value; }catch(e){}
-              try{ if(typeof saveProfile==='function')saveProfile(); }catch(e){}
-            },true);
-          }else{
-            /* 按钮类：把点击转给原元素执行，再回刷镜像 */
-            var _oc0=cEl.getAttribute('onclick');
-            if(_oc0){
-              cEl.removeAttribute('onclick');
-              cEl.addEventListener('click',function(ev){
-                try{ ev.stopPropagation(); }catch(e){}
-                try{ (new Function(_oc0)).call(cEl); }catch(e){}
-                try{ if(window.yzSyncMirrors)setTimeout(yzSyncMirrors,30); }catch(e){}
-              },true);
-            }
-          }
-        });
+        var c=r;
         box.appendChild(c);
       }catch(e){} });
       subs.appendChild(box);
@@ -4465,6 +4440,9 @@ function yzOpenSetSub(name){
     all2.forEach(function(g){ g.style.display='none'; });
     var hit2=all2.filter(function(g){var h=g.querySelector('h4');return h&&h.textContent.trim()===name;})[0];
     if(hit2)hit2.style.display='';
+    /* 子页打开后回填所有设置值，否则输入框是空的 */
+    try{ fillSettings(); }catch(e){}
+    try{ if(window.yzSyncMirrors)yzSyncMirrors(); }catch(e){}
     /* 子页打开后补上「已选择 / 已上传」标记 */
     try{ yzMarkSetStatus(); }catch(e){}
   }catch(e){}
