@@ -1367,8 +1367,8 @@ svg [fill="currentColor"]{stroke:none;}
 #listen .listen-stage{margin-top:2px;}
 .ln-main{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;}
 .ln-lyr{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;text-align:center;position:relative;padding:45% 26px 50%;mask-image:linear-gradient(to bottom,transparent 0,#000 18%,#000 82%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 18%,#000 82%,transparent 100%);scrollbar-width:none;}
-.ln-lyr .lyline{padding:9px 0;font-size:15px;color:#5b5f68;opacity:.7;transition:all .34s cubic-bezier(.2,.8,.2,1);line-height:1.5;}
-.ln-lyr .lyline.cur,.ln-lyr .lyline.on{color:var(--accent,#7b93c4);opacity:1;font-weight:700;font-size:18px;transform:scale(1.06);text-shadow:0 0 0 transparent;}
+.ln-lyr .lyline{padding:11px 0;font-size:15.5px;color:#111214;opacity:.62;transition:all .34s cubic-bezier(.2,.8,.2,1);line-height:1.5;}
+.ln-lyr .lyline.cur,.ln-lyr .lyline.on{color:#2f6fd0;opacity:1;font-weight:800;font-size:19px;transform:scale(1.08);letter-spacing:.2px;}
 #listen .lis-progwrap{flex:0 0 auto;padding:0 18px;margin-top:4px;}
 #listen .lis-ctrl{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:34px;padding:8px 0 4px;}
 #listen .lis-modes{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 26px 14px;}
@@ -1378,8 +1378,16 @@ svg [fill="currentColor"]{stroke:none;}
 #listen .listen-now .snm{font-size:14.5px;font-weight:600;}
 #listen .listen-now .sby{font-size:12px;color:var(--sub);margin-top:2px;}
 /* 聊天页 */
-#lisChat .ln-chatbg{flex:1;display:flex;flex-direction:column;min-height:0;position:relative;background:var(--chat-bg);}
+#lisChat .ln-chatbg{flex:1;display:flex;flex-direction:column;min-height:0;position:relative;background-color:var(--chat-bg);}
 #lisChat .ln-chat{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 8px;}
+#lisChat .ln-chat .lm{display:flex;gap:8px;align-items:flex-end;max-width:82%;}
+#lisChat .ln-chat .lm.me{align-self:flex-end;flex-direction:row-reverse;}
+#lisChat .ln-chat .lm .lav{width:28px!important;height:28px!important;flex:0 0 28px!important;max-width:28px!important;max-height:28px!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:12px!important;font-weight:700;background:var(--icon-bg);color:var(--icon-fg);}
+#lisChat .ln-chat .lm .lav img{width:28px!important;height:28px!important;max-width:28px!important;max-height:28px!important;object-fit:cover!important;display:block!important;border-radius:9px;}
+#lisChat .ln-chat .lm .lb{background:var(--bubble-him);color:var(--bubble-him-text);padding:9px 13px;border-radius:16px;font-size:13.5px;line-height:1.5;word-break:break-word;max-width:100%;}
+#lisChat .ln-chat .lm.me .lb{background:var(--bubble-me);color:var(--bubble-me-text);}
+#lisChat .ln-chat .lts{font-size:9.5px;color:var(--sub);margin-top:2px;padding-left:3px;}
+#lisChat .ln-chat .ltsme{text-align:right;padding-right:3px;}
 #lisChat .ln-chatinput{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(255,255,255,.62);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--hair);}
 </style>
 </head>
@@ -2260,7 +2268,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="2026-11-10-v98b";
+window.__YZ_BUILD="2026-11-10-v98c";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -3057,11 +3065,11 @@ function go(id){
   if(id==='chat'){try{yzChatBubMode();}catch(e){} D._yzChatEnterMs=Date.now(); try{window.__yzPatRolled=false;}catch(e){} try{window.__yzStampArmed=true;}catch(e){} renderChat();$('#chat').style.background=getChatBg();try{yzChatBubMode();}catch(e){} setTimeout(scrollBottom,30); try{var _cv=yzCurConv(); if(_cv){var _nl=(_cv.msgs||[]).length; if(_cv._readLen!==_nl){ _cv._readLen=_nl; save(); }}}catch(e){} try{renderHome();}catch(e){}}
   if(id==='cards'){try{yzBindCards();renderCardTabs();}catch(e){}renderCards();}
   if(id==='together')renderTiles();
-  if(id==='lisChat'){ try{ yzLisRender(); }catch(e){} }
+  if(id==='lisChat'){ try{ yzLisRender(); }catch(e){} try{ window.__yzPaintLisBg && window.__yzPaintLisBg(); }catch(e){} try{ setTimeout(function(){ window.__yzPaintLisBg && window.__yzPaintLisBg(); },80); }catch(e){} }
   if(id==='setSub'){ try{yzBuildSetGroups();}catch(e){} try{fillSettings();}catch(e){} }
   if(id==='settings'){try{yzSetRenderTabs();}catch(e){} try{yzBuildSetGroups();}catch(e){} fillSettings();try{yzPhCondRows();}catch(e){}try{yzBeautyRender();}catch(e){}try{if($('#themeAutoChip'))$('#themeAutoChip').textContent=D.themeAuto?'开启':'关闭';}catch(e){}try{ yzMarkSetStatus(); }catch(e){}}
   if(id==='moments'){ try{ var _ch=0; (D.moments||[]).forEach(function(m){ if(m.from==='him'&&!m.read){ m.read=true; _ch=1; } }); if(_ch)save(); }catch(e){} try{yzChSyncBtns();}catch(e){} renderMoments(); try{renderHome();}catch(e){} }
-  if(id==='listen'){ D._yzLisEnterMs=Date.now(); try{window.__yzStampArmedLis=true;}catch(e){} hideLisFloat(); if(!D.lisBound){ try{ lisOpenPick(); }catch(e){} } else { try{ lisShowPlayer(); }catch(e){} } try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} }
+  if(id==='listen'){ D._yzLisEnterMs=Date.now(); try{window.__yzStampArmedLis=true;}catch(e){} hideLisFloat(); if(!D.lisBound){ try{ lisOpenPick(); }catch(e){} } else { try{ lisShowPlayer(); }catch(e){} } try{ renderListen(); }catch(e){} try{ yzBindProgress(); }catch(e){} try{ window.__yzPaintLisBg && window.__yzPaintLisBg(); }catch(e){} try{ setTimeout(function(){ window.__yzPaintLisBg && window.__yzPaintLisBg(); },80); }catch(e){} }
   if(id!=='listen'){ try{ setTimeout(yzMaybeShowFloat,60); }catch(e){} }
   if(id==='letters'){try{yzChSyncBtns();}catch(e){}renderLetters();}
   if(id==='packs')renderPacks();
@@ -8583,15 +8591,30 @@ function yzPaintLisBg(){
   try{
     var pg=document.getElementById('listen');
     if(pg){
-      var c=yzLisBgCss(D.lisBg,0.12);
-      if(c){ pg.style.setProperty('background','var(--chat-bg)','important'); pg.style.setProperty('background-image',c,'important'); pg.style.setProperty('background-size','cover','important'); pg.style.setProperty('background-position','center','important'); }
-      else { pg.style.removeProperty('background'); pg.style.removeProperty('background-image'); }
+      var c=yzLisBgCss(D.lisBg,0.10);
+      if(c){
+        pg.style.setProperty('background-color','var(--chat-bg)','important');
+        pg.style.setProperty('background-image',c,'important');
+        pg.style.setProperty('background-size','cover','important');
+        pg.style.setProperty('background-position','center','important');
+        pg.style.setProperty('background-repeat','no-repeat','important');
+        pg.style.setProperty('background-attachment','local','important');
+      } else {
+        pg.style.removeProperty('background-image');
+      }
     }
     var cg=document.getElementById('lnChatBg');
     if(cg){
-      var c2=yzLisBgCss(D.lisChatBg,0.62);
-      if(c2){ cg.style.setProperty('background-image',c2,'important'); cg.style.setProperty('background-size','cover','important'); cg.style.setProperty('background-position','center','important'); }
-      else { cg.style.removeProperty('background-image'); }
+      var c2=yzLisBgCss(D.lisChatBg,0.55);
+      if(c2){
+        cg.style.setProperty('background-color','var(--chat-bg)','important');
+        cg.style.setProperty('background-image',c2,'important');
+        cg.style.setProperty('background-size','cover','important');
+        cg.style.setProperty('background-position','center','important');
+        cg.style.setProperty('background-repeat','no-repeat','important');
+      } else {
+        cg.style.removeProperty('background-image');
+      }
     }
   }catch(e){}
 }
@@ -8654,7 +8677,7 @@ function renderListen(){
   (D.listenMsgs||[]).forEach(function(m,_li){
     if(m&&m.type==='sept'){ c.insertAdjacentHTML('beforeend',yzStampHtml(yzMsOf(m,_lisEnter))); return; }
     const isMe=m.from==='me';
-    var _lcid=D.lisBound||yzCtxCharId();
+    var _lcid=D.lisBound||'';
     const av=isMe?D.avatarMe:(yzChAvatar(_lcid)||D.avatarHim);
     const nm=isMe?(D.myNick||'我'):yzChNick(_lcid);
     const avh=av?`<img src="${av}">`:esc(nm[0]||'');
