@@ -2228,7 +2228,7 @@ svg [fill="currentColor"]{stroke:none;}
 
 
 <script id="appjs">
-window.__YZ_BUILD="103";
+window.__YZ_BUILD="104";
 const DKEY='yuzhou_data_v4';
 const ICONS={
  phone:'<svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 5.5h3"/><path d="M11 10l1 3h-1.8l1.3 3"/></svg>',
@@ -6063,13 +6063,13 @@ function yzCheckVerManual(){
       }).catch(function(){ if(r)r.textContent='检查失败'; if(b)b.textContent='检查'; });
   }catch(e){ if(b)b.textContent='检查'; }
 }
-function yzAutoVerCheck(){  try{    if(sessionStorage.getItem('yzAutoVerChecked')==='1')return;    sessionStorage.setItem('yzAutoVerChecked','1');    fetch('https://raw.githubusercontent.com/nyybt6h6vf-web/yuzhou/main/version.txt?t='+Date.now(),{cache:'no-store'})      .then(function(x){return x.text();})      .then(function(t){        var v=(t||'').trim();        var local=window.__YZ_BUILD||'';        if(v&&local&&!yzVerSame(v,local)){          try{ if(localStorage.getItem('yzAutoVerJump')!==v){ localStorage.setItem('yzAutoVerJump',v); yzForceUpdate(); } }catch(e){}        }      }).catch(function(){});  }catch(e){}}setTimeout(function(){ try{ yzAutoVerCheck(); }catch(e){} },1200);
+function yzAutoVerCheck(){ /* 自动版本检查已关闭 */ return; }
 function yzRefreshRemoteVer(){
   try{
     fetch('https://raw.githubusercontent.com/nyybt6h6vf-web/yuzhou/main/version.txt?t='+Date.now()+Math.random(),{cache:'no-store'})
       .then(function(x){return x.text();})
       .then(function(t){
-        var v=(t||'').trim(); if(!v||!/^v/i.test(v))return;
+        var v=(t||'').trim(); if(!v)return;
         var old=window.__yzRemoteVer||'';
         window.__yzRemoteVer=v;
         try{ var c=document.getElementById('verRemoteTxt'); if(c)c.textContent=v; }catch(e){}
@@ -12221,28 +12221,10 @@ function yzApplyMsgFontColor(){
 }
 /* 自动版本巡检：发现线上版本变了就静默刷新一次，无需手动点更新 */
 function yzAutoUpdateWatch(){
-  try{
-    if(window.__yzAutoUpWatching)return; window.__yzAutoUpWatching=true;
-    var check=function(){
-      try{
-        if(document.hidden)return;
-        fetch('https://raw.githubusercontent.com/nyybt6h6vf-web/yuzhou/main/version.txt?t='+Date.now(),{cache:'no-store'})
-          .then(function(x){return x.text();})
-          .then(function(t){
-            var v=String(t||'').trim(); var local=window.__YZ_BUILD||'';
-            if(!v||!local)return;
-            if(yzVerSame(v,local))return;
-            var key='yzAutoUpKey';
-            try{ if(localStorage.getItem(key)===v)return; }catch(e){}
-            try{ toast('发现新版本，正在更新…'); }catch(e){}
-            setTimeout(function(){ try{ yzForceUpdate(); }catch(e){} },600);
-          }).catch(function(){});
-      }catch(e){}
-    };
-    setTimeout(check,1500);
-    setInterval(check,120000);
-    document.addEventListener('visibilitychange',function(){ if(!document.hidden) setTimeout(check,3000); });
-  }catch(e){}
+  /* 自动更新已彻底关闭：它会导致反复重载并丢失数据。
+     以后只在设置页手动点「检查更新」才更新。 */
+  try{ window.__yzAutoUpWatching=true; }catch(e){}
+  return;
 }
 window.__tranTap=function(i){try{tranAct(i);}catch(e){}};
 window.__bubbleDecls=null;
